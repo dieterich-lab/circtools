@@ -3,7 +3,7 @@ context("test plotting of isoforms")
 
 test_that("function plots anything", {
   dat <- testData()
-  expect_output(
+  expect_silent(
     plotTranscripts(
       exons = dat$exons,
       counts = dat$counts ,
