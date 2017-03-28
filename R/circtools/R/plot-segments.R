@@ -207,8 +207,8 @@ annotateCircs <- function(ids, starts, ends, segmentSize, alpha = .4) {
     rect(
       xleft = starts,
       xright = ends,
-      ybottom = ylim[1] +  segmentSize / 2,
-      ytop = ylim[2] - segmentSize / 2,
+      ybottom = ylim[1],
+      ytop = ylim[2],
       col = colors,
       border = colorsLine,
       lwd = 2
