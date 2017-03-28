@@ -94,16 +94,15 @@ plotTranscripts <- function(exons,
   with(
     exons,
     plotRanges(
-      ids       = transcript_id,
-      starts    = start,
-      ends      = end,
-      seg_width = segmentSize$size,
-      min_width = segmentSize$minWidth
+      ids         = transcript_id,
+      starts      = start,
+      ends        = end,
+      segmentSize = segmentSize$size,
+      minWidth    = segmentSize$minWidth
     )
   )
   # add circ rectangles if defined
   isoformsYLim <- getYLim()
-  segmentWidthInc <- segmentSize$size * xy_per_in()
   if (!missing(circs))
     with(
       circs,
@@ -111,7 +110,7 @@ plotTranscripts <- function(exons,
         ids = id,
         starts = start,
         ends = end,
-        seg_width = segmentSize$size,
+        segmentSize = segmentSize$size,
         alpha = .2
       )
     )
@@ -126,8 +125,8 @@ plotTranscripts <- function(exons,
       ids = id,
       starts = start,
       ends = end,
-      seg_width = segmentSize$size,
-      min_width = segmentSize$minWidth,
+      segmentSize = segmentSize$size,
+      minWidth = segmentSize$minWidth,
       xlim = exonsXLim
     )
   )
@@ -137,7 +136,7 @@ plotTranscripts <- function(exons,
           bottom = 3,
           right  = 1)
   with(counts,
-       plotCounts(id = transcript_id,
+       plotCounts(id = ids,
                   count = count,
                   ylim = isoformsYLim))
 }
@@ -147,9 +146,9 @@ plotTranscripts <- function(exons,
 #' @param ids a character vector
 #' @param starts a numeric vector
 #' @param ends a numerica vector
-#' @param seg_width a segment size (height) in inches, so it can be the same
+#' @param segmentSize a segment size (height) in inches, so it can be the same
 #' for several subplots
-#' @param min_width a minimal segment width in inches
+#' @param minWidth a minimal segment width in inches
 #' @param xlim a range of interval coordinates on the plot. Used for alignment
 #' of features at multiple plots
 #'
@@ -160,8 +159,8 @@ plotTranscripts <- function(exons,
 plotRanges <- function(ids,
                        starts,
                        ends,
-                       seg_width,
-                       min_width = 0,
+                       segmentSize,
+                       minWidth = 0,
                        xlim = range(starts, ends)) {
   ylim <- c(.5, .5 + length(levels(ids)))
   no_axis()
@@ -182,8 +181,8 @@ plotRanges <- function(ids,
     las  = 1,
     cex  = 1
   )
-  seg_width_y <- seg_width * xy_per_in()[2]
-  min_width_x <- xy_per_in()[1] * min_width
+  seg_width_y <- segmentSize * xy_per_in()[2]
+  min_width_x <- xy_per_in()[1] * minWidth
   o <- (ends - starts) < min_width_x
   ends[o] <- starts[o] + min_width_x
   rect(
@@ -200,19 +199,19 @@ plotRanges <- function(ids,
 }
 
 
-annotateCircs <- function(ids, starts, ends, seg_width, alpha = .4) {
+annotateCircs <- function(ids, starts, ends, segmentSize, alpha = .4) {
   stopifnot(length(start) == length(ends))
   stopifnot(length(start) == length(ids))
-  stopifnot(seg_width > 0)
+  stopifnot(segmentSize > 0)
   stopifnot(alpha > 0 & alpha <= 1)
-  seg_width <- seg_width * xy_per_in()[2]
+  segmentSize <- segmentSize * xy_per_in()[2]
   colors <- rainbow(length(ids), alpha = alpha)
   ylim <- par()$usr[3:4]
   rect(
     xleft = starts,
     xright = ends,
-    ybottom = ylim[1] -  seg_width / 2,
-    ytop = ylim[2] + seg_width / 2,
+    ybottom = ylim[1] -  segmentSize / 2,
+    ytop = ylim[2] + segmentSize / 2,
     col = colors,
     border = NA
   )

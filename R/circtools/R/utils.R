@@ -47,7 +47,7 @@ testData <- function() {
   exons <- do.call(rbind, exons)
   res$exons <- exons
   # create expression levels
-  res$counts <- data.frame(transcript_id = unique(exons$transcript_id),
+  res$counts <- data.frame(ids = unique(exons$transcript_id),
                            count = round(2 ^ runif(
                              transNum, min = -10, max = 20
                            )))
