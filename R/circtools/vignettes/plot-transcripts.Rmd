@@ -1,0 +1,50 @@
+---
+title: "Transcript plot"
+author: "Alexey Uvarovskii"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+```{r}
+library(circtools)
+dat <- circtools:::testData()
+```
+
+The plotting function accpets:
+
+
+- exons for the transcript of interest
+```{r}
+knitr::kable(head(dat$exons), row.names = FALSE)
+```
+
+- read counts for the isoforms
+```{r}
+knitr::kable(head(dat$counts))
+```
+
+- annotation of circular RNA candidates (start-end defines the splice junction)
+```{r}
+knitr::kable(dat$circs)
+```
+
+- if defined, a primers set for the transcripts
+```{r}
+knitr::kable(dat$primers)
+```
+
+Also, a minimal aspect ratio of the segments on the plot can be provided.
+
+```{r, fig.height=4, fig.width=7}
+plotTranscripts(
+  exons = dat$exons,
+  counts = dat$counts ,
+  primers = dat$primers,
+  circs = dat$circs,
+  minRatio = .1
+)
+```
+
