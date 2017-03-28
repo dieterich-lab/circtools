@@ -42,42 +42,40 @@ getPanelHeight <- function(laneNumber){
 
 getYLim <- function() par()$usr[3:4]
 
-#' Title
+#' Plots isoforms structure, primer position and isoform counts if provided
 #'
-#' @param exons 
-#' @param counts 
-#' @param primers 
-#' @param circs 
-#' @param min_ratio 
-#' @param opts 
-#'
+#' @param exons an interval data.frame
+#' @param circs a counts data.frame
+#' @param counts an interval data.frame
+#' @param primers an interval data.frame
+#' @param minRatio a minimal aspect ratio for plotted segments (height/width)
+#' @param opts an option list
+#' 
 #' @return Used for its side effects. Plots intervals for exons,
 #' primers and transcript counts if provided.
 #' @export
 #'
 plotTranscripts <- function(exons,
-                   counts,
-                   primers = NULL,
-                   circs = NULL,
-                   min_ratio = .2,
-                   opts = list(
-))
-  {
+                            counts,
+                            primers = NULL,
+                            circs = NULL,
+                            minRatio = .2,
+                            opts = list()) {
   # pre-defined
   numMarginLines <- 3
-  widths <- c(2,1)
-  minSegmentAspect <- .1
+  widths <- c(2, 1)
+  minSegmentAspect <- .2
   # calculate sizes of panels and segments
   segmentSize <- list(size = getPanelHeight(1),
                       minWidth = getPanelHeight(1) * minSegmentAspect)
   primersNum <- ifelse(missing(primers), 0, length(unique(primers$id)))
   upperPanelHeight <- getPanelHeight(primersNum)
-  lowerPanelHeight <- getPanelHeight(
-    numMarginLines + length(unique(exons$transcript_id)))
+  lowerPanelHeight <- getPanelHeight(numMarginLines + length(unique(exons$transcript_id)))
   # in relative units
-  heights <- c(upperPanelHeight, lowerPanelHeight) / lowerPanelHeight
+  heights <-
+    c(upperPanelHeight, lowerPanelHeight) / lowerPanelHeight
   layout(
-    matrix(c(2, 1, 4, 3), ncol = 2), 
+    matrix(c(2, 1, 4, 3), ncol = 2),
     widths = widths,
     heights = heights,
     respect = TRUE
@@ -85,7 +83,7 @@ plotTranscripts <- function(exons,
   # plot exons -- bottom left
   labWidth <- maxLabelWidth(as.character(exons$transcript_id))
   op <- margins(left = labWidth, bottom = numMarginLines)
-  # plot segments 
+  # plot segments
   with(
     exons,
     plotRanges(
@@ -107,12 +105,14 @@ plotTranscripts <- function(exons,
         starts = start,
         ends = end,
         seg_width = segmentSize$size,
-        alpha = .8
+        alpha = .2
       )
     )
-  exonsXLim <- with(exons,range(start, end))
+  exonsXLim <- with(exons, range(start, end))
   # plot primers -- upper left
-  op <- margins(left = labWidth, top = 0, bottom = .5)
+  op <- margins(left = labWidth,
+                top = 0,
+                bottom = .5)
   with(
     primers,
     plotRanges(
@@ -120,10 +120,11 @@ plotTranscripts <- function(exons,
       starts = start,
       ends = end,
       seg_width = segmentSize$size,
-      min_width = segmentSize$minWidth
+      min_width = segmentSize$minWidth,
+      xlim = exonsXLim
     )
   )
-  # plot counts -- lower right 
+  # plot counts -- lower right
   par(bty = "o")
   margins(left   = 1,
           bottom = 3,
@@ -135,13 +136,12 @@ plotTranscripts <- function(exons,
 }
 
 plotRanges <- function(ids,
-           starts,
-           ends,
-           seg_width,
-           min_width=0) {
+                       starts,
+                       ends,
+                       seg_width,
+                       min_width = 0,
+                       xlim = range(starts, ends)) {
   ylim <- c(.5, .5 + length(levels(ids)))
-  xlim <- range(starts, ends)
-  xlim <- xlim + c(-.1, .1) * diff(xlim)
   no_axis()
   no_box()
   plot(
@@ -161,8 +161,8 @@ plotRanges <- function(ids,
     cex  = 1
   )
   seg_width_y <- seg_width * xy_per_in()[2]
-  min_width_x <- seg_width * xy_per_in()[1] * min_width
-  o <- (ends-starts) < min_width_x
+  min_width_x <- xy_per_in()[1] * min_width
+  o <- (ends - starts) < min_width_x
   ends[o] <- starts[o] + min_width_x
   rect(
     xleft   = starts,
@@ -210,13 +210,4 @@ plotCounts <- function(id, count, ylim = c(.5, length(id) + .5)) {
   )
   segments(.5, y0 = as.numeric(id), count + .5, lwd = 2)
 }
-
-
-plotTr(
-  dat$exons,
-  dat$counts ,
-  primers = dat$primers,
-  circs = dat$circs,
-  seg_w = 1
-)
 
