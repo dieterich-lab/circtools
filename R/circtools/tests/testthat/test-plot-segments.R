@@ -1,7 +1,7 @@
 context("test plotting of isoforms")
 
 
-test_that("function plot anything", {
+test_that("function plots anything", {
   dat <- testData()
   expect_output(
     plotTranscripts(

@@ -1,13 +1,16 @@
 
+# get height of a text line in inches
 inches_per_line <- function(){
   par("csi") 
 }
-       
+
+# calculate text width in inches 
 maxLabelWidth <- function(x){
   textLength <- max(strwidth(x, units = "inches", cex = 1))
   textLength / inches_per_line() * 1.3
 }
 
+# set plot outer margins
 margins <- function(left = 0,
                     right = 0,
                     top = 0,
@@ -21,16 +24,19 @@ margins <- function(left = 0,
 
 xy_per_in <- function() par("cxy") / par("cin")
 
+# set which axis to plot
 which_axis <- function(x = FALSE, y = FALSE) {
   op <- par(xaxt = ifelse(x, "s", "n"),
             yaxt = ifelse(y, "s", "n"))
   op
 }
 
+# drop axes
 no_axis <- function(){
   which_axis() 
 }
 
+# no outer box around a plot
 no_box <- function(){
   op <- par(bty = "n")
   op
@@ -40,6 +46,7 @@ getPanelHeight <- function(laneNumber){
   par("csi") * laneNumber 
 }
 
+# get vertical limits in user coordinates 
 getYLim <- function() par()$usr[3:4]
 
 #' Plots isoforms structure, primer position and isoform counts if provided
@@ -135,6 +142,21 @@ plotTranscripts <- function(exons,
                   ylim = isoformsYLim))
 }
 
+#' Plots segments for a list of intervals
+#'
+#' @param ids a character vector
+#' @param starts a numeric vector
+#' @param ends a numerica vector
+#' @param seg_width a segment size (height) in inches, so it can be the same
+#' for several subplots
+#' @param min_width a minimal segment width in inches
+#' @param xlim a range of interval coordinates on the plot. Used for alignment
+#' of features at multiple plots
+#'
+#' @return Used for its side effect. Plots segments corresponding to given 
+#' intervals. 
+#' @export
+#'
 plotRanges <- function(ids,
                        starts,
                        ends,
