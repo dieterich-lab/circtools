@@ -79,8 +79,7 @@ plotTranscripts <- function(exons,
   upperPanelHeight <- getPanelHeight(primersNum)
   lowerPanelHeight <- getPanelHeight(numMarginLines + length(unique(exons$transcript_id)))
   # in relative units
-  heights <-
-    c(upperPanelHeight, lowerPanelHeight) / lowerPanelHeight
+  heights <- c(upperPanelHeight, lowerPanelHeight) / lowerPanelHeight
   layout(
     matrix(c(2, 1, 4, 3), ncol = 2),
     widths = widths,
@@ -137,8 +136,7 @@ plotTranscripts <- function(exons,
           right  = 1)
   with(counts,
        plotCounts(id = ids,
-                  count = count,
-                  ylim = isoformsYLim))
+                  count = count))
 }
 
 #' Plots segments for a list of intervals
@@ -165,6 +163,7 @@ plotRanges <- function(ids,
   ylim <- c(.5, .5 + length(levels(ids)))
   no_axis()
   no_box()
+  par(bty = "o")
   plot(
     0,
     type = "n",
@@ -193,29 +192,28 @@ plotRanges <- function(ids,
     col     = 1,
     border  = NA
   )
-  print(starts)
-  print(ends)
-  print(y_pos)
 }
 
 
 annotateCircs <- function(ids, starts, ends, segmentSize, alpha = .4) {
-  stopifnot(length(start) == length(ends))
-  stopifnot(length(start) == length(ids))
-  stopifnot(segmentSize > 0)
-  stopifnot(alpha > 0 & alpha <= 1)
-  segmentSize <- segmentSize * xy_per_in()[2]
-  colors <- rainbow(length(ids), alpha = alpha)
-  ylim <- par()$usr[3:4]
-  rect(
-    xleft = starts,
-    xright = ends,
-    ybottom = ylim[1] -  segmentSize / 2,
-    ytop = ylim[2] + segmentSize / 2,
-    col = colors,
-    border = NA
-  )
-}
+    stopifnot(length(start) == length(ends))
+    stopifnot(length(start) == length(ids))
+    stopifnot(segmentSize > 0)
+    stopifnot(alpha > 0 & alpha <= 1)
+    segmentSize <- segmentSize * xy_per_in()[2]
+    colors <- rainbow(length(ids), s = .6, alpha = alpha)
+    colorsLine <- rainbow(length(ids), s = 1, alpha = 1)
+    ylim <- par()$usr[3:4]
+    rect(
+      xleft = starts,
+      xright = ends,
+      ybottom = ylim[1] +  segmentSize / 2,
+      ytop = ylim[2] - segmentSize / 2,
+      col = colors,
+      border = colorsLine,
+      lwd = 2
+    )
+  }
 
 plotCounts <- function(id, count, ylim = c(.5, length(id) + .5)) {
   which_axis(x = TRUE)
