@@ -1,11 +1,10 @@
-source("code/vis/plot-segments.R")
 
 inches_per_line <- function(){
   par("csi") 
 }
        
 maxLabelWidth <- function(x){
-  textLength <- max(strwidth(x, units = "inches", cex=1))
+  textLength <- max(strwidth(x, units = "inches", cex = 1))
   textLength / inches_per_line() * 1.3
 }
 
@@ -20,8 +19,6 @@ margins <- function(left = 0,
   op
 }
 
-dat <- testData()
-
 xy_per_in <- function() par("cxy") / par("cin")
 
 which_axis <- function(x = FALSE, y = FALSE) {
@@ -35,59 +32,116 @@ no_axis <- function(){
 }
 
 no_box <- function(){
- op <- par(bty="n")
- op
+  op <- par(bty = "n")
+  op
 }
 
+getPanelHeight <- function(laneNumber){
+  par("csi") * laneNumber 
+}
 
-plotTr <- function(exons,
+getYLim <- function() par()$usr[3:4]
+
+#' Title
+#'
+#' @param exons 
+#' @param counts 
+#' @param primers 
+#' @param circs 
+#' @param min_ratio 
+#' @param opts 
+#'
+#' @return Used for its side effects. Plots intervals for exons,
+#' primers and transcript counts if provided.
+#' @export
+#'
+plotTranscripts <- function(exons,
                    counts,
                    primers = NULL,
                    circs = NULL,
-                   seg_w = 1,
-                   min_ratio = .2) {
-  seg_width <-  seg_w * par("csi")
-  nprimers <- ifelse(missing(primers), 0, length(unique(primers$id)))
-  h1 <- nprimers * seg_width * 1.1# + 1 * par("csi")
-  h2 <-
-    length(unique(exons$transcript_id)) * seg_width * 1.0 + 3 * par("csi")
-  h1 <- h1/h2
+                   min_ratio = .2,
+                   opts = list(
+))
+  {
+  # pre-defined
+  numMarginLines <- 3
+  widths <- c(2,1)
+  minSegmentAspect <- .1
+  # calculate sizes of panels and segments
+  segmentSize <- list(size = getPanelHeight(1),
+                      minWidth = getPanelHeight(1) * minSegmentAspect)
+  primersNum <- ifelse(missing(primers), 0, length(unique(primers$id)))
+  upperPanelHeight <- getPanelHeight(primersNum)
+  lowerPanelHeight <- getPanelHeight(
+    numMarginLines + length(unique(exons$transcript_id)))
+  # in relative units
+  heights <- c(upperPanelHeight, lowerPanelHeight) / lowerPanelHeight
   layout(
-    matrix(c(2, 1, 4, 3), ncol = 2),
-    widths = c(2, 1),
-    heights = c(h1,1),
+    matrix(c(2, 1, 4, 3), ncol = 2), 
+    widths = widths,
+    heights = heights,
     respect = TRUE
   )
-  lab.width <- maxLabelWidth(as.character(exons$transcript_id))
-  op <- margins(left = lab.width, bottom = 3)
-  with(exons, plotRanges(transcript_id, start, end, seg_width))
-  ylim_isoforms <- par()$usr[3:4]
-  xy_seg <- seg_width * xy_per_in()
-  if(!missing(circs))
-    with(circs, annotateCircs(id, start, end, seg_width))
-  xlims_exons <- with(exons,range(start, end))
-  # primers
-  op <- margins(left=lab.width, top = 0, bottom = .5)
-  with(primers,
-       plotRanges(id, start, end, seg_width, xlim = xlims_exons,
-                 min_width = min_ratio)
+  # plot exons -- bottom left
+  labWidth <- maxLabelWidth(as.character(exons$transcript_id))
+  op <- margins(left = labWidth, bottom = numMarginLines)
+  # plot segments 
+  with(
+    exons,
+    plotRanges(
+      ids       = transcript_id,
+      starts    = start,
+      ends      = end,
+      seg_width = segmentSize$size,
+      min_width = segmentSize$minWidth
+    )
   )
-  # counts
+  # add circ rectangles if defined
+  isoformsYLim <- getYLim()
+  segmentWidthInc <- segmentSize$size * xy_per_in()
+  if (!missing(circs))
+    with(
+      circs,
+      annotateCircs(
+        ids = id,
+        starts = start,
+        ends = end,
+        seg_width = segmentSize$size,
+        alpha = .8
+      )
+    )
+  exonsXLim <- with(exons,range(start, end))
+  # plot primers -- upper left
+  op <- margins(left = labWidth, top = 0, bottom = .5)
+  with(
+    primers,
+    plotRanges(
+      ids = id,
+      starts = start,
+      ends = end,
+      seg_width = segmentSize$size,
+      min_width = segmentSize$minWidth
+    )
+  )
+  # plot counts -- lower right 
   par(bty = "o")
-  margins(left = 1,
+  margins(left   = 1,
           bottom = 3,
-          right = 1)
-  with(counts, plotCounts(transcript_id,count,ylim = ylim_isoforms))
+          right  = 1)
+  with(counts,
+       plotCounts(id = transcript_id,
+                  count = count,
+                  ylim = isoformsYLim))
 }
 
 plotRanges <- function(ids,
            starts,
            ends,
            seg_width,
-           xlim = range(starts, ends),
            min_width=0) {
   ylim <- c(.5, .5 + length(levels(ids)))
-  par()$fin
+  xlim <- range(starts, ends)
+  xlim <- xlim + c(-.1, .1) * diff(xlim)
   no_axis()
   no_box()
   plot(
@@ -102,22 +156,21 @@ plotRanges <- function(ids,
   mtext(
     as.character(ids),
     side = 2,
-    at = y_pos,
-    las = 1,
-    cex = 1
+    at   = y_pos,
+    las  = 1,
+    cex  = 1
   )
   seg_width_y <- seg_width * xy_per_in()[2]
   min_width_x <- seg_width * xy_per_in()[1] * min_width
   o <- (ends-starts) < min_width_x
   ends[o] <- starts[o] + min_width_x
   rect(
-    xleft = starts,
+    xleft   = starts,
     ybottom = y_pos - seg_width_y / 2,
     xright  = ends,
-    ytop = y_pos + seg_width_y / 2,
-    col = 1
-    ,
-    border = NA
+    ytop    = y_pos + seg_width_y / 2,
+    col     = 1,
+    border  = NA
   )
   print(starts)
   print(ends)
@@ -166,3 +219,4 @@ plotTr(
   circs = dat$circs,
   seg_w = 1
 )
+
