@@ -15,7 +15,7 @@ getPrimersCoord <- function() {
   
 }
 
-getCircCoord <- function(table) {
+getCircCoords <- function(table) {
   circIR <- IRanges(start = table[, 2],
                     end = table[, 3],
                     names = table[, 1])
@@ -45,7 +45,7 @@ circsCoords <- read.table(
   sep = "\t",
   nrows = 20
 )
-grCircs <- getCircCoords()
+grCircs <- getCircCoords(circsCoords[, c("Chr", "Start", "End", "Strand")])
 extxdb <- exons(txdb, columns=c("EXONNAME", "GENEID", "TXNAME"))
 circExonsMap <- list(
   # t because we want it ordered as circs
