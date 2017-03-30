@@ -1,6 +1,33 @@
 
-getExons <- function() {
-  
+getExons <- function(txdb, circsGR) {
+  extxdb <- exons(txdb, columns = c("EXONNAME", "GENEID", "TXNAME"))
+  circExonsMap <- list(# t because we want it ordered as circs
+    rightSide = t(findOverlaps(extxdb, circsGR, type = "start")),
+    leftSide = t(findOverlaps(extxdb, circsGR, type = "end")))
+  sjExonCoords <- lapply(circExonsMap, function(x) extxdb[x@to])
+  geneKey <- "GENEID"
+  genes <- unlist(mcols(sjExonCoords$rightSide)[[geneKey]])
+  exByGene <- lapply(sjExonCoords, function(x) split(x, genes))
+  exByGene
+}
+
+getIntersectingTx <- function(exByGene) {
+  intersectingTx <-  lapply(
+    names(exByGene$leftSide),
+    function(gene) {
+      intersect(unlist(mcols(exByGene[[1]][[gene]])$TXNAME),
+                unlist(mcols(exByGene[[2]][[gene]])$TXNAME))
+    })
+  names(intersectingTx) <- names(exByGene$leftSide)
+  intersectingTx
+}
+
+getTx <- function(txdb, genes) {
+  txCoords <- transcripts(txdb,
+                          columns = c("GENEID", "TXNAME"),
+                          filter = list(gene_id = genes))
+  txCoordsByGene <- split(txCoords, unlist(mcols(txCoords)$GENEID))
+  txCoordsByGene
 }
 
 getExonsSeq <- function() {
@@ -46,27 +73,7 @@ circsCoords <- read.table(
   nrows = 20
 )
 grCircs <- getCircCoords(circsCoords[, c("Chr", "Start", "End", "Strand")])
-extxdb <- exons(txdb, columns=c("EXONNAME", "GENEID", "TXNAME"))
-circExonsMap <- list(
-  # t because we want it ordered as circs
-  rightSide = t(findOverlaps(extxdb, grCircs, type = "start")),
-  leftSide = t(findOverlaps(extxdb, grCircs, type = "end"))
-)
+exByGene <- getExons(txdb,grCircs)
+intersectingTx <- getIntersectingTx(exByGene)
+txByGene <- getTx(txdb, names(intersectingTx))
 
-sjExonCoords <- lapply(circExonsMap, function(x) extxdb[x@to])
-geneKey <- "GENEID"
-genes <- unlist(mcols(sjExonCoords$rightSide)[[geneKey]])
-exByGene <- lapply(sjExonCoords, function(x) split(x, genes))
-
-intersectingTx <-  lapply(names(exByGene$leftSide),
-                          function(gene) {
-                            intersect(unlist(mcols(exByGene[[1]][[gene]])$TXNAME),
-                                      unlist(mcols(exByGene[[2]][[gene]])$TXNAME))
-                          }
-)
-names(intersectingTx) <- names(exByGene$leftSide)
-
-txCoords <- transcripts(txdb,
-                        columns = c("GENEID", "TXNAME"),
-                        filter=list(gene_id = names(intersectingTx)))
-txCoordsByGene <- split(txCoords, unlist(mcols(txCoords)$GENEID))
