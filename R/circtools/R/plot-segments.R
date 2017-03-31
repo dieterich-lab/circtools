@@ -102,7 +102,7 @@ plotTranscripts <- function(exons,
   )
   # add circ rectangles if defined
   isoformsYLim <- getYLim()
-  if (!missing(circs))
+  if (!is.null(circs))
     with(
       circs,
       annotateCircs(
@@ -118,25 +118,29 @@ plotTranscripts <- function(exons,
   op <- margins(left = labWidth,
                 top = 0,
                 bottom = .5)
-  with(
-    primers,
-    plotRanges(
-      ids = id,
-      starts = start,
-      ends = end,
-      segmentSize = segmentSize$size,
-      minWidth = segmentSize$minWidth,
-      xlim = exonsXLim
+  if (!is.null(primers)) {
+    with(
+      primers,
+      plotRanges(
+        ids = id,
+        starts = start,
+        ends = end,
+        segmentSize = segmentSize$size,
+        minWidth = segmentSize$minWidth,
+        xlim = exonsXLim
+      )
     )
-  )
+  }
   # plot counts -- lower right
-  par(bty = "o")
-  margins(left   = 1,
-          bottom = 3,
-          right  = 1)
-  with(counts,
-       plotCounts(id = ids,
-                  count = count))
+  if (!is.null(counts)) {
+    par(bty = "o")
+    margins(left   = 1,
+            bottom = 3,
+            right  = 1)
+    with(counts,
+         plotCounts(id = ids,
+                    count = count))
+  }
 }
 
 #' Plots segments for a list of intervals
