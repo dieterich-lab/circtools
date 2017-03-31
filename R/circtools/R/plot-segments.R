@@ -160,6 +160,7 @@ plotRanges <- function(ids,
                        segmentSize,
                        minWidth = 0,
                        xlim = range(starts, ends)) {
+  ids <- as.factor(ids)
   ylim <- c(.5, .5 + length(levels(ids)))
   no_axis()
   no_box()
