@@ -11,6 +11,19 @@ getSjExons <- function(txdb, circsGR) {
   sjExByGene
 }
 
+getTxByGenes <- function(txdb, genes) {
+  suppressMessages(
+    txByGeneMap <- mapIds(
+      txdb,
+      column = "TXNAME",
+      key = genes,
+      keytype = "GENEID",
+      multiVals = "CharacterList"
+    )
+  )
+  txByGeneMap
+}
+
 getIntersectingTx <- function(exByGene, type=c("all", "<", ">")) {
   #TODO: different output types
   intersectingTx <-  lapply(
@@ -80,18 +93,7 @@ sjExByGene <- getSjExons(txdb,grCircs)
 # only to subset plotting
 intersectingTx <- getIntersectingTx(exByGene)
 genes <- Reduce(union,lapply(sjExByGene, names))
-txByGene <- getTx(txdb, names(intersectingTx))
+txByGene <- getTxByGenes(txdb, names(intersectingTx))
 allExByTx <- exonsBy(txdb, by = c("tx"), use.names=TRUE)
-getTxByGenes <- function(txdb, genes) {
-  suppressMessages(
-    txByGeneMap <- mapIds(
-      txdb,
-      column = "TXNAME",
-      key = genes,
-      keytype = "GENEID",
-      multiVals = "CharacterList"
-    )
-  )
-}
 ## make  tx - gene
 ## make tx-exon coords lists

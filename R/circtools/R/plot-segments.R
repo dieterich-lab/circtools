@@ -68,6 +68,16 @@ plotTranscripts <- function(exons,
                             circs = NULL,
                             minRatio = .2,
                             opts = list()) {
+  # TODO clean naming convention --> id, ids => seqnames ranges object?
+  toDF <- function(x)
+    if (!is.null(x) && is(x, "GRangesList")) {
+      grList2df(x)
+    } else {
+      x
+    }
+  exons <- toDF(exons)
+  circs <- toDF(circs)
+  primers <- toDF(primers)
   # pre-defined
   numMarginLines <- 3
   widths <- c(2, 1)
@@ -77,7 +87,7 @@ plotTranscripts <- function(exons,
                       minWidth = getPanelHeight(1) * minSegmentAspect)
   primersNum <- ifelse(missing(primers), 0, length(unique(primers$id)))
   upperPanelHeight <- getPanelHeight(primersNum)
-  lowerPanelHeight <- getPanelHeight(numMarginLines + length(unique(exons$transcript_id)))
+  lowerPanelHeight <- getPanelHeight(numMarginLines + length(unique(exons$ids)))
   # in relative units
   heights <- c(upperPanelHeight, lowerPanelHeight) / lowerPanelHeight
   layout(
@@ -87,13 +97,13 @@ plotTranscripts <- function(exons,
     respect = TRUE
   )
   # plot exons -- bottom left
-  labWidth <- maxLabelWidth(as.character(exons$transcript_id))
+  labWidth <- maxLabelWidth(as.character(exons$ids)) * 1.1
   op <- margins(left = labWidth, bottom = numMarginLines)
   # plot segments
   with(
     exons,
     plotRanges(
-      ids         = transcript_id,
+      ids         = ids,
       starts      = start,
       ends        = end,
       segmentSize = segmentSize$size,
@@ -181,6 +191,7 @@ plotRanges <- function(ids,
   mtext(
     as.character(ids),
     side = 2,
+    line = .5,
     at   = y_pos,
     las  = 1,
     cex  = 1
