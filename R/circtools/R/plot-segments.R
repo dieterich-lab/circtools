@@ -63,7 +63,7 @@ getYLim <- function() par()$usr[3:4]
 #' @export
 #'
 plotTranscripts <- function(exons,
-                            counts,
+                            counts = NULL,
                             primers = NULL,
                             circs = NULL,
                             minRatio = .2,
