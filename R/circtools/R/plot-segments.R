@@ -231,3 +231,13 @@ plotCounts <- function(id, count, ylim = c(.5, length(id) + .5)) {
   segments(.5, y0 = as.numeric(id), count + .5, lwd = 2)
 }
 
+
+# create a data.frame from a named list of ranges
+# used to flatten exon-by-transcript lists to pass to a plotting function
+grList2df <- function(grl) {
+  nrows <- elementNROWS(grl)
+  ids <- rep(names(nrows), times = nrows)
+  rangesDF <- as.data.frame(ranges(unlist(grl, use.names = FALSE)))
+  rangesDF$ids <- ids
+  rangesDF
+}
