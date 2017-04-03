@@ -80,26 +80,3 @@ getGeneIds <- function() {
   
 }
 
-library(GenomicFeatures)
-library(TxDb.Hsapiens.UCSC.hg19.knownGene)
-txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
-annotationDir <- "/home/alex/prj/mcf7_rna_metabolism/annotation/"
-#txdb <- makeTxDbFromGFF(paste0(annotationDir,"GRCh38.84.gtf"))
-#saveDb(txdb, paste0(annotationDir, "txdb"))
-txdb <- loadDb(paste0(annotationDir, "txdb"))
-circsCoords <- read.table(
-  "/home/alex/prj/mcf7_rna_metabolism/data/CircCoordinates",
-  header = TRUE,
-  sep = "\t",
-  nrows = 20
-)
-#circsCoords$Chr <- paste0("chr", circsCoords$Chr)
-grCircs <- with(circsCoords, getCircCoords(Chr, Start, End, Strand))
-sjExByGene <- getSjExons(txdb,grCircs)
-# only to subset plotting
-intersectingTx <- getIntersectingTx(exByGene)
-genes <- Reduce(union,lapply(sjExByGene, names))
-txByGene <- getTxByGenes(txdb, names(intersectingTx))
-allExByTx <- exonsBy(txdb, by = c("tx"), use.names=TRUE)
-## make  tx - gene
-## make tx-exon coords lists
