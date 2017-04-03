@@ -4,8 +4,8 @@
 \alias{plotRanges}
 \title{Plots segments for a list of intervals}
 \usage{
-plotRanges(ids, starts, ends, seg_width, min_width = 0, xlim = range(starts,
-  ends))
+plotRanges(ids, starts, ends, segmentSize, minWidth = 0,
+  xlim = range(starts, ends))
 }
 \arguments{
 \item{ids}{a character vector}
@@ -14,10 +14,10 @@ plotRanges(ids, starts, ends, seg_width, min_width = 0, xlim = range(starts,
 
 \item{ends}{a numerica vector}
 
-\item{seg_width}{a segment size (height) in inches, so it can be the same
+\item{segmentSize}{a segment size (height) in inches, so it can be the same
 for several subplots}
 
-\item{min_width}{a minimal segment width in inches}
+\item{minWidth}{a minimal segment width in inches}
 
 \item{xlim}{a range of interval coordinates on the plot. Used for alignment
 of features at multiple plots}

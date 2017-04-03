@@ -4,7 +4,7 @@
 \alias{plotTranscripts}
 \title{Plots isoforms structure, primer position and isoform counts if provided}
 \usage{
-plotTranscripts(exons, counts, primers = NULL, circs = NULL,
+plotTranscripts(exons, counts = NULL, primers = NULL, circs = NULL,
   minRatio = 0.2, opts = list())
 }
 \arguments{

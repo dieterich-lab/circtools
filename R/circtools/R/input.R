@@ -36,6 +36,7 @@ getIntersectingTx <- function(exByGene, type=c("all", "<", ">")) {
   intersectingTx
 }
 
+#' @import GenomicFeatures
 getTx <- function(txdb, genes) {
   txCoords <-exons(txdb,
                           columns = c("GENEID", "TXNAME", "EXONNAME"),
@@ -56,6 +57,18 @@ getPrimersCoord <- function() {
   
 }
 
+#' Create circular RNA coordinates GRanges object
+#'
+#' @param chr 
+#' @param start 
+#' @param end 
+#' @param strand 
+#' @param ids 
+#'
+#' @return a GRanges object
+#' @export
+#' @import GenomicRanges IRanges
+#' @examples
 getCircCoords <- function(chr, start, end, strand, ids = NULL) {  
   circIR <- IRanges(start = start, 
                     end = end,
