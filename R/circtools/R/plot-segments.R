@@ -91,7 +91,7 @@ plotTranscripts <- function(exons,
   upperPanelHeight <- getPanelHeight(primersNum)
   lowerPanelHeight <- getPanelHeight(numMarginLines + length(unique(exons$id)))
   # in relative units
-  heights <- c(upperPanelHeight, lowerPanelHeight) / lowerPanelHeight
+  heights <- c(upperPanelHeight, lowerPanelHeight) / lowerPanelHeight + .1
   layout(
     matrix(c(2, 1, 4, 3), ncol = 2),
     widths = widths,
@@ -99,7 +99,7 @@ plotTranscripts <- function(exons,
     respect = TRUE
   )
   # plot exons -- bottom left
-  labWidth <- maxLabelWidth(as.character(exons$id)) * 1.1
+  labWidth <- maxLabelWidth(as.character(exons$id)) + maxLabelWidth('a')  
   op <- margins(left = labWidth, bottom = numMarginLines)
   # plot segments
   with(
@@ -124,7 +124,8 @@ plotTranscripts <- function(exons,
         segmentSize = segmentSize$size,
         alpha = .2
       )
-    )
+    ) else 
+      plot.new()
   exonsXLim <- with(exons, range(start, end))
   # plot primers -- upper left
   op <- margins(left = labWidth,
@@ -142,7 +143,8 @@ plotTranscripts <- function(exons,
         xlim = exonsXLim
       )
     )
-  }
+  } else
+    plot.new()
   # plot counts -- lower right
   if (!is.null(counts)) {
     par(bty = "o")
