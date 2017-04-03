@@ -69,12 +69,14 @@ plotTranscripts <- function(exons,
                             minRatio = .2,
                             opts = list()) {
   # TODO clean naming convention --> id, ids => seqnames ranges object?
-  toDF <- function(x)
+  toDF <- function(x) {
     if (!is.null(x) && is(x, "GRangesList")) {
       grList2df(x)
-    } else {
-      x
-    }
+    } else if (!is.null(x)) {
+      as.data.frame(x)
+    } else
+      NULL
+  }
   exons <- toDF(exons)
   circs <- toDF(circs)
   primers <- toDF(primers)
@@ -87,7 +89,7 @@ plotTranscripts <- function(exons,
                       minWidth = getPanelHeight(1) * minSegmentAspect)
   primersNum <- ifelse(missing(primers), 0, length(unique(primers$id)))
   upperPanelHeight <- getPanelHeight(primersNum)
-  lowerPanelHeight <- getPanelHeight(numMarginLines + length(unique(exons$ids)))
+  lowerPanelHeight <- getPanelHeight(numMarginLines + length(unique(exons$id)))
   # in relative units
   heights <- c(upperPanelHeight, lowerPanelHeight) / lowerPanelHeight
   layout(
@@ -97,13 +99,13 @@ plotTranscripts <- function(exons,
     respect = TRUE
   )
   # plot exons -- bottom left
-  labWidth <- maxLabelWidth(as.character(exons$ids)) * 1.1
+  labWidth <- maxLabelWidth(as.character(exons$id)) * 1.1
   op <- margins(left = labWidth, bottom = numMarginLines)
   # plot segments
   with(
     exons,
     plotRanges(
-      ids         = ids,
+      ids         = id,
       starts      = start,
       ends        = end,
       segmentSize = segmentSize$size,
@@ -148,7 +150,7 @@ plotTranscripts <- function(exons,
             bottom = 3,
             right  = 1)
     with(counts,
-         plotCounts(id = ids,
+         plotCounts(id = id,
                     count = count))
   }
 }
@@ -213,12 +215,11 @@ plotRanges <- function(ids,
 
 annotateCircs <- function(ids, starts, ends, segmentSize, alpha = .4) {
     stopifnot(length(start) == length(ends))
-    stopifnot(length(start) == length(ids))
     stopifnot(segmentSize > 0)
     stopifnot(alpha > 0 & alpha <= 1)
     segmentSize <- segmentSize * xy_per_in()[2]
-    colors <- rainbow(length(ids), s = .6, alpha = alpha)
-    colorsLine <- rainbow(length(ids), s = 1, alpha = 1)
+    colors <- rainbow(length(starts), s = .6, alpha = alpha)
+    colorsLine <- rainbow(length(starts), s = 1, alpha = 1)
     ylim <- par()$usr[3:4]
     rect(
       xleft = starts,
@@ -251,8 +252,8 @@ plotCounts <- function(id, count, ylim = c(.5, length(id) + .5)) {
 # used to flatten exon-by-transcript lists to pass to a plotting function
 grList2df <- function(grl) {
   nrows <- elementNROWS(grl)
-  ids <- rep(names(nrows), times = nrows)
+  id <- rep(names(nrows), times = nrows)
   rangesDF <- as.data.frame(ranges(unlist(grl, use.names = FALSE)))
-  rangesDF$ids <- ids
+  rangesDF$id <- id
   rangesDF
 }
