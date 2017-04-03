@@ -56,17 +56,23 @@ getPrimersCoord <- function() {
   
 }
 
-getCircCoords <- function(table) {
-  circIR <- IRanges(start = table[, 2],
-                    end = table[, 3],
-                    names = table[, 1])
-  grCircs <- GRanges(seqnames = table[, 1],
+getCircCoords <- function(chr, start, end, strand, ids = NULL) {  
+  circIR <- IRanges(start = start, 
+                    end = end,
+                    names =  chr)
+  grCircs <- GRanges(seqnames = chr,
                      ranges = circIR,
-                     strand = table[, 4])
-  mcols(grCircs)$CIRCID <- apply(table[, 1:3],
-                                 FUN = paste,
-                                 MARGIN = 1,
-                                 collapse = '-')
+                     strand = strand)
+  if (is.null(ids)) {
+    mcols(grCircs)$CIRCID <- apply(
+      cbind(chr, start, end),
+      FUN = paste,
+      MARGIN = 1,
+      collapse = '-'
+    )
+  } else {
+    mcols(grCircs)$CIRCID <- ids
+  }
   grCircs
 }
 
@@ -88,7 +94,7 @@ circsCoords <- read.table(
   nrows = 20
 )
 #circsCoords$Chr <- paste0("chr", circsCoords$Chr)
-grCircs <- getCircCoords(circsCoords[, c("Chr", "Start", "End", "Strand")])
+grCircs <- with(circsCoords, getCircCoords(Chr, Start, End, Strand))
 sjExByGene <- getSjExons(txdb,grCircs)
 # only to subset plotting
 intersectingTx <- getIntersectingTx(exByGene)
