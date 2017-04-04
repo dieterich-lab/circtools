@@ -1,50 +1,69 @@
 ---
 title: "Transcript plot"
 author: "Alexey Uvarovskii"
-date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Vignette Title}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+date: '`r Sys.Date()`'
+output:
+  pdf_document: default
+  rmarkdown::html_vignette: default
+vignette: |
+  %\VignetteIndexEntry{Vignette Title} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8}
 ---
+
+## Introduction 
+
+The package aims to simplify analysis of the RNA-seq experiments for
+circular RNA detection and quantification. 
+Once a candidate list of possible circulirised RNA is provided 
+(e.g. after analysis with splice-aware alignment tools like STAR and 
+circRNA detection software like DCC or CIRI), it may be necessary 
+to validate such transcripts by PCR.
+
+We implemented a set of functions which could assist to design such 
+validation experiments. A biologist might be interested to know
+
+- which linear trabscripts are expressed and at which level
+- which transcripts have common exons with the predicted circRNA
+- how to design primers for the chosen linear and circular transcripts.
+
+
 ```{r}
 library(circtools)
-dat <- circtools:::testData()
 ```
 
-The plotting function accpets:
+## Transcript plot
 
+One would like to know, how the predicted circRNA relate to the linea transcripts.
+In order to see, which transcripts are expressed and what is their gene model
+(i.e. exon content), we implemented a plotting function.
+It shows a block structure for every annotated transcript, a coordinate
+range which is covered by the circRNA candidate and plots read counts for
+the transcripts if they are provided.
 
-- exons for the transcript of interest
+Coordinates and types of genomic features must be known in advance, and
+it can be provided in the form of `GTF/GFF` file or `TxDb`/`EnsDb` objects.
+In the frame of the package we encourage one to use the Ensemble annotation
+files or R packages, which can be downloaded from the [Ensembl site](http://www.ensembl.org) or installed via the Bioconductor ecosystem:
+```{r eval=FALSE}
+source("https://bioconductor.org/biocLite.R")
+biocLite("EnsDb.Hsapiens.v86")
+```
+
+In this example we are using the `ensembldb` package
 ```{r}
-knitr::kable(head(dat$exons), row.names = FALSE)
+library("EnsDb.Hsapiens.v86")
+db <- EnsDb.Hsapiens.v86
 ```
 
-- read counts for the isoforms
-```{r}
-knitr::kable(head(dat$counts))
-```
+In the first step, the helper function create an object, which keep relations
+between the annotated transcripts and coordinates for the predicted circRNAs.
+Here, we assume that a user have a `data.frame` or `GRanges` object with
+splice junctions coordinates from which circRNAs are derived.
+The input must contain the chromosome, start, end and the strand of the splice 
+junction.
 
-- annotation of circular RNA candidates (start-end defines the splice junction)
-```{r}
-knitr::kable(dat$circs)
-```
+```{r, fig.height=6, fig.width=7}
 
-- if defined, a primers set for the transcripts
-```{r}
-knitr::kable(dat$primers)
-```
-
-Also, a minimal aspect ratio of the segments on the plot can be provided.
-
-```{r, fig.height=4, fig.width=7}
-plotTranscripts(
-  exons = dat$exons,
-  counts = dat$counts ,
-  primers = dat$primers,
-  circs = dat$circs,
-  minRatio = .1
-)
+ex <- exonsBy(db, by="tx", filter = list(GenenameFilter("BCL6")))
+plotTranscripts(ex)
 ```
 
