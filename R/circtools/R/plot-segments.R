@@ -4,10 +4,10 @@ inches_per_line <- function(){
   par("csi") 
 }
 
-# calculate text width in inches 
+# calculate text width in lines
 maxLabelWidth <- function(x){
   textLength <- max(strwidth(x, units = "inches", cex = 1))
-  textLength / inches_per_line() * 1.3
+  textLength / par()$csi
 }
 
 # set plot outer margins
@@ -83,9 +83,11 @@ plotTranscripts <- function(exons,
   # pre-defined
   numMarginLines <- 3
   widths <- c(2, 1)
+  if (is.null(counts)) 
+    widths[2] <- .1
   minSegmentAspect <- .2
   # calculate sizes of panels and segments
-  segmentSize <- list(size = getPanelHeight(1),
+  segmentSize <- list(size = getPanelHeight(1) * .75,
                       minWidth = getPanelHeight(1) * minSegmentAspect)
   primersNum <- ifelse(missing(primers), 0, length(unique(primers$id)))
   upperPanelHeight <- getPanelHeight(primersNum)
@@ -99,7 +101,8 @@ plotTranscripts <- function(exons,
     respect = TRUE
   )
   # plot exons -- bottom left
-  labWidth <- maxLabelWidth(as.character(exons$id)) + maxLabelWidth('a')  
+  # leave 0.5 + 0.5 = 1 margin lines around the labels
+  labWidth <- maxLabelWidth(as.character(exons$id)) + 1 
   op <- margins(left = labWidth, bottom = numMarginLines)
   # plot segments
   with(
@@ -109,7 +112,8 @@ plotTranscripts <- function(exons,
       starts      = start,
       ends        = end,
       segmentSize = segmentSize$size,
-      minWidth    = segmentSize$minWidth
+      minWidth    = segmentSize$minWidth,
+      opts = opts
     )
   )
   # add circ rectangles if defined
@@ -124,8 +128,10 @@ plotTranscripts <- function(exons,
         segmentSize = segmentSize$size,
         alpha = .2
       )
-    ) else 
+    ) else {
+      margins()
       plot.new()
+    }
   exonsXLim <- with(exons, range(start, end))
   # plot primers -- upper left
   op <- margins(left = labWidth,
@@ -140,11 +146,14 @@ plotTranscripts <- function(exons,
         ends = end,
         segmentSize = segmentSize$size,
         minWidth = segmentSize$minWidth,
-        xlim = exonsXLim
+        xlim = exonsXLim,
+        opts = opts
       )
     )
-  } else
+  } else {
+    margins()
     plot.new()
+  }
   # plot counts -- lower right
   if (!is.null(counts)) {
     par(bty = "o")
@@ -177,7 +186,8 @@ plotRanges <- function(ids,
                        ends,
                        segmentSize,
                        minWidth = 0,
-                       xlim = range(starts, ends)) {
+                       xlim = range(starts, ends),
+                       opts = list()) {
   ids <- as.factor(ids)
   ylim <- c(.5, .5 + length(levels(ids)))
   no_axis()
@@ -198,7 +208,7 @@ plotRanges <- function(ids,
     line = .5,
     at   = y_pos,
     las  = 1,
-    cex  = 1
+    cex  = par()$cex
   )
   seg_width_y <- segmentSize * xy_per_in()[2]
   min_width_x <- xy_per_in()[1] * minWidth
