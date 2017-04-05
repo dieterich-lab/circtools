@@ -2,4 +2,5 @@
 #'
 #' @name circtools
 #' @docType package
+#' @import methods
 NULL
