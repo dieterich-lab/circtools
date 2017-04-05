@@ -5,7 +5,7 @@
 \title{Plots segments for a list of intervals}
 \usage{
 plotRanges(ids, starts, ends, segmentSize, minWidth = 0,
-  xlim = range(starts, ends))
+  xlim = range(starts, ends), opts = list())
 }
 \arguments{
 \item{ids}{a character vector}

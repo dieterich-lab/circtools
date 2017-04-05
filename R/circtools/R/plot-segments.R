@@ -87,7 +87,7 @@ plotTranscripts <- function(exons,
     widths[2] <- .1
   minSegmentAspect <- .2
   # calculate sizes of panels and segments
-  segmentSize <- list(size = getPanelHeight(1) * .55,
+  segmentSize <- list(size = getPanelHeight(1) * .75,
                       minWidth = getPanelHeight(1) * minSegmentAspect)
   primersNum <- ifelse(missing(primers), 0, length(unique(primers$id)))
   upperPanelHeight <- getPanelHeight(primersNum)
@@ -131,10 +131,13 @@ plotTranscripts <- function(exons,
     ) 
   exonsXLim <- with(exons, range(start, end))
   # plot primers -- upper left
-  op <- margins(left = labWidth,
-                top = 0,
-                bottom = .5)
   if (!is.null(primers)) {
+    abline(h = par()$usr[4] + .1,
+           col = "deepskyblue1",
+           lwd = inches_per_line()  * 96)
+    op <- margins(left = labWidth,
+                  top = 0,
+                  bottom = .1)
     with(
       primers,
       plotRanges(
@@ -144,7 +147,7 @@ plotTranscripts <- function(exons,
         segmentSize = segmentSize$size,
         minWidth = segmentSize$minWidth,
         xlim = exonsXLim,
-        opts = opts
+        opts = list(col="firebrick3")
       )
     )
   } else {
@@ -185,6 +188,7 @@ plotRanges <- function(ids,
                        minWidth = 0,
                        xlim = range(starts, ends),
                        opts = list()) {
+  if (is.null(opts$col)) opts$col <- "dodgerblue4"
   ids <- as.factor(ids)
   ylim <- c(.5, .5 + length(levels(ids)))
   no_axis()
@@ -215,7 +219,7 @@ plotRanges <- function(ids,
     ybottom = y_pos - seg_width_y / 2,
     xright  = ends,
     ytop    = y_pos + seg_width_y / 2,
-    col     = 1,
+    col     = opts$col,
     border  = NA
   )
 }
@@ -228,7 +232,7 @@ annotateCircs <- function(ids, starts, ends, segmentSize, alpha = .4) {
     segmentSize <- segmentSize * xy_per_in()[2]
     colors <- rainbow(length(starts), s = .6, alpha = alpha)
     colorsLine <- rainbow(length(starts), s = 1, alpha = 1)
-    ylim <- par()$usr[3:4]
+    ylim <- par()$usr[3:4] + c(+.2, -.2)
     rect(
       xleft = starts,
       xright = ends,
