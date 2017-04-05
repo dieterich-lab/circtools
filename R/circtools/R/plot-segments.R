@@ -87,7 +87,7 @@ plotTranscripts <- function(exons,
     widths[2] <- .1
   minSegmentAspect <- .2
   # calculate sizes of panels and segments
-  segmentSize <- list(size = getPanelHeight(1) * .75,
+  segmentSize <- list(size = getPanelHeight(1) * .55,
                       minWidth = getPanelHeight(1) * minSegmentAspect)
   primersNum <- ifelse(missing(primers), 0, length(unique(primers$id)))
   upperPanelHeight <- getPanelHeight(primersNum)
@@ -128,10 +128,7 @@ plotTranscripts <- function(exons,
         segmentSize = segmentSize$size,
         alpha = .2
       )
-    ) else {
-      margins()
-      plot.new()
-    }
+    ) 
   exonsXLim <- with(exons, range(start, end))
   # plot primers -- upper left
   op <- margins(left = labWidth,
@@ -158,8 +155,8 @@ plotTranscripts <- function(exons,
   if (!is.null(counts)) {
     par(bty = "o")
     margins(left   = 1,
-            bottom = 3,
-            right  = 1)
+            bottom = numMarginLines,
+            right  = 0.2)
     with(counts,
          plotCounts(id = id,
                     count = count))
@@ -192,7 +189,6 @@ plotRanges <- function(ids,
   ylim <- c(.5, .5 + length(levels(ids)))
   no_axis()
   no_box()
-  par(bty = "o")
   plot(
     0,
     type = "n",
@@ -261,9 +257,9 @@ plotCounts <- function(id, count, ylim = c(.5, length(id) + .5)) {
 
 
 # create a data.frame from a named list of ranges
-# used to flatten exon-by-transcript lists to pass to a plotting function
+# used to flatten exon-by-transcript lists to pass to a plotting functiono
 grList2df <- function(grl) {
-  nrows <- elementNROWS(grl)
+  nrows <- IRanges::elementNROWS(grl)
   id <- rep(names(nrows), times = nrows)
   rangesDF <- as.data.frame(ranges(unlist(grl, use.names = FALSE)))
   rangesDF$id <- id

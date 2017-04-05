@@ -1,10 +1,11 @@
-
-getSjExons <- function(txdb, circsGR) {
-  extxdb <- exons(txdb, columns = c("EXONNAME", "GENEID", "TXNAME"))
+#' @importFrom GenomicFeatures exons
+#' @importFrom GenomicRanges findOverlaps
+getSjExons <- function(db, circsGR) {
+  exdb <- exons(db, columns = c("EXONNAME", "GENEID", "TXNAME"))
   circExonsMap <- list(# t because we want it ordered as circs
-    rightSide = t(findOverlaps(extxdb, circsGR, type = "start")),
-    leftSide = t(findOverlaps(extxdb, circsGR, type = "end")))
-  sjExonCoords <- lapply(circExonsMap, function(x) extxdb[x@to])
+    rightSide = t(findOverlaps(exdb, circsGR, type = "start")),
+    leftSide = t(findOverlaps(exdb, circsGR, type = "end")))
+  sjExonCoords <- lapply(circExonsMap, function(x) exdb[x@to])
   geneKey <- "GENEID"
   genes <- unlist(mcols(sjExonCoords$rightSide)[[geneKey]])
   sjExByGene <- lapply(sjExonCoords, function(x) split(x, genes))
@@ -24,6 +25,7 @@ getTxByGenes <- function(txdb, genes) {
   txByGeneMap
 }
 
+#' @importFrom BiocGenerics intersect
 getIntersectingTx <- function(exByGene, type=c("all", "<", ">")) {
   #TODO: different output types
   intersectingTx <-  lapply(
@@ -36,9 +38,8 @@ getIntersectingTx <- function(exByGene, type=c("all", "<", ">")) {
   intersectingTx
 }
 
-#' @import GenomicFeatures
 getTx <- function(txdb, genes) {
-  txCoords <-exons(txdb,
+  txCoords <- GenomicFeatures::exons(txdb,
                           columns = c("GENEID", "TXNAME", "EXONNAME"),
                           filter = list(gene_id = genes))
   txCoordsByGene <- split(txCoords, unlist(mcols(txCoords)$GENEID))
@@ -66,25 +67,25 @@ getPrimersCoord <- function() {
 #' @param ids 
 #'
 #' @return a GRanges object
+#' 
 #' @export
-#' @import GenomicRanges IRanges
 #' @examples
 getCircCoords <- function(chr, start, end, strand, ids = NULL) {  
-  circIR <- IRanges(start = start, 
+  circIR <- IRanges::IRanges(start = start, 
                     end = end,
                     names =  chr)
-  grCircs <- GRanges(seqnames = chr,
+  grCircs <- GenomicRanges::GRanges(seqnames = chr,
                      ranges = circIR,
                      strand = strand)
   if (is.null(ids)) {
-    mcols(grCircs)$CIRCID <- apply(
+    S4Vectors::mcols(grCircs)$CIRCID <- apply(
       cbind(chr, start, end),
       FUN = paste,
       MARGIN = 1,
       collapse = '-'
     )
   } else {
-    mcols(grCircs)$CIRCID <- ids
+    S4Vectors::mcols(grCircs)$CIRCID <- ids
   }
   grCircs
 }
