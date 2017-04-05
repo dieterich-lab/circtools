@@ -7,6 +7,9 @@ Depends: R (>= 3.3.3)
 License: GPL3.0
 Encoding: UTF-8
 LazyData: true
+Depends:
+  S4Vectors , GenomicRanges (>= 1.26.4),
+  GenomicFeatures (>= 1.26.4)
 Suggests: testthat,
     knitr,
     rmarkdown
