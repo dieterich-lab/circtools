@@ -49,11 +49,13 @@ createTestTxDB <- function() {
     gene_id = gene_id,
     tx_id = tx$transcripts$tx_id
   )
-  makeTxDb(tx$transcripts, tx$splicings, genes)
+  suppressWarnings(
+  GenomicFeatures::makeTxDb(tx$transcripts, tx$splicings, genes)
+  )
 }
 
 createTestCircs <- function(txdb) {
-  ex <- exonsBy(txdb, by = "tx", use.names = TRUE)[[1]]
+  ex <- GenomicFeatures::exonsBy(txdb, by = "tx", use.names = TRUE)[[1]]
   res <- range(ex[sort(sample(length(ex), size = 2, replace = TRUE))])
   res <- as.data.frame(res)
   names(res)[1] <- "chr"
