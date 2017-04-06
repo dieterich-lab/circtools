@@ -12,10 +12,10 @@ getSjExons <- function(db, circsGR) {
   sjExByGene
 }
 
-getTxByGenes <- function(txdb, genes) {
+getTxByGenes <- function(db, genes) {
   suppressMessages(
     txByGeneMap <- mapIds(
-      txdb,
+      db,
       column = "TXNAME",
       key = genes,
       keytype = "GENEID",
