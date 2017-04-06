@@ -1,7 +1,19 @@
+#' Create lists for exons around the splice-junctions
+#'
+#' @param db a TxDB or ensembldb object 
+#'
+#' @param circsGR a GRanges object with the splice junction coordinates
+#' 
+#' @details The db object must have a key "GENEID" and columns
+#' "EXONID" and "TXNAME", which are used for creation of the output object.
+#' 
+#' @return a list of two GRangesLists (by gene) objects: 
+#' for the left and right side splice  junctions exons
+#'
 #' @importFrom GenomicFeatures exons
 #' @importFrom GenomicRanges findOverlaps
 getSjExons <- function(db, circsGR) {
-  exdb <- exons(db, columns = c("EXONNAME", "GENEID", "TXNAME"))
+  exdb <- exons(db, columns = c("EXONID", "GENEID", "TXNAME"))
   circExonsMap <- list(# t because we want it ordered as circs
     rightSide = t(findOverlaps(exdb, circsGR, type = "start")),
     leftSide = t(findOverlaps(exdb, circsGR, type = "end")))
@@ -40,7 +52,7 @@ getIntersectingTx <- function(exByGene, type=c("all", "<", ">")) {
 
 getTx <- function(txdb, genes) {
   txCoords <- GenomicFeatures::exons(txdb,
-                          columns = c("GENEID", "TXNAME", "EXONNAME"),
+                          columns = c("GENEID", "TXNAME", "EXONID"),
                           filter = list(gene_id = genes))
   txCoordsByGene <- split(txCoords, unlist(mcols(txCoords)$GENEID))
   txCoordsByGene
