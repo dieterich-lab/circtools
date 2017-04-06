@@ -30,9 +30,23 @@ validation experiments. A biologist might be interested to know
 library(circtools)
 ```
 
+## A proposed workflow
+
+1. Prepare the input data set:
+    - the gene model: a GTF/GFF file, TxDb or EnsDb objects
+    - transcripts counts 
+    - splice junction coordinates for the circular candidates.
+2. Generate sequences of the exons around the splice junctions.
+3. Plot the gene model to see relation of linear and circular transcripts.
+3. Design optimal primers for the circular and linear transcripts of interest.
+4. Plot the gene model and the primers to validate the design.
+  
+## Report sequences of the splice junction exons
+  
 ## Transcript plot
 
-One would like to know, how the predicted circRNA relate to the linea transcripts.
+One would like to know, how the predicted circRNA relate to the linear
+transcripts.
 In order to see, which transcripts are expressed and what is their gene model
 (i.e. exon content), we implemented a plotting function.
 It shows a block structure for every annotated transcript, a coordinate
@@ -61,9 +75,49 @@ splice junctions coordinates from which circRNAs are derived.
 The input must contain the chromosome, start, end and the strand of the splice 
 junction.
 
-```{r, fig.height=6, fig.width=7}
+Let us simulate some numbers for read counts for transcripts of the BCL6
+gene:
 
-ex <- exonsBy(db, by="tx", filter = list(GenenameFilter("BCL6")))
-plotTranscripts(ex)
+```{r}
+makeCounts <- function(geneName, db) {
+  ex <- exonsBy(db, by = "tx", filter = list(GenenameFilter(geneName)))
+  txNames <- unique(names(ex))
+  counts <- data.frame(id = names(ex),
+  count = rnbinom(length(txNames), mu = 1000, size = 10))
+  counts$count[sample(length(txNames), size = length(txNames) * .75)] <- 0
+  counts
+}
+geneName <- "BCL6"
+counts <- makeCounts(geneName, db)
+```
+
+```{r eval=FALSE}
+circs <- circsData(db, sjList)
+plotCircsFor(circsData = circs,
+             gene = "ENSG00000113916",
+             keytype = "GENEID", #default
+             primers = primers, # IRanges
+             counts = counts, # data.frame with two columns id:count
+             opts = list(biotype='all'))
+             
+```
+
+Alternatively, the `plotTranscripts` function can be used for 
+plotting from `data.frame` or `GRanges` objects provided by the user.
+Since this function does not use any annotation information,
+it plots all provided objects:
+
+```{r, fig.height=3, fig.width=6}
+# ENSG00000113916
+ex <- exonsBy(db, by = "tx", filter = list(GenenameFilter(geneName)))
+ex
+plotTranscripts(ex, counts = counts)
+```
+
+## Design and validate primers
+
+## Session
+```{r}
+sessionInfo()
 ```
 
