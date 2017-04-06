@@ -87,7 +87,7 @@ plotTranscripts <- function(exons,
     widths[2] <- .1
   minSegmentAspect <- .2
   # calculate sizes of panels and segments
-  segmentSize <- list(size = getPanelHeight(1) * .75,
+  segmentSize <- list(size = getPanelHeight(1) * .8 ,
                       minWidth = getPanelHeight(1) * minSegmentAspect)
   primersNum <- ifelse(missing(primers), 0, length(unique(primers$id)))
   upperPanelHeight <- getPanelHeight(primersNum)
@@ -97,8 +97,7 @@ plotTranscripts <- function(exons,
   layout(
     matrix(c(2, 1, 4, 3), ncol = 2),
     widths = widths,
-    heights = heights,
-    respect = TRUE
+    heights = heights
   )
   # plot exons -- bottom left
   # leave 0.5 + 0.5 = 1 margin lines around the labels
@@ -156,7 +155,7 @@ plotTranscripts <- function(exons,
   }
   # plot counts -- lower right
   if (!is.null(counts)) {
-    par(bty = "o")
+    par(bty = "u")
     margins(left   = 1,
             bottom = numMarginLines,
             right  = 0.2)
