@@ -40,21 +40,21 @@ testData <- function() {
   transNum <- 5
   exons <-  lapply(1:transNum,
                    function(x) {
-                     cbind(id = paste0("ENS000000", x),
+                     cbind(tx_id = paste0("ENST000000", x),
                            exons[sample(exonsNum, sample(exonsNum, 1) +
                                           1), ])
                    })
   exons <- do.call(rbind, exons)
   res$exons <- exons
   # create expression levels
-  res$counts <- data.frame(id = unique(exons$id),
+  res$counts <- data.frame(id = unique(exons$tx_id),
                            count = round(2 ^ runif(
                              transNum, min = -10, max = 20
                            )))
   
   # primers
-  t1 <- exons$id[1]
-  e1 <- exons[exons$id == t1, ]
+  t1 <- exons$tx_id[1]
+  e1 <- exons[exons$tx_id == t1, ]
   e1 <- e1[order(e1$start), ]
   res$primers <- data.frame(id = paste0("circ", c(1, 1, 2)),
                             rbind(
