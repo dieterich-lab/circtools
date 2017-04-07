@@ -235,13 +235,13 @@ annotateCircs <- function(ids, starts, ends, segmentSize, alpha = .2) {
     #colorsLine <- rainbow(length(starts), s = 1, alpha = 1)
     colors <- grDevices::adjustcolor("darkseagreen1", alpha=.1)
     colorsLine <- "darkolivegreen4"
-    ylim <- par()$usr[3:4] + c(.5, -.5) 
+    ylim <- par()$usr[3:4] + c(0, -.5) 
     step <- .5 / length(starts)
     rect(
       xleft = starts,
       xright = ends,
-      ybottom = ylim[1] + step * seq_along(starts),
-      ytop = ylim[2] + step * seq_along(starts),
+      ybottom = ylim[1] + step * (seq_along(starts) - 1),
+      ytop = ylim[2] + step * (seq_along(starts) - 1), 
       col = colors,
       border = colorsLine,
       lwd = 2
