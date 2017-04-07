@@ -1,10 +1,12 @@
 ---
-title: "Transcript plot"
+title: "Circtools"
 author: "Alexey Uvarovskii"
 date: '`r Sys.Date()`'
 output:
-  pdf_document: default
-  rmarkdown::html_vignette: default
+  pdf_document:
+    toc: true
+  rmarkdown::html_vignette: 
+    toc: true
 vignette: |
   %\VignetteIndexEntry{Vignette Title} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8}
 ---
@@ -26,11 +28,6 @@ validation experiments. A biologist might be interested to know
 - how to design primers for the chosen linear and circular transcripts.
 
 
-```{r}
-suppressPackageStartupMessages(
-  library(circtools)
-)
-```
 
 ## A proposed workflow
 
@@ -43,7 +40,6 @@ suppressPackageStartupMessages(
 3. Design optimal primers for the circular and linear transcripts of interest.
 4. Plot the gene model and the primers to validate the design.
   
-## Report sequences of the splice junction exons
   
 ## Transcript plot
 
@@ -64,18 +60,38 @@ source("https://bioconductor.org/biocLite.R")
 biocLite("EnsDb.Hsapiens.v86")
 ```
 
-In this example we are using the `ensembldb` package
+In this example we are using the `ensembldb` package for annotation:
 ```{r}
-library("EnsDb.Hsapiens.v86")
+suppressPackageStartupMessages(
+  library("EnsDb.Hsapiens.v86")
+)
 db <- EnsDb.Hsapiens.v86
 ```
 
 In the first step, the helper function create an object, which keep relations
 between the annotated transcripts and coordinates for the predicted circRNAs.
-Here, we assume that a user have a `data.frame` or `GRanges` object with
+We assume that a user have a `data.frame` or `GRanges` object with
 splice junctions coordinates from which circRNAs are derived.
 The input must contain the chromosome, start, end and the strand of the splice 
 junction.
+
+### Generate mock data
+
+Here we create a splice junction GRanges:
+```{r}
+geneName <- "BCL6"
+createCirc <- function(geneName, db){
+  txs <- select(db, keys=geneName, keytype="GENENAME",columns="TXNAME")
+  ex1 <- exonsBy(db, filter=TxidFilter(txs$TXNAME[1]))[[1]]
+  ex2 <- exonsBy(db, filter=TxidFilter(txs$TXNAME[2]))[[1]]
+  circCoords <- c(range(ex1[1:2]), range(ex2[1:2]))
+  mcols(circCoords)$CIRCID <- paste0(seqnames(circCoords), ":",
+                                     start(circCoords), "-", end(circCoords))
+  circCoords
+}
+circs <- createCirc(geneName, db)
+circs
+```
 
 Let us simulate some numbers for read counts for transcripts of the BCL6
 gene:
@@ -89,26 +105,33 @@ makeCounts <- function(geneName, db) {
   counts$count[sample(length(txNames), size = length(txNames) * .75)] <- 0
   counts
 }
-geneName <- "BCL6"
 counts <- makeCounts(geneName, db)
+tail(counts)
 ```
 
-```{r}
+## The workflow entry point
 
-createCirc <- function(geneName, db){
-  txs <- select(db, keys=geneName, keytype="GENENAME",columns="TXNAME")
-  ex1 <- exonsBy(db, filter=TxidFilter(txs$TXNAME[1]))[[1]]
-  ex2 <- exonsBy(db, filter=TxidFilter(txs$TXNAME[2]))[[1]]
-  circCoords <- c(range(ex1[1:2]), range(ex2[1:2]))
-  mcols(circCoords)$CIRCID <- paste0(seqnames(circCoords), ":",
-                                     start(circCoords), "-", end(circCoords))
-  circCoords
-}
-circs <- createCirc(geneName, db)
+Using the splice junction table and annotation object, prepare the `CircData`
+object:
+
+```{r}
+suppressPackageStartupMessages(
+  library(circtools)
+)
 circData <- CircData(db, circs)
 ```
+
+Plot the gene model, circular transcripts and read counts for the
+BCL6 gene:
 ```{r}
-plotCirc(circGenes = circData$sjGeneIds,circData = circData, counts = counts)
+bcl6EnsId <- circData$sjGeneIds
+bcl6EnsId
+```
+
+```{r, fig.height=3, fig.width=6}
+plotCirc(circGenes = bcl6EnsId,
+         circData = circData,
+         counts = counts)
 ```
 
 
@@ -122,7 +145,13 @@ ex <- exonsBy(db, by = "tx", filter = list(GenenameFilter(geneName)))
 plotTranscripts(ex, counts = counts)
 ```
 
+## Report sequences of the splice junction exons
+
+TODO
+
 ## Design and validate primers
+
+TODO
 
 ## Session
 ```{r}
