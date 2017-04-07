@@ -39,11 +39,15 @@ test_that("Error if wrong input to  plot CircData", {
   suppressWarnings(
     circCoords <- do.call(c, lapply(geneName, createCirc, db = db)))
   circData <- CircData(db, circCoords)
-  # wrong gene or circ
-  circId <- mcols(circCoords)$CIRCID[1] # chr 3
+  # correct and  wrong gene or circ
+  circId <- mcols(circCoords)$CIRCID[1:2] # chr 3
   geneId <- circData$sjGeneIds[3] #chr 3
   expect_silent(plotCirc(circId, circGenes = geneId, circData = circData))
   circId <- mcols(circCoords)$CIRCID[1] # chr 3
   geneId <- circData$sjGeneIds[1] #chr 18
   expect_error(plotCirc(circId, circGenes = geneId, circData = circData))
+  # several genes
+  circId <- mcols(circCoords)$CIRCID[3] # chr 18
+  geneId <- circData$sjGeneIds[1:2] # chr 18
+  expect_warning(plotCirc(circId, circGenes = geneId, circData = circData))
 })

@@ -123,11 +123,11 @@ plotTranscripts <- function(exons,
     with(
       circs,
       annotateCircs(
-        ids = id,
+        ids = CIRCID,
         starts = start,
         ends = end,
         segmentSize = segmentSize$size,
-        alpha = .2
+        alpha = .1
       )
     ) 
   exonsXLim <- with(exons, range(start, end))
@@ -191,7 +191,7 @@ plotRanges <- function(ids,
                        opts = list()) {
   if (is.null(opts$col)) opts$col <- "dodgerblue4"
   ids <- as.factor(ids)
-  ylim <- c(.5, .5 + length(levels(ids)))
+  ylim <- c(0, 1 + length(levels(ids)))
   no_axis()
   no_box()
   plot(
@@ -226,19 +226,20 @@ plotRanges <- function(ids,
 }
 
 
-annotateCircs <- function(ids, starts, ends, segmentSize, alpha = .4) {
-    stopifnot(length(start) == length(ends))
+annotateCircs <- function(ids, starts, ends, segmentSize, alpha = .2) {
+    stopifnot(length(starts) == length(ends))
     stopifnot(segmentSize > 0)
     stopifnot(alpha > 0 & alpha <= 1)
     segmentSize <- segmentSize * xy_per_in()[2]
     colors <- rainbow(length(starts), s = .6, alpha = alpha)
     colorsLine <- rainbow(length(starts), s = 1, alpha = 1)
-    ylim <- par()$usr[3:4] + c(+.2, -.2)
+    ylim <- par()$usr[3:4] + c(.5, -.5) 
+    step <- .5 / length(starts)
     rect(
       xleft = starts,
       xright = ends,
-      ybottom = ylim[1],
-      ytop = ylim[2],
+      ybottom = ylim[1] + step * seq_along(starts),
+      ytop = ylim[2] + step * seq_along(starts),
       col = colors,
       border = colorsLine,
       lwd = 2
