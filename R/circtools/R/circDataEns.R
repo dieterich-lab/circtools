@@ -50,7 +50,8 @@ CircData <- function(db, circCoords) {
 #'
 plotCirc <- function(circIds,
                      circGenes,
-                     circData) {
+                     circData,
+                     counts = NULL) {
   if (!missing(circGenes)) {
     if (length(circGenes) > 1)
       warning(paste(
@@ -82,6 +83,6 @@ plotCirc <- function(circIds,
     filter = GeneidFilter(circGenes),
     columns = c("gene_id", "tx_id", "tx_name")
   )
-  plotTranscripts(ex, circs = circs)
+  plotTranscripts(ex, circs = circs,counts = counts)
 }
 

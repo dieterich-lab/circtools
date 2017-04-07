@@ -27,7 +27,9 @@ validation experiments. A biologist might be interested to know
 
 
 ```{r}
-library(circtools)
+suppressPackageStartupMessages(
+  library(circtools)
+)
 ```
 
 ## A proposed workflow
@@ -91,16 +93,24 @@ geneName <- "BCL6"
 counts <- makeCounts(geneName, db)
 ```
 
-```{r eval=FALSE}
-circs <- circsData(db, sjList)
-plotCircsFor(circsData = circs,
-             gene = "ENSG00000113916",
-             keytype = "GENEID", #default
-             primers = primers, # IRanges
-             counts = counts, # data.frame with two columns id:count
-             opts = list(biotype='all'))
-             
+```{r}
+
+createCirc <- function(geneName, db){
+  txs <- select(db, keys=geneName, keytype="GENENAME",columns="TXNAME")
+  ex1 <- exonsBy(db, filter=TxidFilter(txs$TXNAME[1]))[[1]]
+  ex2 <- exonsBy(db, filter=TxidFilter(txs$TXNAME[2]))[[1]]
+  circCoords <- c(range(ex1[1:2]), range(ex2[1:2]))
+  mcols(circCoords)$CIRCID <- paste0(seqnames(circCoords), ":",
+                                     start(circCoords), "-", end(circCoords))
+  circCoords
+}
+circs <- createCirc(geneName, db)
+circData <- CircData(db, circs)
 ```
+```{r}
+plotCirc(circGenes = circData$sjGeneIds,circData = circData, counts = counts)
+```
+
 
 Alternatively, the `plotTranscripts` function can be used for 
 plotting from `data.frame` or `GRanges` objects provided by the user.
@@ -108,9 +118,7 @@ Since this function does not use any annotation information,
 it plots all provided objects:
 
 ```{r, fig.height=3, fig.width=6}
-# ENSG00000113916
 ex <- exonsBy(db, by = "tx", filter = list(GenenameFilter(geneName)))
-ex
 plotTranscripts(ex, counts = counts)
 ```
 
