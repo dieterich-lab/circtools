@@ -1,0 +1,64 @@
+
+getSjExons <- function(db, circsGR) {
+  exdb <- exons(db)
+  circExonsMap <- list(# t because we want it ordered as circs
+    rightSide = t(findOverlaps(exdb, circsGR, type = "start")),
+    leftSide = t(findOverlaps(exdb, circsGR, type = "end")))
+  sjExonCoords <- lapply(circExonsMap,
+                         function(x) {
+                           res <- exdb[to(x)]
+                           mcols(res)$CIRCID <-
+                             mcols(circsGR)$CIRCID[from(x)]
+                           res
+                         })
+  sjExonCoords
+}
+
+
+CircData <- function(db, circCoords) {
+  # why does not work with a list of two filters?
+  sjFilter <- GRangesFilter(circCoords, "overlapping")
+  sjGenes <- genes(db, filter = sjFilter)
+  circsGeneHits <- findOverlaps(circCoords, sjGenes)
+  
+  circData <- list(
+    db = db,
+    sjGeneIds = mcols(sjGenes)$gene_id,
+    circsGeneHits = circsGeneHits,
+    circCoords = circCoords,
+    sjGenes = sjGenes,
+    sjGenesIds = mcols(sjGenes)$gene_id
+  )
+  circData
+}
+
+plotCirc <- function(circIds,
+                     circGenes,
+                     circData) {
+  if (!missing(circGenes)) {
+    if (!circGenes %in% circData$sjGeneIds)
+      stop(paste( "Error: The provided gene id ",
+          circGenes, " does not overlap with the splice junction. "))
+    ind <- which(circData$sjGeneIds == circGenes)
+    allCircId <- from(circsGeneHits)[to(circsGeneHits) == ind]
+    if (missing(circIds)) {
+      circIds <- allCircId
+    } else {
+      if (!all(circIds %in% allCircId))
+        stop("Some provided circs do not overlap with the genes in circGene")
+    }
+  } else {
+    circIndex <- which(mcols(circData$circCoords)$CIRCID == circIds)
+    circs <- circData$circCoords[circIndex]
+    circGenes <- with(
+      circData,
+      sjGenes[to(circsGeneHits)[from(circsGeneHits) == circIndex]])
+  }
+  ex <- exons(
+    circData$db,
+    filter = GeneidFilter(mcols(circGenes)$gene_id),
+    columns = c("gene_id", "tx_id", "tx_name")
+  )
+  plotTranscripts(ex, circs = circs)
+}
+
