@@ -69,16 +69,16 @@ plotTranscripts <- function(exons,
                             minRatio = .2,
                             opts = list()) {
   # TODO clean naming convention --> id, ids => seqnames ranges object?
-  toDF <- function(x) {
+  toDF <- function(x, idColumnName = "id") {
     if (!is.null(x) && is(x, "GRangesList")) {
-      grList2df(x)
+      grList2df(x, idColumnName)
     } else if (!is.null(x)) {
       as.data.frame(x)
     } else
       NULL
   }
-  exons <- toDF(exons)
-  circs <- toDF(circs)
+  exons <- toDF(exons, "tx_id")
+  circs <- toDF(circs, "id")
   primers <- toDF(primers)
   # pre-defined
   numMarginLines <- 3
@@ -101,13 +101,15 @@ plotTranscripts <- function(exons,
   )
   # plot exons -- bottom left
   # leave 0.5 + 0.5 = 1 margin lines around the labels
-  labWidth <- maxLabelWidth(as.character(exons$id)) + 1 
+  labWidth <- maxLabelWidth(as.character(exons$tx_id)) + 1 
   op <- margins(left = labWidth, bottom = numMarginLines)
   # plot segments
+  if (is.null(exons$tx_id))
+    stop("No transcript id field named 'tx_id' in the `exons` argument")
   with(
     exons,
     plotRanges(
-      ids         = id,
+      ids         = tx_id,
       starts      = start,
       ends        = end,
       segmentSize = segmentSize$size,
@@ -261,10 +263,10 @@ plotCounts <- function(id, count, ylim = c(.5, length(id) + .5)) {
 
 # create a data.frame from a named list of ranges
 # used to flatten exon-by-transcript lists to pass to a plotting functiono
-grList2df <- function(grl) {
+grList2df <- function(grl, idColumn = "id") {
   nrows <- IRanges::elementNROWS(grl)
   id <- rep(names(nrows), times = nrows)
   rangesDF <- as.data.frame(ranges(unlist(grl, use.names = FALSE)))
-  rangesDF$id <- id
+  rangesDF[[idColumn]] <- id
   rangesDF
 }
