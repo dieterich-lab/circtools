@@ -15,6 +15,15 @@ getSjExons <- function(db, circsGR) {
 }
 
 
+#' Create a CircData object
+#'
+#' @param db 
+#' @param circCoords 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 CircData <- function(db, circCoords) {
   # why does not work with a list of two filters?
   sjFilter <- GRangesFilter(circCoords, "overlapping")
@@ -26,12 +35,19 @@ CircData <- function(db, circCoords) {
     sjGeneIds = mcols(sjGenes)$gene_id,
     circsGeneHits = circsGeneHits,
     circCoords = circCoords,
-    sjGenes = sjGenes,
-    sjGenesIds = mcols(sjGenes)$gene_id
+    sjGenes = sjGenes
   )
   circData
 }
 
+#' Plot a transcript scheme 
+#'
+#' @param circIds 
+#' @param circGenes 
+#' @param circData 
+#'
+#' @export
+#'
 plotCirc <- function(circIds,
                      circGenes,
                      circData) {
@@ -40,23 +56,26 @@ plotCirc <- function(circIds,
       stop(paste( "Error: The provided gene id ",
           circGenes, " does not overlap with the splice junction. "))
     ind <- which(circData$sjGeneIds == circGenes)
-    allCircId <- from(circsGeneHits)[to(circsGeneHits) == ind]
+    allCircInd <-  with(circData, from(circsGeneHits)[to(circsGeneHits) == ind])
+    allCircId <- mcols(circData$circCoords)$CIRCID[allCircInd]
     if (missing(circIds)) {
       circIds <- allCircId
     } else {
       if (!all(circIds %in% allCircId))
-        stop("Some provided circs do not overlap with the genes in circGene")
+        stop("Some provided circs do not overlap with the genes in circGenes")
     }
   } else {
     circIndex <- which(mcols(circData$circCoords)$CIRCID == circIds)
-    circs <- circData$circCoords[circIndex]
     circGenes <- with(
       circData,
       sjGenes[to(circsGeneHits)[from(circsGeneHits) == circIndex]])
+    circGenes <- mcols(circGenes)$gene_id
   }
+  circIndex <- which(mcols(circData$circCoords)$CIRCID == circIds)
+  circs <- circData$circCoords[circIndex]
   ex <- exons(
     circData$db,
-    filter = GeneidFilter(mcols(circGenes)$gene_id),
+    filter = GeneidFilter(circGenes),
     columns = c("gene_id", "tx_id", "tx_name")
   )
   plotTranscripts(ex, circs = circs)
