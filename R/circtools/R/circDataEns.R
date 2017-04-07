@@ -52,7 +52,11 @@ plotCirc <- function(circIds,
                      circGenes,
                      circData) {
   if (!missing(circGenes)) {
-    if (!circGenes %in% circData$sjGeneIds)
+    if (length(circGenes) > 1)
+      warning(paste(
+        "More than one gene id provided: the transcripts from the genes ",
+              " will be plotted together."))
+    if (!all(circGenes %in% circData$sjGeneIds))
       stop(paste( "Error: The provided gene id ",
           circGenes, " does not overlap with the splice junction. "))
     ind <- which(circData$sjGeneIds == circGenes)
