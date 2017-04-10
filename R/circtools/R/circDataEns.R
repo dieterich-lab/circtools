@@ -19,13 +19,15 @@ getSjExons <- function(db, circsGR, filter=list()) {
   circExonsMap <- list(# t because we want it ordered as circs
     rightSide = t(findOverlaps(exdb, circsGR, type = "start")),
     leftSide  = t(findOverlaps(exdb, circsGR, type = "end")))
-  sjExonCoords <- lapply(circExonsMap,
-                         function(x) {
-                           res <- exdb[to(x)]
-                           mcols(res)$CIRCID <- mcols(circsGR)$CIRCID[from(x)]
-                           res
-                         })
-  sjExonCoords
+  sjExonCoords <- lapply(
+    names(circExonsMap),
+    function(side) {
+      res <- exdb[to(circExonsMap[[side]])]
+      mcols(res)$CIRCID <- mcols(circsGR)$CIRCID[from(circExonsMap[[side]])]
+      mcols(res)$side <- side
+      res
+    })
+  do.call(c, sjExonCoords)
 }
 
 
@@ -127,9 +129,6 @@ getExonSeqs <- function(circData, bsg) {
   ex <- getSjExons(db = circData$db, 
                    circsGR = circData$circCoords,
                    filter = GeneidFilter(circData$sjGeneIds))
-  for (side in names(ex)) {
-    GenomicRanges::mcols(ex[[side]])$seq <- BSgenome::getSeq(x = bsg,
-                                                             names = ex[[side]])
-  }
-  ex
+  GenomicRanges::mcols(ex)$seq <- BSgenome::getSeq(x = bsg, names = ex)
+  GenomicRanges::split(ex, GenomicRanges::mcols(ex)$CIRCID)
 }

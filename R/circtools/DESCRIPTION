@@ -7,10 +7,11 @@ Depends: R (>= 3.3.3)
 License: GPL3.0
 Encoding: UTF-8
 LazyData: true
+Remotes: bioc::3.4/ensembldb
 Depends:
   S4Vectors , GenomicRanges (>= 1.26.4),
-  GenomicFeatures (>= 1.26.4), IRanges  
-Imports: methods, graphics, ensembldb
+  GenomicFeatures (>= 1.26.4), IRanges, ensembldb
+Imports: methods, graphics
 Suggests: testthat,
     knitr,
     rmarkdown,
