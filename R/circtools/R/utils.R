@@ -48,7 +48,7 @@ testData <- function() {
   res$exons <- exons
   # create expression levels
   res$counts <- data.frame(id = unique(exons$tx_id),
-                           count = round(2 ^ runif(
+                           count = round(2 ^ stats::runif(
                              transNum, min = -10, max = 20
                            )))
   

@@ -9,7 +9,7 @@ Encoding: UTF-8
 LazyData: true
 Depends:
   S4Vectors , GenomicRanges (>= 1.26.4),
-  GenomicFeatures (>= 1.26.4),  
+  GenomicFeatures (>= 1.26.4), IRanges  
 Imports: methods, graphics, ensembldb
 Suggests: testthat,
     knitr,

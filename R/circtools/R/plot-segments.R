@@ -7,7 +7,7 @@ inches_per_line <- function(){
 # calculate text width in lines
 maxLabelWidth <- function(x){
   textLength <- max(graphics::strwidth(x, units = "inches", cex = 1))
-  textLength / par()$csi
+  textLength / graphics::par()$csi
 }
 
 # set plot outer margins
@@ -17,7 +17,7 @@ margins <- function(left = 0,
                     bottom = 0,
                     x = c(left, right),
                     y = c(bottom, top)) {
-  op <- par()
+  op <- graphics::par()
   graphics::par(mar = c(y[1], x[1], y[2], x[2]))
   op
 }
@@ -127,7 +127,7 @@ plotTranscripts <- function(exons,
   exonsXLim <- range(exons$start, exons$end)
   # plot primers -- upper left
   if (!is.null(primers)) {
-    abline(h = graphics::par()$usr[4] + .1,
+    graphics::abline(h = graphics::par()$usr[4] + .1,
            col = "deepskyblue1",
            lwd = inches_per_line()  * 96)
     op <- margins(left = labWidth,
@@ -184,7 +184,7 @@ plotRanges <- function(ids,
   ylim <- c(0.5, .5 + length(levels(ids)))
   no_axis()
   no_box()
-  plot(
+  graphics::plot(
     0,
     type = "n",
     xlim = xlim,
@@ -193,19 +193,19 @@ plotRanges <- function(ids,
     xlab = ""
   )
   y_pos <- as.numeric(ids)
-  mtext(
+  graphics::mtext(
     as.character(ids),
     side = 2,
     line = .5,
     at   = y_pos,
     las  = 1,
-    cex  = par()$cex
+    cex  = graphics::par()$cex
   )
   seg_width_y <- segmentSize * xy_per_in()[2]
   min_width_x <- xy_per_in()[1] * minWidth
   o <- (ends - starts) < min_width_x
   ends[o] <- starts[o] + min_width_x
-  rect(
+  graphics::rect(
     xleft   = starts,
     ybottom = y_pos - seg_width_y / 2,
     xright  = ends,
@@ -225,9 +225,9 @@ annotateCircs <- function(ids, starts, ends, segmentSize, alpha = .2) {
     #colorsLine <- rainbow(length(starts), s = 1, alpha = 1)
     colors <- grDevices::adjustcolor("darkseagreen1", alpha=.1)
     colorsLine <- "darkolivegreen4"
-    ylim <- par()$usr[3:4] + c(0, -.5) 
+    ylim <- graphics::par()$usr[3:4] + c(0, -.5) 
     step <- .5 / length(starts)
-    rect(
+    graphics::rect(
       xleft = starts,
       xright = ends,
       ybottom = ylim[1] + step * (seq_along(starts) - 1),
@@ -240,7 +240,7 @@ annotateCircs <- function(ids, starts, ends, segmentSize, alpha = .2) {
 
 plotCounts <- function(id, count, ylim = c(.5, length(id) + .5)) {
   which_axis(x = TRUE)
-  plot(
+  graphics::plot(
     x = count + .5,
     y = as.numeric(id),
     pch = 16,
@@ -250,16 +250,17 @@ plotCounts <- function(id, count, ylim = c(.5, length(id) + .5)) {
     log = 'x',
     xaxs = "i"
   )
-  segments(.5, y0 = as.numeric(id), count + .5, lwd = 2)
+  graphics::segments(.5, y0 = as.numeric(id), count + .5, lwd = 2)
 }
 
 
 # create a data.frame from a named list of ranges
-# used to flatten exon-by-transcript lists to pass to a plotting functiono
+# used to flatten exon-by-transcript lists to pass to a plotting function
 grList2df <- function(grl, idColumn = "id") {
   nrows <- IRanges::elementNROWS(grl)
   id <- rep(names(nrows), times = nrows)
-  rangesDF <- as.data.frame(ranges(unlist(grl, use.names = FALSE)))
+  rangesDF <- as.data.frame(
+    GenomicsRanges::ranges(unlist(grl, use.names = FALSE)))
   rangesDF[[idColumn]] <- id
   rangesDF
 }
