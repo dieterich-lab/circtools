@@ -51,6 +51,8 @@ It shows a block structure for every annotated transcript, a coordinate
 range which is covered by the circRNA candidate and plots read counts for
 the transcripts if they are provided.
 
+## Annotation source 
+
 Coordinates and types of genomic features must be known in advance, and
 it can be provided in the form of `GTF/GFF` file or `TxDb`/`EnsDb` objects.
 In the frame of the package we encourage one to use the Ensemble annotation
@@ -75,11 +77,10 @@ splice junctions coordinates from which circRNAs are derived.
 The input must contain the chromosome, start, end and the strand of the splice 
 junction.
 
-### Generate mock data
+## Generate mock data
 
 Here we create a splice junction GRanges:
-```{r}
-geneName <- "BCL6"
+```{r include=FALSE}
 createCirc <- function(geneName, db){
   txs <- select(db, keys=geneName, keytype="GENENAME",columns="TXNAME")
   ex1 <- exonsBy(db, filter=TxidFilter(txs$TXNAME[1]))[[1]]
@@ -89,6 +90,11 @@ createCirc <- function(geneName, db){
                                      start(circCoords), "-", end(circCoords))
   circCoords
 }
+
+```
+
+```{r}
+geneName <- "BCL6"
 circs <- createCirc(geneName, db)
 circs
 ```
@@ -96,7 +102,7 @@ circs
 Let us simulate some numbers for read counts for transcripts of the BCL6
 gene:
 
-```{r}
+```{r include=FALSE}
 makeCounts <- function(geneName, db) {
   ex <- exonsBy(db, by = "tx", filter = list(GenenameFilter(geneName)))
   txNames <- unique(names(ex))
@@ -105,6 +111,10 @@ makeCounts <- function(geneName, db) {
   counts$count[sample(length(txNames), size = length(txNames) * .75)] <- 0
   counts
 }
+
+```
+
+```{r}
 counts <- makeCounts(geneName, db)
 tail(counts)
 ```
@@ -147,7 +157,13 @@ plotTranscripts(ex, counts = counts)
 
 ## Report sequences of the splice junction exons
 
-TODO
+Most probably, an experimentalist is interested to obtain the sequencies of
+the splice junction exons. The sequencies will be used for the following
+primer design to validate the discovered transcripts using the PCR.
+
+TO achieve it, besides the gene model annotation, 
+one needs the fasta file or an R package with the corresponding
+genome sequence.
 
 ## Design and validate primers
 
