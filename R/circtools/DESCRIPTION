@@ -1,5 +1,5 @@
 Package: circtools
-Title: What the Package Does (one line, title case)
+Title: Design and analysis of circ-RNA-seq experiments.
 Version: 0.0.0.9000
 Authors@R: person("Alexey", "Uvarovskii", email = "alexey.mipt@gmail.com", role = c("aut", "cre"))
 Description: Visualisation tools for circular RNAs
@@ -9,9 +9,11 @@ Encoding: UTF-8
 LazyData: true
 Depends:
   S4Vectors , GenomicRanges (>= 1.26.4),
-  GenomicFeatures (>= 1.26.4)
+  GenomicFeatures (>= 1.26.4),  
+Imports: methods, graphics, ensembldb
 Suggests: testthat,
     knitr,
-    rmarkdown
+    rmarkdown,
+    EnsDb.Hsapiens.v86,
 RoxygenNote: 6.0.1
 VignetteBuilder: knitr

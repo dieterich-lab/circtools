@@ -1,12 +1,12 @@
 
 # get height of a text line in inches
 inches_per_line <- function(){
-  par("csi") 
+  graphics::par("csi") 
 }
 
 # calculate text width in lines
 maxLabelWidth <- function(x){
-  textLength <- max(strwidth(x, units = "inches", cex = 1))
+  textLength <- max(graphics::strwidth(x, units = "inches", cex = 1))
   textLength / par()$csi
 }
 
@@ -18,15 +18,15 @@ margins <- function(left = 0,
                     x = c(left, right),
                     y = c(bottom, top)) {
   op <- par()
-  par(mar = c(y[1], x[1], y[2], x[2]))
+  graphics::par(mar = c(y[1], x[1], y[2], x[2]))
   op
 }
 
-xy_per_in <- function() par("cxy") / par("cin")
+xy_per_in <- function() graphics::par("cxy") / graphics::par("cin")
 
 # set which axis to plot
 which_axis <- function(x = FALSE, y = FALSE) {
-  op <- par(xaxt = ifelse(x, "s", "n"),
+  op <- graphics::par(xaxt = ifelse(x, "s", "n"),
             yaxt = ifelse(y, "s", "n"))
   op
 }
@@ -38,16 +38,16 @@ no_axis <- function(){
 
 # no outer box around a plot
 no_box <- function(){
-  op <- par(bty = "n")
+  op <- graphics::par(bty = "n")
   op
 }
 
 getPanelHeight <- function(laneNumber){
-  par("csi") * laneNumber 
+  graphics::par("csi") * laneNumber 
 }
 
 # get vertical limits in user coordinates 
-getYLim <- function() par()$usr[3:4]
+getYLim <- function() graphics::par()$usr[3:4]
 
 #' Plots isoforms structure, primer position and isoform counts if provided
 #'
@@ -94,7 +94,7 @@ plotTranscripts <- function(exons,
   lowerPanelHeight <- getPanelHeight(numMarginLines + length(unique(exons$id)))
   # in relative units
   heights <- c(upperPanelHeight, lowerPanelHeight) / lowerPanelHeight + .1
-  layout(
+  graphics::layout(
     matrix(c(2, 1, 4, 3), ncol = 2),
     widths = widths,
     heights = heights
@@ -106,64 +106,54 @@ plotTranscripts <- function(exons,
   # plot segments
   if (is.null(exons$tx_id))
     stop("No transcript id field named 'tx_id' in the `exons` argument")
-  with(
-    exons,
-    plotRanges(
-      ids         = tx_id,
-      starts      = start,
-      ends        = end,
-      segmentSize = segmentSize$size,
-      minWidth    = segmentSize$minWidth,
-      opts = opts
-    )
+  plotRanges(
+    ids         = exons$tx_id,
+    starts      = exons$start,
+    ends        = exons$end,
+    segmentSize = segmentSize$size,
+    minWidth    = segmentSize$minWidth,
+    opts = opts
   )
   # add circ rectangles if defined
   isoformsYLim <- getYLim()
   if (!is.null(circs))
-    with(
-      circs,
-      annotateCircs(
-        ids = CIRCID,
-        starts = start,
-        ends = end,
-        segmentSize = segmentSize$size,
-        alpha = .1
-      )
-    ) 
-  exonsXLim <- with(exons, range(start, end))
+    annotateCircs(
+      ids    = circs$CIRCID,
+      starts = circs$start,
+      ends   = circs$end,
+      segmentSize = segmentSize$size,
+      alpha = .1
+    )
+  exonsXLim <- range(exons$start, exons$end)
   # plot primers -- upper left
   if (!is.null(primers)) {
-    abline(h = par()$usr[4] + .1,
+    abline(h = graphics::par()$usr[4] + .1,
            col = "deepskyblue1",
            lwd = inches_per_line()  * 96)
     op <- margins(left = labWidth,
                   top = 0,
                   bottom = .1)
-    with(
-      primers,
-      plotRanges(
-        ids = id,
-        starts = start,
-        ends = end,
-        segmentSize = segmentSize$size,
-        minWidth = segmentSize$minWidth,
-        xlim = exonsXLim,
-        opts = list(col="firebrick3")
-      )
+    plotRanges(
+      ids    = primers$id,
+      starts = primers$start,
+      ends   = primers$end,
+      segmentSize = segmentSize$size,
+      minWidth = segmentSize$minWidth,
+      xlim = exonsXLim,
+      opts = list(col = "firebrick3")
     )
   } else {
     margins()
-    plot.new()
+    graphics::plot.new()
   }
   # plot counts -- lower right
   if (!is.null(counts)) {
-    par(bty = "u")
+    graphics::par(bty = "u")
     margins(left   = 1,
             bottom = numMarginLines,
             right  = 0.2)
-    with(counts,
-         plotCounts(id = id,
-                    count = count))
+    plotCounts(id    = counts$id,
+               count = counts$count)
   }
 }
 

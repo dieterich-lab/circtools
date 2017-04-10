@@ -1,4 +1,7 @@
 
+#' @importFrom ensembldb exons
+#' @importFrom GenomicRanges findOverlaps mcols mcols<-
+#' @importFrom S4Vectors to from 
 getSjExons <- function(db, circsGR) {
   exdb <- exons(db)
   circExonsMap <- list(# t because we want it ordered as circs
@@ -23,6 +26,8 @@ getSjExons <- function(db, circsGR) {
 #' @return
 #' @export
 #'
+#' @importFrom GenomicRanges findOverlaps mcols
+#' @importFrom ensembldb genes GRangesFilter
 #' @examples
 CircData <- function(db, circCoords) {
   # why does not work with a list of two filters?
@@ -42,9 +47,13 @@ CircData <- function(db, circCoords) {
 
 #' Plot a transcript scheme 
 #'
-#' @param circIds 
-#' @param circGenes 
-#' @param circData 
+#' @param circIds a character identifiers for the circular transcript 
+#'   to be plotted.
+#' @param circGene a character identifier for a gene, which transcripts are to 
+#'   be plotted. If `circIds` is not set, all circular transcripts defined in
+#'   `circData` will be used. The identifier is identical to the GENEID
+#'   record in the EnsDb or TxDB objects.
+#' @param circData an object returned by CircData
 #'
 #' @export
 #'
