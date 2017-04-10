@@ -11,6 +11,9 @@ CircData(db, circCoords)
 
 \item{circCoords}{}
 }
+\value{
+a CircData object
+}
 \description{
 Create a CircData object
 }

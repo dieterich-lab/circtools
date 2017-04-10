@@ -22,8 +22,6 @@ test_that("No error when create a CircData object", {
 })
 
 test_that("No error while plot CircData object", {
-  library("EnsDb.Hsapiens.v86")
-  db <- EnsDb.Hsapiens.v86
   geneName <- c("BCL6" )
   suppressWarnings(
     circCoords <- do.call(c, lapply(geneName, createCirc, db = db)))
@@ -33,8 +31,6 @@ test_that("No error while plot CircData object", {
 })
 
 test_that("Error if wrong input to  plot CircData", {
-  library("EnsDb.Hsapiens.v86")
-  db <- EnsDb.Hsapiens.v86
   geneName <- c("BCL6", "BCL2")
   suppressWarnings(
     circCoords <- do.call(c, lapply(geneName, createCirc, db = db)))
@@ -50,4 +46,26 @@ test_that("Error if wrong input to  plot CircData", {
   circId <- mcols(circCoords)$CIRCID[3] # chr 18
   geneId <- circData$sjGeneIds[1:2] # chr 18
   expect_warning(plotCirc(circId, circGenes = geneId, circData = circData))
+})
+
+test_that("retrieve sequencies for circs", {
+  geneName <- c("BCL6" )
+  suppressWarnings(
+    circCoords <- do.call(c, lapply(geneName, createCirc, db = db)))
+  circId <- mcols(circCoords)$CIRCID[1]
+  circData <- CircData(db, circCoords)
+  library(BSgenome.Hsapiens.NCBI.GRCh38)
+  bsg <- BSgenome.Hsapiens.NCBI.GRCh38
+  exSeq <- getExonSeqs(circData = circData, bsg = bsg)
+  # starts and ends are as in circs
+  byCirc <- split(exSeq$leftSide, mcols(exSeq$leftSide)$CIRCID)
+  lapply(circCoords, function(circ) {
+    exonsForCirc <- byCirc[[mcols(circ)$CIRCID]]
+    expect_true(all(end(exonsForCirc) == end(circ)))
+  })
+  byCirc <- split(exSeq$rightSide, mcols(exSeq$rightSide)$CIRCID)
+  lapply(circCoords, function(circ) {
+    exonsForCirc <- byCirc[[mcols(circ)$CIRCID]]
+    expect_true(all(start(exonsForCirc) == start(circ)))
+  })
 })

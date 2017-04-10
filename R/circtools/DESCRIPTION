@@ -15,5 +15,6 @@ Suggests: testthat,
     knitr,
     rmarkdown,
     EnsDb.Hsapiens.v86,
+    BSgenome.Hsapiens.NCBI.GRCh38
 RoxygenNote: 6.0.1
 VignetteBuilder: knitr
