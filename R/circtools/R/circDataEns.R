@@ -1,7 +1,7 @@
 
 #' Get coordinates of splice junction exons
 #'
-#' @param dban ensembldb object
+#' @param db an ensembldb object
 #'
 #' @param circsGR a GRanges of circular splice junctions. 
 #'   Must have `CIRCID` column with the identifiers of the circular splice 
@@ -125,10 +125,25 @@ plotCirc <- function(circIds,
 #' \dontrun{
 #' 
 #' }
-getExonSeqs <- function(circData, bsg) {
+getExonSeqs <- function(circData, bsg, type = c('all', 'shortest', 'longest')) {
+  type <- match.arg(type)
   ex <- getSjExons(db = circData$db, 
                    circsGR = circData$circCoords,
                    filter = GeneidFilter(circData$sjGeneIds))
-  GenomicRanges::mcols(ex)$seq <- BSgenome::getSeq(x = bsg, names = ex)
-  GenomicRanges::split(ex, GenomicRanges::mcols(ex)$CIRCID)
+  byCirc <- GenomicRanges::split(ex, GenomicRanges::mcols(ex)$CIRCID)
+  if (type != "all") {
+    fun <- switch(
+      type,
+      shortest = function(x) x[which.min(width(x))],
+      longest  = function(x) x[which.max(width(x))]
+    )
+    byCirc <- lapply(byCirc, function(gr) {
+      bySide <- GenomicRanges::split(gr, gr$side)
+      unlist(S4Vectors::endoapply(bySide, fun))
+    })
+  }
+  lapply(byCirc, function(gr) {
+    GenomicRanges::mcols(gr)$seq <- BSgenome::getSeq(x = bsg, names = gr)
+    gr
+  })
 }
