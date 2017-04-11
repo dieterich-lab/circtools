@@ -151,7 +151,8 @@ Since this function does not use any annotation information,
 it plots all provided objects:
 
 ```{r, fig.height=3, fig.width=6}
-ex <- exonsBy(db, by = "tx", filter = list(GenenameFilter(geneName)))
+ex <- ensembldb::exonsBy(db,  by = "tx", 
+                             filter = list(GenenameFilter(geneName)))
 plotTranscripts(ex, counts = counts)
 ```
 
