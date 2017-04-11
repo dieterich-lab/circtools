@@ -49,6 +49,8 @@ test_that("Error if wrong input to  plot CircData", {
 })
 
 test_that("retrieve sequencies for circs", {
+  library("EnsDb.Hsapiens.v86")
+  db <- EnsDb.Hsapiens.v86
   geneName <- c("BCL6")
   suppressWarnings(
     circCoords <- do.call(c, lapply(geneName, createCirc, db = db)))
@@ -56,11 +58,16 @@ test_that("retrieve sequencies for circs", {
   circData <- CircData(db, circCoords)
   library(BSgenome.Hsapiens.NCBI.GRCh38)
   bsg <- BSgenome.Hsapiens.NCBI.GRCh38
+  expect_silent({
+    exSeq <- getExonSeqs(circData = circData, bsg = bsg, type = "sho")
+    exSeq <- getExonSeqs(circData = circData, bsg = bsg, type = "long")
+  }
+  )
   exSeq <- getExonSeqs(circData = circData, bsg = bsg)
   # starts and ends are as in circs
   lapply(circCoords, function(circ) {
     ex <- exSeq[[mcols(circ)$CIRCID]]
-    expect_true(all(end(ex[ mcols(ex)$side=="leftSide"]) == end(circ)))
-    expect_true(all(start(ex[ mcols(ex)$side=="rightSide"]) == start(circ)))
+    expect_true(all(end(ex[mcols(ex)$side == "leftSide"]) == end(circ)))
+    expect_true(all(start(ex[mcols(ex)$side == "rightSide"]) == start(circ)))
   })
 })
