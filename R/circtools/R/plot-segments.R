@@ -259,7 +259,7 @@ grList2df <- function(grl, idColumn = "id") {
   nrows <- IRanges::elementNROWS(grl)
   id <- rep(names(nrows), times = nrows)
   rangesDF <- as.data.frame(
-    GenomicsRanges::ranges(unlist(grl, use.names = FALSE)))
+    GenomicRanges::ranges(unlist(grl, use.names = FALSE)))
   rangesDF[[idColumn]] <- id
   rangesDF
 }
