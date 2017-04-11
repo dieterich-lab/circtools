@@ -5,7 +5,7 @@
 \title{Plots isoforms structure, primer position and isoform counts if provided}
 \usage{
 plotTranscripts(exons, counts = NULL, primers = NULL, circs = NULL,
-  minRatio = 0.2, opts = list())
+  minAspectRatio = 0.2, opts = list())
 }
 \arguments{
 \item{exons}{an interval data.frame}
@@ -16,9 +16,9 @@ plotTranscripts(exons, counts = NULL, primers = NULL, circs = NULL,
 
 \item{circs}{a counts data.frame}
 
-\item{minRatio}{a minimal aspect ratio for plotted segments (height/width)}
-
 \item{opts}{an option list}
+
+\item{minRatio}{a minimal aspect ratio for plotted segments (height/width)}
 }
 \value{
 Used for its side effects. Plots intervals for exons,

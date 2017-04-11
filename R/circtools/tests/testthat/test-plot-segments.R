@@ -9,7 +9,7 @@ test_that("function plots anything", {
       counts = dat$counts ,
       primers = dat$primers,
       circs = dat$circs,
-      minRatio = .1
+      minAspectRatio = .1
     )
   )
 })

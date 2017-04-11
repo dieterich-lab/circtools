@@ -66,7 +66,7 @@ plotTranscripts <- function(exons,
                             counts = NULL,
                             primers = NULL,
                             circs = NULL,
-                            minRatio = .2,
+                            minAspectRatio = .2,
                             opts = list()) {
   # TODO clean naming convention --> id, ids => seqnames ranges object?
   toDF <- function(x, idColumnName = "id") {
@@ -85,10 +85,9 @@ plotTranscripts <- function(exons,
   widths <- c(2, 1)
   if (is.null(counts)) 
     widths[2] <- .1
-  minSegmentAspect <- .2
+  minAspectRatio <- .2
   # calculate sizes of panels and segments
-  segmentSize <- list(size = getPanelHeight(1) * .8 ,
-                      minWidth = getPanelHeight(1) * minSegmentAspect)
+  segmentSize <- .75
   primersNum <- ifelse(missing(primers), 0, length(unique(primers$id)))
   upperPanelHeight <- getPanelHeight(primersNum)
   lowerPanelHeight <- getPanelHeight(numMarginLines + length(unique(exons$id)))
@@ -110,8 +109,8 @@ plotTranscripts <- function(exons,
     ids         = exons$tx_id,
     starts      = exons$start,
     ends        = exons$end,
-    segmentSize = segmentSize$size,
-    minWidth    = segmentSize$minWidth,
+    segmentSize = segmentSize,
+    minWidth    = minAspectRatio,
     opts = opts
   )
   # add circ rectangles if defined
@@ -121,7 +120,6 @@ plotTranscripts <- function(exons,
       ids    = circs$CIRCID,
       starts = circs$start,
       ends   = circs$end,
-      segmentSize = segmentSize$size,
       alpha = .1
     )
   exonsXLim <- range(exons$start, exons$end)
@@ -137,8 +135,8 @@ plotTranscripts <- function(exons,
       ids    = primers$id,
       starts = primers$start,
       ends   = primers$end,
-      segmentSize = segmentSize$size,
-      minWidth = segmentSize$minWidth,
+      segmentSize = segmentSize,
+      minWidth = minAspectRatio,
       xlim = exonsXLim,
       opts = list(col = "firebrick3")
     )
@@ -201,8 +199,11 @@ plotRanges <- function(ids,
     las  = 1,
     cex  = graphics::par()$cex
   )
-  seg_width_y <- segmentSize * xy_per_in()[2]
-  min_width_x <- xy_per_in()[1] * minWidth
+  #seg_width_y <- segmentSize * xy_per_in()[2]
+  seg_width_y <- segmentSize 
+  #min_width_x <- xy_per_in()[1] * minWidth
+  x_to_y <- xy_per_in()[1] / xy_per_in()[2]
+  min_width_x <- segmentSize * x_to_y * minWidth
   o <- (ends - starts) < min_width_x
   ends[o] <- starts[o] + min_width_x
   graphics::rect(
@@ -216,11 +217,9 @@ plotRanges <- function(ids,
 }
 
 
-annotateCircs <- function(ids, starts, ends, segmentSize, alpha = .2) {
+annotateCircs <- function(ids, starts, ends, alpha = .2) {
     stopifnot(length(starts) == length(ends))
-    stopifnot(segmentSize > 0)
     stopifnot(alpha > 0 & alpha <= 1)
-    segmentSize <- segmentSize * xy_per_in()[2]
     #colors <- rainbow(length(starts), s = .6, alpha = alpha)
     #colorsLine <- rainbow(length(starts), s = 1, alpha = 1)
     colors <- grDevices::adjustcolor("darkseagreen1", alpha=.1)

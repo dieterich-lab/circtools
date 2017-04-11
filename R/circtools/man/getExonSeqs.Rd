@@ -5,7 +5,7 @@
 \title{Retrieve sequences of the exons, which have common start or end with 
 the splice junction coordinates provided in circData}
 \usage{
-getExonSeqs(circData, bsg)
+getExonSeqs(circData, bsg, type = c("all", "shortest", "longest"))
 }
 \arguments{
 \item{circData}{a `CircData` object}
