@@ -150,7 +150,8 @@ plotTranscripts <- function(exons,
             bottom = numMarginLines,
             right  = 0.2)
     plotCounts(id    = counts$id,
-               count = counts$count)
+               count = counts$count,
+               ylim = isoformsYLim)
   }
 }
 
@@ -186,6 +187,7 @@ plotRanges <- function(ids,
     type = "n",
     xlim = xlim,
     ylim = ylim,
+    yaxs = "i",
     ylab = "",
     xlab = ""
   )
@@ -246,7 +248,8 @@ plotCounts <- function(id, count, ylim = c(.5, length(id) + .5)) {
     ylim = ylim,
     xlim = c(0.5, max(count) * 2.5),
     log = 'x',
-    xaxs = "i"
+    xaxs = "i",
+    yaxs = "i"
   )
   graphics::segments(.5, y0 = as.numeric(id), count + .5, lwd = 2)
 }
