@@ -178,7 +178,7 @@ plotRanges <- function(ids,
                        opts = list()) {
   if (is.null(opts$col)) opts$col <- "dodgerblue4"
   ids <- as.factor(ids)
-  ylim <- c(0.5, .5 + length(levels(ids)))
+  ylim <- c(0.0, 1 + length(levels(ids)))
   no_axis()
   no_box()
   graphics::plot(
@@ -223,7 +223,7 @@ annotateCircs <- function(ids, starts, ends, alpha = .2) {
     #colorsLine <- rainbow(length(starts), s = 1, alpha = 1)
     colors <- grDevices::adjustcolor("darkseagreen1", alpha=.1)
     colorsLine <- "darkolivegreen4"
-    ylim <- graphics::par()$usr[3:4] + c(0, -.5) 
+    ylim <- graphics::par()$usr[3:4] + c(0.5, -.5) 
     step <- .5 / length(starts)
     graphics::rect(
       xleft = starts,
