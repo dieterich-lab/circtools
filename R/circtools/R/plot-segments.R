@@ -112,6 +112,21 @@ plotTranscripts <- function(exons,
     minWidth    = minAspectRatio,
     opts = opts
   )
+  if ( !is.null(exons$strand)) {
+    par(xpd = TRUE)
+    xy <- par()$usr
+    direction <- switch(as.character(unique(exons$strand)),
+                        "-" = 1,
+                        "+" = 2,
+                        0)
+    arrows(y0 = xy[3], y1 = xy[3], x0 = xy[1], x1 = xy[2], 
+           length = getPanelHeight(1),
+           angle = 15,
+           code = direction,
+           lwd = 2,
+           col = "deepskyblue1")
+    par(xpd = FALSE)
+  }
   # add circ rectangles if defined
   isoformsYLim <- getYLim()
   if (!is.null(circs))
