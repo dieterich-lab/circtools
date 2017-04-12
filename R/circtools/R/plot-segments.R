@@ -85,7 +85,6 @@ plotTranscripts <- function(exons,
   widths <- c(2, 1)
   if (is.null(counts)) 
     widths[2] <- .1
-  minAspectRatio <- .2
   # calculate sizes of panels and segments
   segmentSize <- .75
   primersNum <- ifelse(missing(primers), 0, length(unique(primers$id)))
