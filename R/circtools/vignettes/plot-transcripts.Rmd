@@ -162,9 +162,39 @@ Most probably, an experimentalist is interested to obtain the sequencies of
 the splice junction exons. The sequencies will be used for the following
 primer design to validate the discovered transcripts using the PCR.
 
-TO achieve it, besides the gene model annotation, 
-one needs the fasta file or an R package with the corresponding
+To achieve it, besides the gene model annotation, 
+one needs a fasta file or an R package with the corresponding
 genome sequence.
+ a BSgenome Bioconductor package can be used:
+```{r}
+suppressPackageStartupMessages(
+  library(BSgenome.Hsapiens.NCBI.GRCh38))
+bsg <- BSgenome.Hsapiens.NCBI.GRCh38
+```
+Several exons with the same start but different lengths can be included
+in the annotation. By default, all described exons, which start or end at 
+the position of the circular splice junction will be reported.
+It is possible to include the shortes or the longest sequence by setting 
+the `type` argument:
+```{r cache=F}
+# for all exons use
+# exSeq <- getExonSeqs(circData = circData, bsg = bsg, type = "all")
+exShortesSeq <- getExonSeqs(circData = circData, bsg = bsg, type = "shortest")
+exShortesSeq[['3:187734869-187737088']]
+```
+
+Experimentalists might be interested in obtaining a list with 
+exon sequences and their coordinates for every circular splice junction.
+
+Having the list of sequences from the `getExonSeqs` function and the `CircData`
+object, let us create an HTML report to present it to the biologists:
+
+```{r eval=FALSE}
+repoFile <- "circs.html"
+# Report only the following circs:
+circIdFilter <- '3:187734869-187737088'
+writeReport(repoFile, circData, exShortesSeq, circIdsFilter)
+```
 
 ## Design and validate primers
 
