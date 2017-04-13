@@ -8,7 +8,7 @@
 #'   juctions.
 #' @param filter a filter to use for exons output
 #' 
-#' @return a list with `leftSide` and `rightSide` GRanges of the 
+#' @return a list with `left` and `right` GRanges of the 
 #' intersecting exons.
 #'
 #' @importFrom ensembldb exons
@@ -17,8 +17,8 @@
 getSjExons <- function(db, circsGR, filter=list()) {
   exdb <- exons(db, filter = filter)
   circExonsMap <- list(# t because we want it ordered as circs
-    rightSide = t(findOverlaps(exdb, circsGR, type = "start")),
-    leftSide  = t(findOverlaps(exdb, circsGR, type = "end")))
+    right = t(findOverlaps(exdb, circsGR, type = "start")),
+    left  = t(findOverlaps(exdb, circsGR, type = "end")))
   sjExonCoords <- lapply(
     names(circExonsMap),
     function(side) {
@@ -117,16 +117,21 @@ plotCirc <- function(circIds,
 #'
 #' @param circData a `CircData` object
 #' @param bsg a `BSgenome` entity
+#' @param faFile a \code{\link{FaFile}} object
+#' @param type 
 #'
-#' @return a list of `leftSide` and `rightSide` exons
+#' @return a list of `left` and `right` exons
 #' @export
 #'
 #' @examples
 #' \dontrun{
 #' 
 #' }
-getExonSeqs <- function(circData, bsg, type = c('all', 'shortest', 'longest')) {
+getExonSeqs <- function(circData, bsg, faFile, 
+                        type = c('all', 'shortest', 'longest')) {
   type <- match.arg(type)
+  if (!missing(faFile) && !missing(bsg))
+      stop("Specify only one sequence source: BSgenome or FaFile")
   ex <- getSjExons(db = circData$db, 
                    circsGR = circData$circCoords,
                    filter = GeneidFilter(circData$sjGeneIds))
@@ -137,13 +142,23 @@ getExonSeqs <- function(circData, bsg, type = c('all', 'shortest', 'longest')) {
       shortest = function(x) x[which.min(width(x))],
       longest  = function(x) x[which.max(width(x))]
     )
-    byCirc <- lapply(byCirc, function(gr) {
+    byCirc <- S4Vectors::endoapply(byCirc, function(gr) {
       bySide <- GenomicRanges::split(gr, gr$side)
       unlist(S4Vectors::endoapply(bySide, fun))
     })
   }
-  lapply(byCirc, function(gr) {
-    GenomicRanges::mcols(gr)$seq <- BSgenome::getSeq(x = bsg, names = gr)
-    gr
-  })
+  if (!missing(bsg)) {
+    S4Vectors::endoapply(byCirc, function(gr) {
+      names(gr) <- NULL
+      GenomicRanges::mcols(gr)$seq <- BSgenome::getSeq(x = bsg, names = gr)
+      gr
+    })
+  } else {
+    S4Vectors::endoapply(byCirc, function(gr) {
+      names(gr) <- NULL
+      GenomicRanges::mcols(gr)$seq <-
+        Rsamtools::getSeq(x = faFile, gr)
+      gr
+    })
+  }
 }
