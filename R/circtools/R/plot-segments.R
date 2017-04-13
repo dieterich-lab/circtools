@@ -240,8 +240,11 @@ annotateCircs <- function(ids, starts, ends, alpha = .2) {
     #colorsLine <- rainbow(length(starts), s = 1, alpha = 1)
     colors <- grDevices::adjustcolor("darkseagreen1", alpha=.1)
     colorsLine <- "darkolivegreen4"
-    ylim <- graphics::par()$usr[3:4] + c(0.5, -.5) 
-    step <- .5 / length(starts)
+    shift <- c(.2, -.5)
+    ylim <- graphics::par()$usr[3:4] 
+    ylim <- ylim + shift
+    space <- 0.5 - shift[1]
+    step <- space / length(starts)
     graphics::rect(
       xleft = starts,
       xright = ends,
@@ -275,8 +278,7 @@ plotCounts <- function(id, count, ylim = c(.5, length(id) + .5)) {
 grList2df <- function(grl, idColumn = "id") {
   nrows <- IRanges::elementNROWS(grl)
   id <- rep(names(nrows), times = nrows)
-  rangesDF <- as.data.frame(
-    GenomicRanges::ranges(unlist(grl, use.names = FALSE)))
+  rangesDF <- as.data.frame(unlist(grl, use.names = FALSE))
   rangesDF[[idColumn]] <- id
   rangesDF
 }
