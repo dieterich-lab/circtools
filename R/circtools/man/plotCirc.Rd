@@ -7,7 +7,7 @@
 plotCirc(circIds, circGenes, circData, primers = NULL, counts = NULL)
 }
 \arguments{
-\item{circIds}{a character identifiers for the circular transcript 
+\item{circIds}{a character identifiers for the circular transcript
 to be plotted.}
 
 \item{circData}{an object returned by CircData}
@@ -17,9 +17,9 @@ to be plotted.}
 \item{counts}{a data.frame with an id column (tx_id) and corresponding
 read counts.}
 
-\item{circGene}{a character identifier for a gene, which transcripts are to 
-be plotted. If `circIds` is not set, all circular transcripts defined in
-`circData` will be used. The identifier is identical to the GENEID
+\item{circGene}{a character identifier for a gene, which transcripts are to
+be plotted. If \code{circIds} is not set, all circular transcripts defined in
+\code{circData} will be used. The identifier is identical to the GENEID
 record in the EnsDb or TxDB objects.}
 }
 \description{

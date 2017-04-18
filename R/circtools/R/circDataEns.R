@@ -120,7 +120,14 @@ plotCirc <- function(circIds,
 #' @param faFile a \code{\link{FaFile}} object
 #' @param type 
 #'
-#' @return a list of `left` and `right` exons
+#' @return GRangesList object with a record for every circular id
+#' defined in the `circData` argument. The metadata in the list items 
+#' include:
+#' * `exon_id` and `gene_id`
+#' * `seq`, a DNAStringSet object
+#' * `side`, a character string ("left" or "right")
+#' * `CIRCID`, a character string derived from the circData object
+#' 
 #' @export
 #'
 #' @examples

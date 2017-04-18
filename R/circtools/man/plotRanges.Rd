@@ -25,12 +25,14 @@ of features at multiple plots}
 \item{ylim}{a ylim range}
 
 \item{opts}{a list of plotting parameters:
-- col, the color of the segments (default: "dodgerblue4")
-- connect, a logical. If the segments must be connected with lines 
-(default: TRUE).}
+\itemize{
+\item col, the color of the segments (default: "dodgerblue4")
+\item connect, a logical. If the segments must be connected with lines
+(default: TRUE).
+}}
 }
 \value{
-Used for its side effect. Plots segments corresponding to given 
+Used for its side effect. Plots segments corresponding to given
 intervals.
 }
 \description{
