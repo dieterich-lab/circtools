@@ -2,21 +2,33 @@
 % Please edit documentation in R/circDataEns.R
 \name{getExonSeqs}
 \alias{getExonSeqs}
-\title{Retrieve sequences of the exons, which have common start or end with 
+\title{Retrieve sequences of the exons, which have common start or end with
 the splice junction coordinates provided in circData}
 \usage{
-getExonSeqs(circData, bsg, type = c("all", "shortest", "longest"))
+getExonSeqs(circData, bsg, faFile, type = c("all", "shortest", "longest"))
 }
 \arguments{
-\item{circData}{a `CircData` object}
+\item{circData}{a \code{CircData} object}
 
-\item{bsg}{a `BSgenome` entity}
+\item{bsg}{a \code{BSgenome} entity}
+
+\item{faFile}{a \code{\link{FaFile}} object}
+
+\item{type}{}
 }
 \value{
-a list of `leftSide` and `rightSide` exons
+GRangesList object with a record for every circular id
+defined in the \code{circData} argument. The metadata in the list items
+include:
+\itemize{
+\item \code{exon_id} and \code{gene_id}
+\item \code{seq}, a DNAStringSet object
+\item \code{side}, a character string ("left" or "right")
+\item \code{CIRCID}, a character string derived from the circData object
+}
 }
 \description{
-Retrieve sequences of the exons, which have common start or end with 
+Retrieve sequences of the exons, which have common start or end with
 the splice junction coordinates provided in circData
 }
 \examples{
