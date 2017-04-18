@@ -5,7 +5,7 @@
 \title{Plots segments for a list of intervals}
 \usage{
 plotRanges(ids, starts, ends, segmentSize, minWidth = 0,
-  xlim = range(starts, ends), opts = list())
+  xlim = range(starts, ends), ylim = c(0, 1 + length(levels(ids))), opts)
 }
 \arguments{
 \item{ids}{a character vector}
@@ -21,6 +21,13 @@ for several subplots}
 
 \item{xlim}{a range of interval coordinates on the plot. Used for alignment
 of features at multiple plots}
+
+\item{ylim}{a ylim range}
+
+\item{opts}{a list of plotting parameters:
+- col, the color of the segments (default: "dodgerblue4")
+- connect, a logical. If the segments must be connected with lines 
+(default: TRUE).}
 }
 \value{
 Used for its side effect. Plots segments corresponding to given 

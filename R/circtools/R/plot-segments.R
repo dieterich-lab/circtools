@@ -73,6 +73,8 @@ plotTranscripts <- function(exons,
     if (!is.null(x) && is(x, "GRangesList")) {
       grList2df(x, idColumnName)
     } else if (!is.null(x)) {
+      if (is.null(x[[idColumnName]]))
+        stop(paste0("The column ", idColumnName, " is NULL!"))
       as.data.frame(x)
     } else
       NULL
@@ -89,12 +91,13 @@ plotTranscripts <- function(exons,
   segmentSize <- .75
   primersNum <- ifelse(missing(primers), 0, length(unique(primers$id)))
   upperPanelHeight <- getPanelHeight(primersNum)
-  lowerPanelHeight <- getPanelHeight(numMarginLines + length(unique(exons$id)))
+  lowerPanelHeight <- getPanelHeight(numMarginLines +
+                                       length(unique(exons$tx_id)))
   # in relative units
   heights <- c(upperPanelHeight, lowerPanelHeight) / lowerPanelHeight + .1
   graphics::layout(
     matrix(c(2, 1, 4, 3), ncol = 2),
-    widths = widths,
+    widths  = widths,
     heights = heights
   )
   # plot exons -- bottom left
@@ -152,8 +155,10 @@ plotTranscripts <- function(exons,
       segmentSize = segmentSize,
       minWidth = minAspectRatio,
       xlim = exonsXLim,
+      ylim = c(.5, length(primers$id) -.5),
       opts = list(col = "firebrick3")
     )
+    box()
   } else {
     margins()
     graphics::plot.new()
@@ -180,6 +185,11 @@ plotTranscripts <- function(exons,
 #' @param minWidth a minimal segment width in inches
 #' @param xlim a range of interval coordinates on the plot. Used for alignment
 #' of features at multiple plots
+#' @param ylim a ylim range 
+#' @param opts a list of plotting parameters:
+#'   - col, the color of the segments (default: "dodgerblue4")
+#'   - connect, a logical. If the segments must be connected with lines 
+#'   (default: TRUE).
 #'
 #' @return Used for its side effect. Plots segments corresponding to given 
 #' intervals. 
@@ -191,10 +201,11 @@ plotRanges <- function(ids,
                        segmentSize,
                        minWidth = 0,
                        xlim = range(starts, ends),
-                       opts = list()) {
-  if (is.null(opts$col)) opts$col <- "dodgerblue4"
+                       ylim = c(0.0, 1 + length(levels(ids))),
+                       opts) {
+  options <- list(col = "dodgerblue4", connect = TRUE)
+  options[names(opts)] <- opts
   ids <- as.factor(ids)
-  ylim <- c(0.0, 1 + length(levels(ids)))
   no_axis()
   no_box()
   graphics::plot(
@@ -227,9 +238,18 @@ plotRanges <- function(ids,
     ybottom = y_pos - seg_width_y / 2,
     xright  = ends,
     ytop    = y_pos + seg_width_y / 2,
-    col     = opts$col,
+    col     = options$col,
     border  = NA
   )
+  # add connecting lines
+  if (options$connect) {
+    linesStarts <- vapply(split(starts, ids), min, double(1)) 
+    linesEnds <- vapply(split(starts, ids), max, double(1)) 
+    uniq_ids <- unique(ids)
+    segments(linesStarts[uniq_ids], as.numeric(uniq_ids),
+             linesEnds[uniq_ids], as.numeric(uniq_ids),
+             col = options$col)
+  }
 }
 
 
