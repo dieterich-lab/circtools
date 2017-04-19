@@ -32,7 +32,7 @@ class EnrichmentModule(object):
         # get the user supplied options
         self.cli_params = argparse_arguments
         self.program_name = program_name
-        self.self.version = version
+        self.version = version
 
     def run(self):
 
@@ -120,10 +120,11 @@ class EnrichmentModule(object):
         result_file = self.cli_params.output_directory + "/output_" + time_format + ".csv"
 
         with open(result_file, "w") as text_file:
-            print(result_table, file=text_file)
+            print(result_table, end="", file=text_file)
 
 # ------------------------------------- Function definitions start here -----------------------------------------------
 
+    @staticmethod
     def log_entry(string):
         """Logs to log file and prints on screen
         """
@@ -131,6 +132,7 @@ class EnrichmentModule(object):
         logging.info(message)
         print(message)
 
+    @staticmethod
     def check_input_files(input_file_list):
         """Checks supplied list of files for existence.
         Will halt the program if file not accessible
@@ -243,7 +245,7 @@ class EnrichmentModule(object):
             return "GENE_NAME_PARSE_ERROR"
 
     @staticmethod
-    def strip_chr_name(self, chromosome_string):
+    def strip_chr_name(chromosome_string):
         """Removes "chr" in an non case-sensitive manner
         Returns only the chromosome number
         """
@@ -258,7 +260,7 @@ class EnrichmentModule(object):
         Will halt the program if file not accessible
         Returns a BedTool object only containing gene sections
         """
-        log_entry("Parsing annotation...")
+        self.log_entry("Parsing annotation...")
 
         try:
             file_handle = open(annotation_file)
@@ -302,7 +304,7 @@ class EnrichmentModule(object):
                 sys.stdout.write("\n")
 
                 # count will be increased one more time even if done - so we subtract 1
-                log_entry("Processed %s genes" % (gene_entry-1))
+                self.log_entry("Processed %s genes" % (gene_entry-1))
 
             # create a "virtual" BED file
             virtual_bed_file = pybedtools.BedTool(bed_content, from_string=True)
@@ -311,16 +313,15 @@ class EnrichmentModule(object):
 
         return virtual_bed_file
 
-    @staticmethod
-    def shuffle_peaks_through_genome(iteration, bed_file, annotation, genome_file):
+    def shuffle_peaks_through_genome(self, iteration, bed_file, annotation, genome_file):
         """Gets a (virtual) BED files and shuffle its contents throughout the supplied genome
         Will only use supplied annotation for features (in our case only transcript regions)
         """
 
-        log_entry("Starting shuffling thread %d" % iteration)
+        self.log_entry("Starting shuffling thread %d" % iteration)
         seed = 1337  # so this test always returns the same results
         shuffled_bed = bed_file.shuffle(g=genome_file, chrom=True, incl=annotation)
-        log_entry("Finished shuffling thread %d" % iteration)
+        self.log_entry("Finished shuffling thread %d" % iteration)
 
         return shuffled_bed
 
@@ -388,7 +389,7 @@ class EnrichmentModule(object):
     def random_sample_step(self, iteration, circ_rna_bed, annotation_bed, shuffled_peaks_linear, shuffled_peaks_circular):
         """Logs to log file and prints on screen
         """
-        log_entry("Starting intersection thread %d" % iteration)
+        self.log_entry("Starting intersection thread %d" % iteration)
 
         # get circular and linear intersect
         circular_intersect = self.do_intersection(shuffled_peaks_circular[iteration], circ_rna_bed)
@@ -398,7 +399,7 @@ class EnrichmentModule(object):
         linear_count_table = self.process_intersection(linear_intersect, "lin")
         circular_count_table = self.process_intersection(circular_intersect, "circ")
 
-        log_entry("Finished intersection thread %d" % iteration)
+        self.log_entry("Finished intersection thread %d" % iteration)
 
         return linear_count_table, circular_count_table
 
