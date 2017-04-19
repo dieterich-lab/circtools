@@ -25,6 +25,7 @@ class PrimerDesign(circ_module.circ_template.CircTemplate):
         self.cli_params = argparse_arguments
         self.program_name = program_name
         self.version = version
+        self.command = 'Rscript'
 
     def module_name(self):
         """"Return a string representing the name of the module."""
@@ -32,28 +33,33 @@ class PrimerDesign(circ_module.circ_template.CircTemplate):
 
     def run_module(self):
 
+        # needed for Rscript decoupling
         import subprocess
 
         # param1 = self.cli_params.output_directory
 
-        # Define command and arguments
-
-        # import re
-        # r_version = subprocess.check_output(['Rscript', '--version'], universal_newlines=True)
-        # print(r_version)
-        #
-        # m = re.search('.*(\d+\.\d+\.\d+).*', r_version)
-        # print(m)
-
         try:
             # we assume Rscript is in the user's $PATH variable
-            command = 'Rscript'
 
             # But..let's check that first, you never know
 
-            subprocess.check_output(['Rscript', '--version'], universal_newlines=True)
+            # import re module
+            import re
 
+            r_location = subprocess.check_output(['which', self.command], universal_newlines=True,
+                                                 stderr=subprocess.STDOUT).split('\n')[0]
+
+            r_version = subprocess.check_output([self.command, '--version'], universal_newlines=True,
+                                                stderr=subprocess.STDOUT)
             # okay, Rscript is really there, we put together the command line now:
+
+            m = re.search('(\d+\.\d+\.\d+)', r_version)
+            r_version = m.group(0)
+
+            self.log_entry("Using R version %s [%s]" % (r_version, r_location))
+
+            exit()
+            # ------------------------------------ need to call the correct R script here -----------------------
 
             # need to define path top R wrapper
             path2script = 'path/to your script/max.R'
@@ -62,14 +68,15 @@ class PrimerDesign(circ_module.circ_template.CircTemplate):
             args = ['11', '3', '9', '42']
 
             # Build subprocess command
-            cmd = [command, path2script] + args
+            cmd = [self.command, path2script] + args
             #
             # check_output will run the command and store to result
+
+            # ------------------------------------ run script and check output -----------------------
+
             module_output = subprocess.check_output(cmd, universal_newlines=True)
 
-        except FileNotFoundError:
+        except subprocess.CalledProcessError:
             self.log_entry("`Rscript` (a part of the R installation) could not be found in your $PATH.")
-
-
 
 
