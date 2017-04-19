@@ -1,55 +1,68 @@
 
-.template_env <- list(
-        head="<!DOCTYPE html>
-            <html>
-            <head>
-            <title>Sequences</title>
-            <style>
-            table {
-                font-family: arial, sans-serif;
-                font-size: 14px;
-                border-collapse: collapse;
-            }
 
-            td, th {
-                border: 1px solid #dddddd;
-                text-align: left;
-                padding: 8px;
-            }
-
-            </style>
-            </head>
-    ",body=NULL,
-    end="</html>")
-
-htmlTable <- function(...) {
- cols <- list(...)
- cols <- lapply(cols, function(x) {
-   lapply(x, function(cell) htmltools::tags$td(HTML(cell)))
-   })
- names(cols) <- NULL
- toRow <- function(...) Map(f = htmltools::tags$tr, ...)
- do.call(toRow, cols)
+.htmlColumn <- function(vec) {
+  lapply(vec, function(cell)
+    htmltools::tags$td(htmltools::HTML(as.character(cell))))
 }
 
-reportCircs <- function(exSeq, file) {
+.addColumnAttr <- function(col, attr, value) {
+  lapply(col, function(x) {
+    x$attribs[[attr]] <- value
+    x})
+}
+
+.toRow <- function(colList) {
+  names(colList) <- NULL
+  do.call(Map, c(f=htmltools::tags$tr, colList)) 
+}
+
+.isUpstream <- function(strand, side) {
+  res <- rep("upstream", length(strand))
+  res[ strand == '+' & side == 'left'] <- 'downstream'
+  res[ strand == '-' & side == 'right'] <- 'downstream'
+  res[ strand == '*' ] <- "n.a."
+  res
+}
+
+getReportTemplate <- function(x) {
+  tmpl <- system.file("templates", x, package = "circtools")
+  readLines(tmpl)
+}
+
+
+reportCircs <- function(exSeq, file, template) {
   ex <- unlist(exSeq, use.names = FALSE)
   ex <- as.data.frame(ex)
+  ex$isUpstream <- .isUpstream(strand = ex$strand, side = ex$side)
+  if (missing(template))
+    template <- system.file("templates", "report-circ.html",
+                            package = "circtools")
   cols <- c(
     'CIRCID' = 'CIRCID',
     'seqnames' = 'chr',
     'start' = 'start',
     'end' = 'end',
     'strand' = 'strand',
+    'isUpstream' = 'relative position',
     'seq' = 'sequence'
   )
-  tableBody <- do.call(htmlTable, ex[names(cols)])
-  header <- lapply(cols, tags$th)
+  tdCols <- lapply(ex[names(cols)], .htmlColumn)
+  tdCols$seq <- .addColumnAttr(tdCols$seq, 'class', 'seq')
+  header <- lapply(cols, htmltools::tags$th)
   names(header) <- NULL
-  doc <- .template_env
-  doc$body <- as.character(
-    renderTags(tags$table(header, tableBody))$html)
-  result <- paste(doc, collapse = "\n ")
-  cat(result, file=file)
+  header <- htmltools::tags$tr(header)
+  tbl <- htmltools::tags$table(header, .toRow(tdCols))
+  reportBody <- htmltools::tags$body(tbl)
+  html <- htmlTemplate(file = template, body = reportBody)
+  dep <- htmlDependency(name = "circtools",
+                        version = utils::packageVersion("circtools"),
+                        src = c(href = system.file(package = "circtools")), 
+                        stylesheet = "/templates/css/seq-table.css")
+ html <- renderDocument(html, dep) 
+ writeLines(html, con = file)
 }
 
+
+spanCells <- function(x) {
+  
+}
