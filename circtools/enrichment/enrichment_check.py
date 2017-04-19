@@ -38,7 +38,7 @@ class EnrichmentModule(object):
 
         # set time format
         time_format = time.strftime("%Y_%m_%d__%H_%M")
-        #time_format = ""
+        # time_format = ""
 
         # set up the multiprocessing pool for multi-threading
         mp_pool = multiprocessing.Pool(processes=self.cli_params.num_processes)
@@ -59,7 +59,8 @@ class EnrichmentModule(object):
         pybedtools.set_tempdir(self.cli_params.tmp_directory)
 
         # starting up logging system
-        logging.basicConfig(filename=os.path.join(self.cli_params.output_directory, self.program_name + "__" + time_format + ".log"),
+        logging.basicConfig(filename=os.path.join(self.cli_params.output_directory,
+                                                  self.program_name + "__" + time_format + ".log"),
                             filemode="w",
                             level=logging.DEBUG,
                             format="%(asctime)s %(message)s"
@@ -69,7 +70,10 @@ class EnrichmentModule(object):
         logging.info("%s command line: %s" % (self.program_name, " ".join(sys.argv)))
 
         # check if input files are in place, we don't wan't to fail later
-        self.check_input_files([self.cli_params.bed_input, self.cli_params.circ_rna_input, self.cli_params.annotation, self.cli_params.genome_file])
+        self.check_input_files([self.cli_params.bed_input,
+                                self.cli_params.circ_rna_input,
+                                self.cli_params.annotation,
+                                self.cli_params.genome_file])
 
         # read in CLIP peaks
         supplied_bed = self.read_bed_file(self.cli_params.bed_input)
@@ -77,7 +81,9 @@ class EnrichmentModule(object):
         # read in annotation
         annotation_bed = self.read_annotation_file(self.cli_params.annotation)
 
-        gene_annotation_file = self.cli_params.output_directory + '/' + os.path.basename(self.cli_params.annotation) + '_genes.bed'
+        gene_annotation_file = self.cli_params.output_directory + '/' + \
+                               os.path.basename(self.cli_params.annotation) + \
+                               '_genes.bed'
 
         annotation_bed.saveas(gene_annotation_file)
 
@@ -85,7 +91,8 @@ class EnrichmentModule(object):
         circ_rna_bed = self.read_circ_rna_file(self.cli_params.circ_rna_input, annotation_bed)
 
         # do circle saves
-        circle_annotation_file = self.cli_params.output_directory + '/' + os.path.basename(self.cli_params.circ_rna_input) + '_circles.bed'
+        circle_annotation_file = self.cli_params.output_directory + '/' + os.path.basename(
+            self.cli_params.circ_rna_input) + '_circles.bed'
 
         circ_rna_bed.saveas(circle_annotation_file)
         exit()
@@ -113,7 +120,7 @@ class EnrichmentModule(object):
                                                 annotation_bed=annotation_bed,
                                                 shuffled_peaks_linear=shuffled_peaks_linear,
                                                 shuffled_peaks_circular=shuffled_peaks_circular
-                                                ), range(self.cli_params.num_iterations+1))
+                                                ), range(self.cli_params.num_iterations + 1))
 
         result_table = self.generate_count_table(results)
 
@@ -122,7 +129,7 @@ class EnrichmentModule(object):
         with open(result_file, "w") as text_file:
             print(result_table, end="", file=text_file)
 
-# ------------------------------------- Function definitions start here -----------------------------------------------
+        # ------------------------------------- Function definitions start here ---------------------------------------
 
     @staticmethod
     def log_entry(string):
@@ -170,11 +177,11 @@ class EnrichmentModule(object):
 
                     # extract chromosome, start, stop, gene name, and strand
                     entry = [self.strip_chr_name(columns[0]), columns[1], columns[2], columns[3], "0", columns[5]]
-                    #print(test)
+                    # print(test)
 
                     # concatenate lines to one string
-                    bed_content += '\t'.join(entry)+"\n"
-                    #bed_content += str(test)
+                    bed_content += '\t'.join(entry) + "\n"
+                    # bed_content += str(test)
 
                     # sys.stdout.write("Processing circRNA # %s \r" % bed_entries)
                     # sys.stdout.flush()
@@ -190,7 +197,7 @@ class EnrichmentModule(object):
 
         self.log_entry("Done parsing circular RNA input file:")
         self.log_entry("=> %s circular RNAs, %s nt average (theoretical unspliced) length" %
-                  (bed_entries, round(bed_peak_sizes/bed_entries)))
+                       (bed_entries, round(bed_peak_sizes / bed_entries)))
 
         return test
 
@@ -213,21 +220,21 @@ class EnrichmentModule(object):
                 bed_entries = 0
                 bed_peak_sizes = 0
                 for line in line_iterator:
-
                     columns = line.split('\t')
                     # extract chr, start, stop, score(0), name, strand
-                    entry = [self.strip_chr_name(columns[0]), columns[1], columns[2], columns[3], columns[4], columns[5]]
+                    entry = [self.strip_chr_name(columns[0]), columns[1], columns[2], columns[3], columns[4],
+                             columns[5]]
                     # concatenate lines to one string
-                    bed_content += '\t'.join(entry)+"\n"
+                    bed_content += '\t'.join(entry) + "\n"
                     bed_entries += 1
-                    bed_peak_sizes += (int(columns[2])-int(columns[1]))
+                    bed_peak_sizes += (int(columns[2]) - int(columns[1]))
 
             # create a "virtual" BED file
             virtual_bed_file = pybedtools.BedTool(bed_content, from_string=True)
 
         self.log_entry("Done parsing BED input file:")
         self.log_entry("=> %s peaks, %s nt average width" %
-                  (bed_entries, round(bed_peak_sizes/bed_entries)))
+                       (bed_entries, round(bed_peak_sizes / bed_entries)))
 
         return virtual_bed_file
 
@@ -293,7 +300,7 @@ class EnrichmentModule(object):
                     entry = [self.strip_chr_name(columns[0]), columns[3], columns[4], gene_name, str(0), columns[6], ]
 
                     # concatenate lines to one string
-                    bed_content += '\t'.join(entry)+"\n"
+                    bed_content += '\t'.join(entry) + "\n"
 
                     sys.stdout.write("Processing exon # %s \r" % gene_entry)
                     sys.stdout.flush()
@@ -304,7 +311,7 @@ class EnrichmentModule(object):
                 sys.stdout.write("\n")
 
                 # count will be increased one more time even if done - so we subtract 1
-                self.log_entry("Processed %s genes" % (gene_entry-1))
+                self.log_entry("Processed %s genes" % (gene_entry - 1))
 
             # create a "virtual" BED file
             virtual_bed_file = pybedtools.BedTool(bed_content, from_string=True)
@@ -386,7 +393,8 @@ class EnrichmentModule(object):
 
         return result_table
 
-    def random_sample_step(self, iteration, circ_rna_bed, annotation_bed, shuffled_peaks_linear, shuffled_peaks_circular):
+    def random_sample_step(self, iteration, circ_rna_bed, annotation_bed, shuffled_peaks_linear,
+                           shuffled_peaks_circular):
         """Logs to log file and prints on screen
         """
         self.log_entry("Starting intersection thread %d" % iteration)
@@ -402,4 +410,3 @@ class EnrichmentModule(object):
         self.log_entry("Finished intersection thread %d" % iteration)
 
         return linear_count_table, circular_count_table
-
