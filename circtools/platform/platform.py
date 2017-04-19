@@ -56,7 +56,8 @@ class CircTools(object):
         # use dispatch pattern to invoke method with same name
         getattr(self, args.command)()
 
-    def enrich(self):
+    @staticmethod
+    def enrich():
 
         # build the argument list
         parser = argparse.ArgumentParser(
@@ -129,12 +130,12 @@ class CircTools(object):
         args = parser.parse_args(sys.argv[2:])
 
         # start the enrichment module
-        import enrichment.circRNA_enrichment_check
-        enrich = enrichment.circRNA_enrichment_check.EnrichmentModule(args, program_name, version)
-        # enrich.exec()
+        import enrichment.enrichment_check
+        enrich = enrichment.enrichment_check.EnrichmentModule(args, program_name, version)
+        enrich.run_module()
 
-
-    def primer(self):
+    @staticmethod
+    def primer():
         parser = argparse.ArgumentParser(
             description="circular RNA primer design")
         # NOT prefixing the argument with -- means it"s not optional

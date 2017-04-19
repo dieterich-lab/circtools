@@ -34,7 +34,7 @@ class EnrichmentModule(object):
         self.program_name = program_name
         self.version = version
 
-    def run(self):
+    def run_module(self):
 
         # set time format
         time_format = time.strftime("%Y_%m_%d__%H_%M")
