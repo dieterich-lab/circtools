@@ -144,8 +144,12 @@ class CircTools(object):
         parser.add_argument("param3")
 
         args = parser.parse_args(sys.argv[2:])
-        print("Running primer module with param: %s" % args.repository)
+        # print("Running primer module with param: %s" % args.repository)
 
+        # start the primer module
+        import primer.primer_r
+        primer_instance = primer.primer_r.PrimerDesign(args, program_name, version)
+        primer_instance.run_module()
 
 if __name__ == "__main__":
     CircTools()
