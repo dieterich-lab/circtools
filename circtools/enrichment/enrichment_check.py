@@ -24,9 +24,10 @@ import multiprocessing
 import functools
 
 import pybedtools
+import circ_module.circ_template
 
 
-class EnrichmentModule(object):
+class EnrichmentModule(circ_module.circ_template.CircTemplate):
     def __init__(self, argparse_arguments, program_name, version):
 
         # get the user supplied options
@@ -130,26 +131,6 @@ class EnrichmentModule(object):
             print(result_table, end="", file=text_file)
 
         # ------------------------------------- Function definitions start here ---------------------------------------
-
-    @staticmethod
-    def log_entry(string):
-        """Logs to log file and prints on screen
-        """
-        message = string
-        logging.info(message)
-        print(message)
-
-    @staticmethod
-    def check_input_files(input_file_list):
-        """Checks supplied list of files for existence.
-        Will halt the program if file not accessible
-        """
-        for file in input_file_list:
-            # check if exists
-            if not os.path.isfile(file):
-                message = ("File " + str(file) + " cannot be found, exiting.")
-                logging.info(message)
-                sys.exit(message)
 
     def read_circ_rna_file(self, circ_rna_input, annotation_bed):
         """Reads a CircCoordinates file produced by DCC
@@ -326,7 +307,6 @@ class EnrichmentModule(object):
         """
 
         self.log_entry("Starting shuffling thread %d" % iteration)
-        #seed = 1337  # so this test always returns the same results
         shuffled_bed = bed_file.shuffle(g=genome_file, chrom=True, incl=annotation)
         self.log_entry("Finished shuffling thread %d" % iteration)
 
@@ -351,8 +331,11 @@ class EnrichmentModule(object):
 
         feature_iterator = iter(intersection_output)
         for bed_feature in feature_iterator:
-            key = tag + "\t" + bed_feature.name + "\t" + bed_feature.chrom + "_" + str(bed_feature.start) + "_" + str(
-                bed_feature.stop) + bed_feature.strand
+            key = tag + "\t" + bed_feature.name +\
+                  "\t" + bed_feature.chrom + "_" +\
+                  str(bed_feature.start) + "_" +\
+                  str(bed_feature.stop) +\
+                  bed_feature.strand
             count_table[key] = bed_feature[6]  # [6] == number of "hits"
 
         return count_table
@@ -410,3 +393,7 @@ class EnrichmentModule(object):
         self.log_entry("Finished intersection thread %d" % iteration)
 
         return linear_count_table, circular_count_table
+
+    def module_name(self):
+        """"Return a string representing the name of the module."""
+        return self.program_name
