@@ -95,7 +95,7 @@ class EnrichmentModule(object):
             self.cli_params.circ_rna_input) + '_circles.bed'
 
         circ_rna_bed.saveas(circle_annotation_file)
-        exit()
+
         # create list of shuffled peaks
         shuffled_peaks_linear = mp_pool.map(functools.partial(self.shuffle_peaks_through_genome,
                                                               bed_file=supplied_bed,
@@ -326,7 +326,7 @@ class EnrichmentModule(object):
         """
 
         self.log_entry("Starting shuffling thread %d" % iteration)
-        seed = 1337  # so this test always returns the same results
+        #seed = 1337  # so this test always returns the same results
         shuffled_bed = bed_file.shuffle(g=genome_file, chrom=True, incl=annotation)
         self.log_entry("Finished shuffling thread %d" % iteration)
 
