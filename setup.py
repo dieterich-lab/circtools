@@ -28,7 +28,7 @@ setup(
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com/dieterich-lab/FUCHS',
+    url='https://github.com/dieterich-lab/circtools',
 
     # Author details
 
