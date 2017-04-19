@@ -139,7 +139,10 @@ class CircTools(object):
         parser = argparse.ArgumentParser(
             description="circular RNA primer design")
         # NOT prefixing the argument with -- means it"s not optional
-        parser.add_argument("repository")
+        parser.add_argument("param1")
+        parser.add_argument("param2")
+        parser.add_argument("param3")
+
         args = parser.parse_args(sys.argv[2:])
         print("Running primer module with param: %s" % args.repository)
 
