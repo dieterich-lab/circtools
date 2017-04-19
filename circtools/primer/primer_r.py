@@ -15,10 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import circtools.circ_module.circ_template
+import circ_module.circ_template
 
 
-class PrimerDesign(circtools.circ_module.circ_template.CircTemplate):
+class PrimerDesign(circ_module.circ_template.CircTemplate):
     def __init__(self, argparse_arguments, program_name, version):
 
         # get the user supplied options
@@ -31,4 +31,45 @@ class PrimerDesign(circtools.circ_module.circ_template.CircTemplate):
         return self.program_name
 
     def run_module(self):
-        return
+
+        import subprocess
+
+        # param1 = self.cli_params.output_directory
+
+        # Define command and arguments
+
+        # import re
+        # r_version = subprocess.check_output(['Rscript', '--version'], universal_newlines=True)
+        # print(r_version)
+        #
+        # m = re.search('.*(\d+\.\d+\.\d+).*', r_version)
+        # print(m)
+
+        try:
+            # we assume Rscript is in the user's $PATH variable
+            command = 'Rscript'
+
+            # But..let's check that first, you never know
+
+            subprocess.check_output(['Rscript', '--version'], universal_newlines=True)
+
+            # okay, Rscript is really there, we put together the command line now:
+
+            # need to define path top R wrapper
+            path2script = 'path/to your script/max.R'
+
+            # Variable number of args in a list
+            args = ['11', '3', '9', '42']
+
+            # Build subprocess command
+            cmd = [command, path2script] + args
+            #
+            # check_output will run the command and store to result
+            module_output = subprocess.check_output(cmd, universal_newlines=True)
+
+        except FileNotFoundError:
+            self.log_entry("`Rscript` (a part of the R installation) could not be found in your $PATH.")
+
+
+
+
