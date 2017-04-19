@@ -1,0 +1,18 @@
+
+.seq {
+  word-wrap: break-word; 
+  text-align: center; 
+  width:400px;
+}
+
+table {
+font-family: arial, sans-serif;
+font-size: 14px;
+border-collapse: collapse;
+}
+
+td, th {
+border: 1px solid #dddddd;
+text-align: left;
+padding: 8px;
+}
