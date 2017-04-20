@@ -81,11 +81,11 @@ tail(counts)
 
     ##                 id count
     ## 6  ENST00000450123     0
-    ## 7  ENST00000470319     0
+    ## 7  ENST00000470319  1497
     ## 8  ENST00000479110     0
-    ## 9  ENST00000480458     0
-    ## 10 ENST00000496823   800
-    ## 11 ENST00000621333   738
+    ## 9  ENST00000480458   918
+    ## 10 ENST00000496823     0
+    ## 11 ENST00000621333     0
 
 The workflow entry point
 ------------------------
@@ -174,7 +174,7 @@ reportCircs(exSeq = exShortesSeq, file = "report.html")
 
 The resulting html file includes the information on the exon coordinates and sequences for the following primer design.
 
-![The HTML report with splice junction exon sequences.](report.png)
+![The HTML report with splice junction exon sequences.](img/report.png)
 
 Design and validate primers
 ---------------------------
