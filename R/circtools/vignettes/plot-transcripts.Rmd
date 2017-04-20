@@ -3,13 +3,16 @@ title: "Circtools"
 author: "Alexey Uvarovskii"
 date: '`r Sys.Date()`'
 output:
+  rmarkdown::github_document:
+    toc: yes
   pdf_document:
-    toc: true
-  rmarkdown::html_vignette: 
-    toc: true
+    toc: yes
+  rmarkdown::html_vignette:
+    toc: yes
 vignette: |
   %\VignetteIndexEntry{Vignette Title} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8}
 ---
+
 
 ## Introduction 
 
@@ -196,7 +199,7 @@ reportCircs(exSeq = exShortesSeq, file = "report.html")
 The resulting html file includes the information on the exon coordinates and
 sequences for the following primer design.
 
-![The HTML report with splice junction exon sequences.](report.png)
+![The HTML report with splice junction exon sequences.](img/report.png)
 
 ## Design and validate primers
 
