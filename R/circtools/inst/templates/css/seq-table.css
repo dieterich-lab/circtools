@@ -1,0 +1,31 @@
+
+
+.seq {
+  /*word-wrap: break-word; */
+  word-break:break-all;
+  text-align:left; 
+  font-size:10px;
+  width:50%;
+}
+
+.upstream{
+ color:blue; 
+}
+
+.downstream{
+  color:red;
+}
+
+table {
+font-family: arial, sans-serif;
+font-size: 14px;
+border-collapse: collapse;
+width: 95%;
+table-layout:auto;
+}
+
+td, th {
+border: 1px solid #000000;
+text-align: center;
+padding: 8px;
+}
