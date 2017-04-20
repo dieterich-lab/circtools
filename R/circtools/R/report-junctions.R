@@ -42,15 +42,21 @@ getReportTemplate <- function(x) {
 }
 
 
-reportCircs <- function(exSeq, file, template) {
+#' Write an HTML report for circular RNA candidates
+#'
+#' @param exSeq an object created by \code{\link{getExSeq}}
+#' @param file a report file name
+#'
+#' @export
+#'
+reportCircs <- function(exSeq, file) {
   ex <- unlist(exSeq, use.names = FALSE)
   ex <- as.data.frame(ex)
   ex$stream <- .getStream(strand = ex$strand, side = ex$side)
-  o <- order(ex$CIRCID, ex$stream=='downstream', ex$start, ex$end)
+  o <- order(ex$CIRCID, ex$stream == 'downstream', ex$start, ex$end)
   ex <- ex[o,]
-  if (missing(template))
-    template <- system.file("templates", "report-circ.html",
-                            package = "circtools")
+  template <- system.file("templates", "report-circ.html",
+                          package = "circtools")
   cols <- c(
     'CIRCID' = 'CIRCID',
     'exon_id' = 'exon id',
