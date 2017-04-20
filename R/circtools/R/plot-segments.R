@@ -73,14 +73,15 @@ plotTranscripts <- function(exons,
     if (!is.null(x) && is(x, "GRangesList")) {
       grList2df(x, idColumnName)
     } else if (!is.null(x)) {
+      x <- as.data.frame(x)
       if (is.null(x[[idColumnName]]))
         stop(paste0("The column ", idColumnName, " is NULL!"))
-      as.data.frame(x)
+      x
     } else
       NULL
   }
   exons <- toDF(exons, "tx_id")
-  circs <- toDF(circs, "id")
+  circs <- toDF(circs, "CIRCID")
   primers <- toDF(primers)
   # pre-defined
   numMarginLines <- 3
