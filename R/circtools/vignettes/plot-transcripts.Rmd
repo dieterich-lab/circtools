@@ -151,8 +151,8 @@ Since this function does not use any annotation information,
 it plots all provided objects:
 
 ```{r, fig.height=3, fig.width=6}
-ex <- ensembldb::exonsBy(db,  by = "tx", 
-                             filter = list(GenenameFilter(geneName)))
+ex <- ensembldb::exonsBy(db,  by = "tx",
+                         filter = list(GenenameFilter(geneName)))
 plotTranscripts(ex, counts = counts)
 ```
 
@@ -193,8 +193,13 @@ object, let us create an HTML report to present it to the biologists:
 repoFile <- "circs.html"
 # Report only the following circs:
 circIdFilter <- '3:187734869-187737088'
-writeReport(repoFile, circData, exShortesSeq, circIdsFilter)
+reportCircs(exSeq = exShortesSeq, file = "report.html")
 ```
+
+The resulting html file includes the information on the exon coordinates and
+sequences for the following primer design.
+
+![The HTML report with splice junction exon sequences.](report.png)
 
 ## Design and validate primers
 
