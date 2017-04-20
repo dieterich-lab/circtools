@@ -190,9 +190,6 @@ Having the list of sequences from the `getExonSeqs` function and the `CircData`
 object, let us create an HTML report to present it to the biologists:
 
 ```{r eval=FALSE}
-repoFile <- "circs.html"
-# Report only the following circs:
-circIdFilter <- '3:187734869-187737088'
 reportCircs(exSeq = exShortesSeq, file = "report.html")
 ```
 
