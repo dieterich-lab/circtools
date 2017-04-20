@@ -84,8 +84,8 @@ reportCircs <- function(exSeq, file) {
                         version = utils::packageVersion("circtools"),
                         src = c(file = system.file(package = "circtools")), 
                         stylesheet = "templates/css/seq-table.css")
-  res <- renderTags(html)$html
-  res <- attachDependencies(res, dep)
+  res <- htmltools::renderTags(html)$html
+  res <- htmltools::attachDependencies(res, dep)
   htmltools::save_html(res, file)
 }
 
