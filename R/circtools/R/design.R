@@ -81,7 +81,7 @@ getTxSeqs <- function(db, bsg, exSeq) {
 }
 
 seqs <- getCircSeqFromList(exSeq)
-txIntersect <- getTxForCircs(db, exSeq, 'both')
+exIntersect <- getTxForCircs(db, exSeq, 'both')
 txSeqs <- getTxSeqs(db, bsg, exSeq)
 
 circId <- names(txIntersect)[1]
@@ -102,7 +102,9 @@ primers <- DesignPrimers(
   minCoverage = 1,
   minGroupCoverage = 1,
   numPrimerSets = 1,
-  maxSearchSize = 20
+  maxSearchSize = 20,
+  minProductSize = 60,
+  minEfficiency = .9
 )
 cols <- c(
 'start_forward',
@@ -114,3 +116,104 @@ cols <- c(
 )
 res <- lapply(primers, function(x) `[[`(x,1))[cols]
 # include option to intersect SJ?
+
+decipher2genome <- function(primers, seqs) {
+  primersIR <- decipher2iranges(primers)
+  p <- primersIR[[1]]
+  seqId <- names(primersIR)[1]
+  i <- which(seqs$seqId == seqId)
+  circ <- exSeq[[seqs$CIRCID[i]]]
+  up <- circ[which(mcols(circ)$exon_id == seqs$upExonId[i])]
+  down <- circ[which(mcols(circ)$exon_id == seqs$downExonId[i])]
+    
+}
+
+decipher2iranges <- function(primers) {
+  res <- lapply(seq_along(primers$identifier), function(i) {
+    p <- primers[i, ]
+    fw <- IRanges(start = p$start_forward,
+                  width = nchar(p$forward_primer[1]))
+    mcols(fw)$seq <- p$forward_primer[1]
+    mcols(fw)$type <- 'forward'
+    rv <- IRanges(start = p$start_reverse,
+                  width = nchar(p$reverse_primer[1]))
+    mcols(rv)$seq <- p$reverse_primer[1]
+    mcols(rv)$type <- 'reverse'
+    pair <- c(fw,rv)
+    mcols(pair)$seqId <- p$identifier
+    pair
+  })
+  names(res) <- primers$identifier
+  res
+}
+
+#' Transform from intra-circ coordinates to the genome ones
+#' 
+#' Works only within two adjacent splice junction exons termed
+#' upstream and downatream ones.
+#'
+#' @param x a IRanges object
+#' @param upexon a GRanges object
+#' @param downexon a GRanges object
+#'
+#' @return 
+#'
+circ2genome <- function(x, upExon, downExon) {
+  if (unique(strand(upExon))[1] == '+') {
+    toGenome <- function(x) {
+      if (x <= width(upExon)) {
+        res <- x + start(upExon) - 1
+      } else {
+        res <- x - width(upExon) + start(downExon) - 1
+      }
+      res
+    }
+  } else {
+    toGenome <- function(x) {
+      if (x <= width(upExon)) {
+        res <- end(upExon) - x + 1
+      } else {
+        res <- x - width(upExon) + end(downExon) - 1
+      }
+      res
+    }
+  }
+  res <- mapply(range, vapply(start(x), toGenome, numeric(1)),
+              vapply(end(x), toGenome, numeric(1)))
+  res <- GRanges(seqnames = Rle(unique(seqnames(up)), length(x)),
+    IRanges(start = res[1,], end = res[2,]),
+    strand = Rle(unique(strand(up)), length(x)))
+  mcols(res) <- mcols(x)
+  res <- lapply(res, splitPrimer, upExon = upExon, downExon = downExon)
+  do.call(c, res)
+}
+
+splitPrimer <- function(x, upExon, downExon) {
+  if (overlapsAny(x, upExon) && overlapsAny(x, downExon)) {
+    sp <- setdiff(range(c(upExon, downExon)), range(x))
+    mcols(sp) <- mcols(x)
+    sp
+  } else {
+    x
+  }
+}
+
+p <- decipher2iranges(primers)
+x <- p[[1]]
+
+p <- DNAStringSet(c(primers$forward_primer[1],  primers$reverse_primer[1]))
+#rp <- reverseComplement(p)
+AmplifyDNA((p),
+           DNAStringSet(seqs$circSeq),
+           maxProductSize = 1e4,annealingTemp = 64,P = 4e-7)
+AmplifyDNA((p),
+           DNAStringSet(ts),
+           maxProductSize = 1e4,annealingTemp = 64,P = 4e-7)
+CalculateEfficiencyPCR(p[1],
+                       reverseComplement(DNAStringSet(seqs$circSeq[1])),
+                       #reverseComplement(p[1]),
+                       temp = 64,
+                       P = 4e-7,
+                       ions = .225)
+
+
