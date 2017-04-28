@@ -80,6 +80,15 @@ getTxSeqs <- function(db, bsg, exSeq) {
   seqs
 }
 
+#' Design primers
+#'
+#' @param exSeq 
+#' @param db 
+#' @param bsg 
+#'
+#' @return
+#' @export
+#'
 designPrimers <- function(exSeq, db, bsg) {
   seqs <- getCircSeqFromList(exSeq)
   txIntersect <- getTxForCircs(db, exSeq, 'both')
