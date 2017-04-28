@@ -101,11 +101,11 @@ designPrimers <- function(exSeq, db, bsg) {
   })
   names(res) <- names(exSeq)
   list(primers = res,
-       products = seqs)
+       products = split(seqs, seqs$CIRCID))
 }
 
 .designForCirc <- function(circSeqs, ex, ts) {
-  dbConn <- RSQLite::dbConnect(SQLite(), ":memory:")
+  dbConn <- RSQLite::dbConnect(RSQLite::SQLite(), ":memory:")
   suppressWarnings({
     DECIPHER::Seqs2DB(
       DNAStringSet(circSeqs$circSeq),
@@ -125,7 +125,7 @@ designPrimers <- function(exSeq, db, bsg) {
   # design for every seqId
   # TODO: suppress msgs
   primers <- lapply(circSeqs$seqId, function(seqId) {
-    primers <- DesignPrimers(
+    primers <- DECIPHER::DesignPrimers(
       tiles = tiles,
       identifier = seqId,
       minCoverage = 1,

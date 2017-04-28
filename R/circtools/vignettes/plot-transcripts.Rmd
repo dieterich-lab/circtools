@@ -3,9 +3,9 @@ title: "Circtools"
 author: "Alexey Uvarovskii"
 date: '`r Sys.Date()`'
 output:
-  rmarkdown::github_document:
-    toc: yes
   pdf_document:
+    toc: yes
+  rmarkdown::github_document:
     toc: yes
   rmarkdown::html_vignette:
     toc: yes
@@ -181,7 +181,7 @@ It is possible to include the shortes or the longest sequence by setting
 the `type` argument:
 ```{r cache=F}
 # for all exons use
-# exSeq <- getExonSeqs(circData = circData, bsg = bsg, type = "all")
+exSeqAll <- getExonSeqs(circData = circData, bsg = bsg, type = "all")
 exShortesSeq <- getExonSeqs(circData = circData, bsg = bsg, type = "shortest")
 exShortesSeq[['3:187734869-187737088']]
 ```
@@ -203,7 +203,27 @@ sequences for the following primer design.
 
 ## Design and validate primers
 
-TODO
+To get *in silico* optimized primer sequences, one needs simply to 
+invoke `designPrimers` function on the splice junction exons object:
+```{r}
+primers <- designPrimers(exSeq = exShortesSeq[1], db = db, bsg = bsg)
+```
+
+The result is a list with an item for every splice junction.
+There are two records: `primers` and `products`.
+Every item consists of a list of primers for possible circular transcripts:
+if there several exons, which correspons to the same splice junction, 
+all possible combinations of their pairs will be used for primer design.
+
+The priducts are
+```{r}
+str(primers$products)
+```
+and the primers
+```{r}
+primers$primers$`3:187734869-187737088`
+```
+
 
 ## Session
 ```{r}
