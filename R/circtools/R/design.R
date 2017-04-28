@@ -90,18 +90,29 @@ designPrimers <- function(exSeq, db, bsg) {
     ts <- txSeqs[txIntersect[[circId]]]
     .designForCirc(seqs[seqs$CIRCID == circId,], exSeq[[circId]], ts)
   })
-   
+  names(res) <- names(exSeq)
+  list(primers = res,
+       products = seqs)
 }
 
 .designForCirc <- function(circSeqs, ex, ts) {
   dbConn <- RSQLite::dbConnect(SQLite(), ":memory:")
-  DECIPHER::Seqs2DB(DNAStringSet(circSeqs$circSeq),
-                    "XStringSet",
-                    dbConn,
-                    identifier = circSeqs$seqId)
-  # add corresponding tx's
-  DECIPHER::Seqs2DB(ts, "XStringSet", dbConn, identifier = names(ts))
-  tiles <- DECIPHER::TileSeqs(dbConn, add2tbl = "Tiles", minCoverage = 1)
+  suppressWarnings({
+    DECIPHER::Seqs2DB(
+      DNAStringSet(circSeqs$circSeq),
+      "XStringSet",
+      dbConn,
+      identifier = circSeqs$seqId,
+      verbose = FALSE
+    )
+    # add corresponding tx's
+    DECIPHER::Seqs2DB(
+      ts, "XStringSet", dbConn, identifier = names(ts), verbose = FALSE)
+  })
+  tiles <- DECIPHER::TileSeqs(dbConn,
+                              add2tbl = "Tiles",
+                              minCoverage = 1,
+                              verbose = FALSE)
   # design for every seqId
   # TODO: suppress msgs
   primers <- lapply(circSeqs$seqId, function(seqId) {
@@ -113,7 +124,8 @@ designPrimers <- function(exSeq, db, bsg) {
       numPrimerSets = 1,
       maxSearchSize = 20,
       minProductSize = 60,
-      minEfficiency = .9
+      minEfficiency = .9,
+      verbose = FALSE
     )
   })
   primers <- decipher2iranges(primers)
@@ -121,14 +133,13 @@ designPrimers <- function(exSeq, db, bsg) {
   
   primersGR <- lapply(names(primers), function(seqId) {
     i <- which(seqId == circSeqs$seqId)
-  upExon   <- ex[which(mcols(ex)$exon_id == circSeqs$upExonId[i])]
-  downExon <- ex[which(mcols(ex)$exon_id == circSeqs$downExonId[i])]
-    circ2genome(
-      primers[[seqId]],
-      upExon = upExon, 
-      downExon = downExon
-    )
+    upExon   <- ex[which(mcols(ex)$exon_id == circSeqs$upExonId[i])]
+    downExon <- ex[which(mcols(ex)$exon_id == circSeqs$downExonId[i])]
+    circ2genome(primers[[seqId]],
+                upExon = upExon,
+                downExon = downExon)
   })
+  names(primersGR) <- names(primers)
   primersGR
 }
 
@@ -211,9 +222,11 @@ circ2genome <- function(x, upExon, downExon) {
   do.call(c, res)
 }
 
+# We assume that primer length is > 2
 splitPrimer <- function(x, upExon, downExon) {
   if (overlapsAny(x, upExon) && overlapsAny(x, downExon)) {
-    sp <- setdiff(range(c(upExon, downExon)), range(x))
+    x <- GenomicRanges::narrow(x, start = 2, end = -2)
+    sp <- GenomicRanges::setdiff(c(upExon, downExon),x)
     mcols(sp) <- mcols(x)
     sp
   } else {
