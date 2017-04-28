@@ -84,38 +84,63 @@ designPrimers <- function(exSeq, db, bsg) {
   seqs <- getCircSeqFromList(exSeq)
   txIntersect <- getTxForCircs(db, exSeq, 'both')
   txSeqs <- getTxSeqs(db, bsg, exSeq)
-  # lapply per circId
-  circId <- names(txIntersect)[1]
-    dbConn <- RSQLite::dbConnect(SQLite(), ":memory:")
-    o <- seqs$CIRCID == circId
-    circDNA <- DNAStringSet(seqs$circSeq[o])
-    DECIPHER::Seqs2DB(circDNA, "XStringSet", dbConn, identifier = seqs$seqId[o])
-    # add corresponding tx's
-    ts <- txSeqs[txIntersect[[circId]]]
-    DECIPHER::Seqs2DB(ts, "XStringSet", dbConn, identifier = names(ts))
-    tiles <- DECIPHER::TileSeqs(dbConn, add2tbl = "Tiles", minCoverage = 1)
-    # make lapply
-      seqId <- seqs$seqId[1]
-      i <- which(seqId == seqs$seqId)
-      primers <- DesignPrimers(
-        tiles = tiles,
-        identifier = seqId,
-        minCoverage = 1,
-        minGroupCoverage = 1,
-        numPrimerSets = 1,
-        maxSearchSize = 20,
-        minProductSize = 60,
-        minEfficiency = .9
-      )
   
-      ex <- exSeq[[circId]]
-  primers <- decipher2iranges(primers)
-    circ2genome(primers, ex)
+  # lapply per circId
+  res <- lapply(names(exSeq), function(circId) {
+    ts <- txSeqs[txIntersect[[circId]]]
+    .designForCirc(seqs[seqs$CIRCID == circId,], exSeq[[circId]], ts)
+  })
+   
 }
 
+.designForCirc <- function(circSeqs, ex, ts) {
+  dbConn <- RSQLite::dbConnect(SQLite(), ":memory:")
+  DECIPHER::Seqs2DB(DNAStringSet(circSeqs$circSeq),
+                    "XStringSet",
+                    dbConn,
+                    identifier = circSeqs$seqId)
+  # add corresponding tx's
+  DECIPHER::Seqs2DB(ts, "XStringSet", dbConn, identifier = names(ts))
+  tiles <- DECIPHER::TileSeqs(dbConn, add2tbl = "Tiles", minCoverage = 1)
+  # design for every seqId
+  # TODO: suppress msgs
+  primers <- lapply(circSeqs$seqId, function(seqId) {
+    primers <- DesignPrimers(
+      tiles = tiles,
+      identifier = seqId,
+      minCoverage = 1,
+      minGroupCoverage = 1,
+      numPrimerSets = 1,
+      maxSearchSize = 20,
+      minProductSize = 60,
+      minEfficiency = .9
+    )
+  })
+  primers <- decipher2iranges(primers)
+  names(primers) <- circSeqs$seqId
+  
+  primersGR <- lapply(names(primers), function(seqId) {
+    i <- which(seqId == circSeqs$seqId)
+  upExon   <- ex[which(mcols(ex)$exon_id == circSeqs$upExonId[i])]
+  downExon <- ex[which(mcols(ex)$exon_id == circSeqs$downExonId[i])]
+    circ2genome(
+      primers[[seqId]],
+      upExon = upExon, 
+      downExon = downExon
+    )
+  })
+  primersGR
+}
+
+#' Creates  IRanges objects with metadata on 
+#'   - seqId
+#'   - productSize
+#'   - type: ['forward', 'reverse']
+#'   - seq: the primer sequence.
+#'   @param primers is a list of results from \link[DECIPHER]{DesignPrimers}
+#'   @return  a list with an IRanges item for every primer pair
 decipher2iranges <- function(primers) {
-  res <- lapply(seq_along(primers$identifier), function(i) {
-    p <- primers[i, ]
+  res <- lapply(primers, function(p) {
     fw <- IRanges(start = p$start_forward,
                   width = nchar(p$forward_primer[1]))
     mcols(fw)$seq <- p$forward_primer[1]
@@ -146,7 +171,7 @@ decipher2iranges <- function(primers) {
       if (y <= width(upExon)) {
         res <- end(upExon) - y + 1
       } else {
-        res <- y - width(upExon) + end(downExon) - 1
+        res <-  end(downExon) - (y - width(upExon)) + 1
       }
       res
     }
@@ -164,26 +189,23 @@ decipher2iranges <- function(primers) {
 #'
 #' @return 
 #'
-circ2genome <- function(x, exonGR) { 
-  circStrand <- unique(strand(exonGR))
-  seqId <- names(x)[1]
-  i <-  which(seqs$seqId == seqId)
-  upExon   <- exonGR[which(mcols(exonGR)$exon_id == seqs$upExonId[i])]
-  downExon <- exonGR[which(mcols(exonGR)$exon_id == seqs$downExonId[i])]
-  a <- lapply(
-    list(start(x), end(x)),
-    .toGenome,
-    upExon = upExon,
-    downExon = downExon,
-    circStrand = circStrand
+circ2genome <- function(x, upExon, downExon) { 
+  circStrand <- unique(strand(upExon))
+  # transform to the genome coords and order as c(min, max) using `range`
+  res <- mapply(range,
+    lapply(
+      list(start(x), end(x)),
+      .toGenome,
+      upExon = upExon,
+      downExon = downExon,
+      circStrand = circStrand
+    )
   )
-  
-  res <- mapply(range, 
-                vapply(start(x), toGenome, numeric(1)),
-                vapply(end(x),toGenome, numeric(1)))
-  res <- GRanges(seqnames = Rle(unique(seqnames(upExon)), length(x)),
-    IRanges(start = res[1,], end = res[2,]),
-    strand = Rle(unique(strand(upExon)), length(x)))
+  res <- GRanges(
+    seqnames = Rle(unique(seqnames(upExon)), length(x)),
+    IRanges(start = res[1, ], end = res[2, ]),
+    strand = Rle(unique(strand(upExon)), length(x))
+  )
   mcols(res) <- mcols(x)
   res <- lapply(res, splitPrimer, upExon = upExon, downExon = downExon)
   do.call(c, res)
@@ -198,23 +220,4 @@ splitPrimer <- function(x, upExon, downExon) {
     x
   }
 }
-
-p <- decipher2iranges(primers)
-x <- p[[1]]
-
-p <- DNAStringSet(c(primers$forward_primer[1],  primers$reverse_primer[1]))
-#rp <- reverseComplement(p)
-AmplifyDNA((p),
-           DNAStringSet(seqs$circSeq),
-           maxProductSize = 1e4,annealingTemp = 64,P = 4e-7)
-AmplifyDNA((p),
-           DNAStringSet(ts),
-           maxProductSize = 1e4,annealingTemp = 64,P = 4e-7)
-CalculateEfficiencyPCR(p[1],
-                       reverseComplement(DNAStringSet(seqs$circSeq[1])),
-                       #reverseComplement(p[1]),
-                       temp = 64,
-                       P = 4e-7,
-                       ions = .225)
-
 
