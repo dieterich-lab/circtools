@@ -163,8 +163,7 @@ getExonSeqs <- function(circData, bsg, faFile,
   } else {
     S4Vectors::endoapply(byCirc, function(gr) {
       names(gr) <- NULL
-      GenomicRanges::mcols(gr)$seq <-
-        Rsamtools::getSeq(x = faFile, gr)
+      GenomicRanges::mcols(gr)$seq <- Rsamtools::getSeq(x = faFile, gr)
       gr
     })
   }
