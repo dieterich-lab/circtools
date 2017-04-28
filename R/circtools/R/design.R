@@ -84,28 +84,33 @@ designPrimers <- function(exSeq, db, bsg) {
   seqs <- getCircSeqFromList(exSeq)
   txIntersect <- getTxForCircs(db, exSeq, 'both')
   txSeqs <- getTxSeqs(db, bsg, exSeq)
+  # lapply per circId
   circId <- names(txIntersect)[1]
-  dbConn <- dbConnect(SQLite(), ":memory:")
-  o <- seqs$CIRCID == circId
-  circDNA <- DNAStringSet(seqs$circSeq[o])
-  Seqs2DB(circDNA, "XStringSet", dbConn, identifier = seqs$seqId[o])
-  # add corresponding tx's
-  ts <- txSeqs[txIntersect[[circId]]]
-  Seqs2DB(ts, "XStringSet", dbConn, identifier = names(ts))
-  tiles <- TileSeqs(dbConn, add2tbl = "Tiles", minCoverage = 1)
-  seqId <- seqs$seqId[1]
-  primers <- DesignPrimers(
-    tiles = tiles,
-    identifier = seqId,
-    minCoverage = 1,
-    minGroupCoverage = 1,
-    numPrimerSets = 1,
-    maxSearchSize = 20,
-    minProductSize = 60,
-    minEfficiency = .9
-  )
+    dbConn <- RSQLite::dbConnect(SQLite(), ":memory:")
+    o <- seqs$CIRCID == circId
+    circDNA <- DNAStringSet(seqs$circSeq[o])
+    DECIPHER::Seqs2DB(circDNA, "XStringSet", dbConn, identifier = seqs$seqId[o])
+    # add corresponding tx's
+    ts <- txSeqs[txIntersect[[circId]]]
+    DECIPHER::Seqs2DB(ts, "XStringSet", dbConn, identifier = names(ts))
+    tiles <- DECIPHER::TileSeqs(dbConn, add2tbl = "Tiles", minCoverage = 1)
+    # make lapply
+      seqId <- seqs$seqId[1]
+      i <- which(seqId == seqs$seqId)
+      primers <- DesignPrimers(
+        tiles = tiles,
+        identifier = seqId,
+        minCoverage = 1,
+        minGroupCoverage = 1,
+        numPrimerSets = 1,
+        maxSearchSize = 20,
+        minProductSize = 60,
+        minEfficiency = .9
+      )
+  
+      ex <- exSeq[[circId]]
   primers <- decipher2iranges(primers)
-  primers
+    circ2genome(primers, ex)
 }
 
 decipher2iranges <- function(primers) {
@@ -121,10 +126,31 @@ decipher2iranges <- function(primers) {
     mcols(rv)$type <- 'reverse'
     pair <- c(fw,rv)
     mcols(pair)$seqId <- p$identifier
+    mcols(pair)$productSize <- p$product_size
     pair
   })
   names(res) <- primers$identifier
   res
+}
+
+.toGenome <- function(x, circStrand, upExon, downExon) {
+  vapply(x, function(y) {
+    if (circStrand == '+') {
+      if (y <= width(upExon)) {
+        res <- y + start(upExon) - 1
+      } else {
+        res <- y - width(upExon) + start(downExon) - 1
+      }
+      res
+    } else {
+      if (y <= width(upExon)) {
+        res <- end(upExon) - y + 1
+      } else {
+        res <- y - width(upExon) + end(downExon) - 1
+      }
+      res
+    }
+  }, numeric(1))
 }
 
 #' Transform from intra-circ coordinates to the genome ones
@@ -138,28 +164,23 @@ decipher2iranges <- function(primers) {
 #'
 #' @return 
 #'
-circ2genome <- function(x, upExon, downExon) {
-  if (unique(strand(upExon))[1] == '+') {
-    toGenome <- function(x) {
-      if (x <= width(upExon)) {
-        res <- x + start(upExon) - 1
-      } else {
-        res <- x - width(upExon) + start(downExon) - 1
-      }
-      res
-    }
-  } else {
-    toGenome <- function(x) {
-      if (x <= width(upExon)) {
-        res <- end(upExon) - x + 1
-      } else {
-        res <- x - width(upExon) + end(downExon) - 1
-      }
-      res
-    }
-  }
-  res <- mapply(range, vapply(start(x), toGenome, numeric(1)),
-              vapply(end(x), toGenome, numeric(1)))
+circ2genome <- function(x, exonGR) { 
+  circStrand <- unique(strand(exonGR))
+  seqId <- names(x)[1]
+  i <-  which(seqs$seqId == seqId)
+  upExon   <- exonGR[which(mcols(exonGR)$exon_id == seqs$upExonId[i])]
+  downExon <- exonGR[which(mcols(exonGR)$exon_id == seqs$downExonId[i])]
+  a <- lapply(
+    list(start(x), end(x)),
+    .toGenome,
+    upExon = upExon,
+    downExon = downExon,
+    circStrand = circStrand
+  )
+  
+  res <- mapply(range, 
+                vapply(start(x), toGenome, numeric(1)),
+                vapply(end(x),toGenome, numeric(1)))
   res <- GRanges(seqnames = Rle(unique(seqnames(upExon)), length(x)),
     IRanges(start = res[1,], end = res[2,]),
     strand = Rle(unique(strand(upExon)), length(x)))
