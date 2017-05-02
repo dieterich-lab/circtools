@@ -77,7 +77,8 @@ plotCirc <- function(circIds,
                      circGenes,
                      circData,
                      primers = NULL,
-                     counts = NULL) {
+                     counts = NULL, 
+                     opts = NULL) {
   if (!missing(circGenes)) {
     if (length(circGenes) > 1)
       warning(paste(
@@ -109,7 +110,13 @@ plotCirc <- function(circIds,
     filter = GeneidFilter(circGenes),
     columns = c("gene_id", "tx_id", "tx_name")
   )
-  plotTranscripts(ex, circs = circs, primers = primers, counts = counts)
+  plotTranscripts(
+    ex,
+    circs = circs,
+    primers = primers,
+    counts = counts,
+    opts = opts
+  )
 }
 
 #' Retrieve sequences of the exons, which have common start or end with 

@@ -122,7 +122,6 @@ designPrimers <- function(exSeq, db, bsg) {
                               add2tbl = "Tiles",
                               minCoverage = 1,
                               verbose = FALSE)
-  # design for every seqId
   # TODO: suppress msgs
   primers <- lapply(circSeqs$seqId, function(seqId) {
     primers <- DECIPHER::DesignPrimers(
@@ -149,7 +148,7 @@ designPrimers <- function(exSeq, db, bsg) {
                 downExon = downExon)
   })
   names(primersGR) <- names(primers)
-  primersGR
+  GRangesList(primersGR)
 }
 
 #' Creates  IRanges objects with metadata on 
@@ -212,18 +211,17 @@ decipher2iranges <- function(primers) {
 circ2genome <- function(x, upExon, downExon) { 
   circStrand <- unique(strand(upExon))
   # transform to the genome coords and order as c(min, max) using `range`
-  res <- mapply(range,
-    lapply(
-      list(start(x), end(x)),
-      .toGenome,
-      upExon = upExon,
-      downExon = downExon,
-      circStrand = circStrand
-    )
+  res <-   lapply(
+    list(start = start(x), end = end(x)),
+    .toGenome,
+    upExon = upExon,
+    downExon = downExon,
+    circStrand = circStrand
   )
+  res <- do.call(rbind, Map(range, res$start, res$end))
   res <- GRanges(
     seqnames = Rle(unique(seqnames(upExon)), length(x)),
-    IRanges(start = res[1, ], end = res[2, ]),
+    IRanges(start = res[, 1], end = res[, 2]),
     strand = Rle(unique(strand(upExon)), length(x))
   )
   mcols(res) <- mcols(x)
@@ -243,3 +241,13 @@ splitPrimer <- function(x, upExon, downExon) {
   }
 }
 
+# get exons which intersect with the designed primers
+# 
+exons4primers <- function(db, primer) {
+  conditions <- c('within', 'overlapping')
+  ex <- lapply(conditions, function(cc) {
+   exons(db, filter = GRangesFilter(primer, condition = cc),
+          return.type = 'data.frame', columns = 'exon_id')
+  })
+  names(ex) <- conditions
+}

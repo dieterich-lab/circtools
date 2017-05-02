@@ -16,7 +16,7 @@ unifyDiff <- function(x,y, ratio){
 
 normaliseData <- function(..., ratio=5){
     dat <- list(...)
-    columns <- c("start_pos", "end_pos")
+    columns <- c("start", "end")
     positions <- do.call(rbind,
         lapply(names(dat), function(x){
             cbind(id=x,dat[[x]][, columns])
@@ -24,7 +24,7 @@ normaliseData <- function(..., ratio=5){
     )
     result <- as.data.frame(
         do.call(cbind,
-            unifyDiff(positions$start_pos, positions$end_pos, ratio=ratio))
+            unifyDiff(positions$start, positions$end, ratio=ratio))
     )
     names(result) <- columns
     split(result, positions$id)

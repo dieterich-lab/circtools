@@ -68,6 +68,8 @@ plotTranscripts <- function(exons,
                             circs = NULL,
                             minAspectRatio = .2,
                             opts = list()) {
+  .opts <- list(normalise = 5)
+  .opts[names(opts)] <- opts
   # TODO clean naming convention --> id, ids => seqnames ranges object?
   toDF <- function(x, idColumnName = "id") {
     if (!is.null(x) && is(x, "GRangesList")) {
@@ -83,6 +85,23 @@ plotTranscripts <- function(exons,
   exons <- toDF(exons, "tx_id")
   circs <- toDF(circs, "CIRCID")
   primers <- toDF(primers)
+  ##
+  if (.opts$normalise > 0) {
+    n <- normaliseData(
+      exons = exons,
+      circs = circs,
+      primers = primers,
+      ratio = .opts$normalise
+    )
+    cols <- c('start', 'end')
+    if (!is.null(exons))
+      exons[, cols] <- n$exons
+    if (!is.null(circs))
+      circs[, cols] <- n$circs
+    if (!is.null(primers))
+      primers[, cols] <- n$primers
+  }
+  ##
   # pre-defined
   numMarginLines <- 3
   widths <- c(2, 1)
@@ -154,7 +173,7 @@ plotTranscripts <- function(exons,
       starts = primers$start,
       ends   = primers$end,
       segmentSize = segmentSize,
-      minWidth = minAspectRatio,
+      minWidth = 0, #minAspectRatio,
       xlim = exonsXLim,
       ylim = c(.5, length(primers$id) -.5),
       opts = list(col = "firebrick3")
