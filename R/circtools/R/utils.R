@@ -16,18 +16,20 @@ unifyDiff <- function(x,y, ratio){
 
 normaliseData <- function(..., ratio=5){
     dat <- list(...)
+    toProcess <- vapply(dat, Negate(is.null), logical(1))
     columns <- c("start", "end")
     positions <- do.call(rbind,
-        lapply(names(dat), function(x){
-            cbind(id=x,dat[[x]][, columns])
+        lapply(names(dat)[toProcess], function(x){
+          cbind(id = x, dat[[x]][, columns])
         })
     )
     result <- as.data.frame(
         do.call(cbind,
-            unifyDiff(positions$start, positions$end, ratio=ratio))
+                unifyDiff(positions$start, positions$end, ratio = ratio))
     )
     names(result) <- columns
-    split(result, positions$id)
+    dat[toProcess] <- split(result, positions$id)
+    dat
 }
 
 testData <- function() {
