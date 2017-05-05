@@ -66,7 +66,7 @@ testData <- function() {
                             ))
   names(res$primers) <- c("id", "start", "end")
   # circ coord
-  res$circs <-  data.frame(CIRCID = "circ1",
+  res$circs <-  data.frame(sjId = "circ1",
                            start = e1$start[4],
                            end = e1$end[6])
   #circ primers

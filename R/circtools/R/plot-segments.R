@@ -83,7 +83,7 @@ plotTranscripts <- function(exons,
       NULL
   }
   exons <- toDF(exons, "tx_id")
-  circs <- toDF(circs, "CIRCID")
+  circs <- toDF(circs, "sjId")
   primers <- toDF(primers)
   ##
   if (.opts$normalise > 0) {
@@ -154,7 +154,7 @@ plotTranscripts <- function(exons,
   isoformsYLim <- getYLim()
   if (!is.null(circs))
     annotateCircs(
-      ids    = circs$CIRCID,
+      ids    = circs$sjId,
       starts = circs$start,
       ends   = circs$end,
       alpha = .1

@@ -4,7 +4,7 @@
 #' @param db an ensembldb object
 #'
 #' @param circsGR a GRanges of circular splice junctions. 
-#'   Must have `CIRCID` column with the identifiers of the circular splice 
+#'   Must have `sjId` column with the identifiers of the circular splice 
 #'   juctions.
 #' @param filter a filter to use for exons output
 #' 
@@ -23,7 +23,7 @@ getSjExons <- function(db, circsGR, filter=list()) {
     names(circExonsMap),
     function(side) {
       res <- exdb[to(circExonsMap[[side]])]
-      mcols(res)$CIRCID <- mcols(circsGR)$CIRCID[from(circExonsMap[[side]])]
+      mcols(res)$sjId <- mcols(circsGR)$sjId[from(circExonsMap[[side]])]
       mcols(res)$side <- side
       res
     })
@@ -60,10 +60,10 @@ CircData <- function(db, circCoords) {
 
 #' Plot a transcript scheme 
 #'
-#' @param circIds a character identifiers for the circular transcript 
+#' @param sjIds a character identifiers for the circular transcript 
 #'   to be plotted.
 #' @param circGene a character identifier for a gene, which transcripts are to 
-#'   be plotted. If `circIds` is not set, all circular transcripts defined in
+#'   be plotted. If `sjIds` is not set, all circular transcripts defined in
 #'   `circData` will be used. The identifier is identical to the GENEID
 #'   record in the EnsDb or TxDB objects.
 #' @param circData an object returned by CircData
@@ -73,7 +73,7 @@ CircData <- function(db, circCoords) {
 #'
 #' @export
 #'
-plotCirc <- function(circIds,
+plotCirc <- function(sjIds,
                      circGenes,
                      circData,
                      primers = NULL,
@@ -89,21 +89,21 @@ plotCirc <- function(circIds,
           circGenes, " does not overlap with the splice junction. "))
     ind <- which(circData$sjGeneIds == circGenes)
     allCircInd <-  with(circData, from(circsGeneHits)[to(circsGeneHits) == ind])
-    allCircId <- mcols(circData$circCoords)$CIRCID[allCircInd]
-    if (missing(circIds)) {
-      circIds <- allCircId
+    allCircId <- mcols(circData$circCoords)$sjId[allCircInd]
+    if (missing(sjIds)) {
+      sjIds <- allCircId
     } else {
-      if (!all(circIds %in% allCircId))
+      if (!all(sjIds %in% allCircId))
         stop("Some provided circs do not overlap with the genes in circGenes")
     }
   } else {
-    circIndex <- which(mcols(circData$circCoords)$CIRCID == circIds)
+    circIndex <- which(mcols(circData$circCoords)$sjId == sjIds)
     circGenes <- with(
       circData,
       sjGenes[to(circsGeneHits)[from(circsGeneHits) == circIndex]])
     circGenes <- mcols(circGenes)$gene_id
   }
-  circIndex <- which(mcols(circData$circCoords)$CIRCID == circIds)
+  circIndex <- which(mcols(circData$circCoords)$sjId == sjIds)
   circs <- circData$circCoords[circIndex]
   ex <- exons(
     circData$db,
@@ -133,7 +133,7 @@ plotCirc <- function(circIds,
 #' * `exon_id` and `gene_id`
 #' * `seq`, a DNAStringSet object
 #' * `side`, a character string ("left" or "right")
-#' * `CIRCID`, a character string derived from the circData object
+#' * `sjId`, a character string derived from the circData object
 #' 
 #' @export
 #'
@@ -149,7 +149,7 @@ getExonSeqs <- function(circData, bsg, faFile,
   ex <- getSjExons(db = circData$db, 
                    circsGR = circData$circCoords,
                    filter = GeneidFilter(circData$sjGeneIds))
-  byCirc <- GenomicRanges::split(ex, GenomicRanges::mcols(ex)$CIRCID)
+  byCirc <- GenomicRanges::split(ex, GenomicRanges::mcols(ex)$sjId)
   if (type != "all") {
     fun <- switch(
       type,

@@ -53,12 +53,12 @@ reportCircs <- function(exSeq, file) {
   ex <- unlist(exSeq, use.names = FALSE)
   ex <- as.data.frame(ex)
   ex$stream <- .getStream(strand = ex$strand, side = ex$side)
-  o <- order(ex$CIRCID, ex$stream == 'downstream', ex$start, ex$end)
+  o <- order(ex$sjId, ex$stream == 'downstream', ex$start, ex$end)
   ex <- ex[o,]
   template <- system.file("templates", "report-circ.html",
                           package = "circtools")
   cols <- c(
-    'CIRCID' = 'CIRCID',
+    'sjId' = 'sjId',
     'exon_id' = 'exon id',
     'seqnames' = 'chr',
     'start' = 'start',
@@ -73,7 +73,7 @@ reportCircs <- function(exSeq, file) {
     tdCols$seq, 'class', 'upstream', filter = ex$stream == 'upstream') 
   tdCols$seq <- .addColumnAttr(
     tdCols$seq, 'class', 'downstream', filter = ex$stream == 'downstream') 
-  tdCols$CIRCID <- spanCells(tdCols$CIRCID, ex$CIRCID)
+  tdCols$sjId <- spanCells(tdCols$sjId, ex$sjId)
   header <- lapply(cols, htmltools::tags$th)
   names(header) <- NULL
   header <- htmltools::tags$tr(header)
