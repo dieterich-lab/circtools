@@ -4,10 +4,11 @@
 \alias{designPrimers}
 \title{Design primers}
 \usage{
-designPrimers(exSeq, db, bsg)
+designPrimers(exSeq, db, bsg, opts = list())
 }
 \arguments{
-\item{exSeq}{}
+\item{exSeq}{a GRanges list with GRanges of exons on the splice junction.
+Every item represents an individual splice junction.}
 
 \item{db}{}
 

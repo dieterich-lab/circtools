@@ -89,7 +89,7 @@ createCirc <- function(geneName, db){
   ex1 <- exonsBy(db, filter=TxidFilter(txs$TXNAME[1]))[[1]]
   ex2 <- exonsBy(db, filter=TxidFilter(txs$TXNAME[2]))[[1]]
   circCoords <- c(range(ex1[1:2]), range(ex2[1:2]))
-  mcols(circCoords)$CIRCID <- paste0(seqnames(circCoords), ":",
+  mcols(circCoords)$sjId <- paste0(seqnames(circCoords), ":",
                                      start(circCoords), "-", end(circCoords))
   circCoords
 }
@@ -222,6 +222,14 @@ str(primers$products)
 and the primers
 ```{r}
 primers$primers$`3:187734869-187737088`
+```
+
+```{r}
+
+plotCirc(circGenes = bcl6EnsId,
+         circData = circData,
+         counts = counts, 
+         primers =(primers$primers$`3:187734869-187737088`))
 ```
 
 

@@ -10,7 +10,7 @@ getSjExons(db, circsGR, filter = list())
 \item{db}{an ensembldb object}
 
 \item{circsGR}{a GRanges of circular splice junctions.
-Must have \code{CIRCID} column with the identifiers of the circular splice
+Must have \code{sjId} column with the identifiers of the circular splice
 juctions.}
 
 \item{filter}{a filter to use for exons output}

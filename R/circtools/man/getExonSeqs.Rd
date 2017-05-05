@@ -24,7 +24,7 @@ include:
 \item \code{exon_id} and \code{gene_id}
 \item \code{seq}, a DNAStringSet object
 \item \code{side}, a character string ("left" or "right")
-\item \code{CIRCID}, a character string derived from the circData object
+\item \code{sjId}, a character string derived from the circData object
 }
 }
 \description{

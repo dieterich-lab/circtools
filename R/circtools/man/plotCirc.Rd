@@ -4,10 +4,11 @@
 \alias{plotCirc}
 \title{Plot a transcript scheme}
 \usage{
-plotCirc(circIds, circGenes, circData, primers = NULL, counts = NULL)
+plotCirc(sjIds, circGenes, circData, primers = NULL, counts = NULL,
+  opts = NULL)
 }
 \arguments{
-\item{circIds}{a character identifiers for the circular transcript
+\item{sjIds}{a character identifiers for the circular transcript
 to be plotted.}
 
 \item{circData}{an object returned by CircData}
@@ -18,7 +19,7 @@ to be plotted.}
 read counts.}
 
 \item{circGene}{a character identifier for a gene, which transcripts are to
-be plotted. If \code{circIds} is not set, all circular transcripts defined in
+be plotted. If \code{sjIds} is not set, all circular transcripts defined in
 \code{circData} will be used. The identifier is identical to the GENEID
 record in the EnsDb or TxDB objects.}
 }
