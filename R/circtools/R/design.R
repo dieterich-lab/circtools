@@ -90,7 +90,11 @@ getTxSeqs <- function(db, bsg, exSeq) {
 #' @return
 #' @export
 #'
-designPrimers <- function(exSeq, db, bsg, opts = list()) {
+designPrimers <- function(exSeq,
+                          db,
+                          bsg,
+                          opts = list(minLength = 0, maxLength = Inf)) {
+  # TODO choice if intersect with SJ
   seqs <- getCircSeqFromList(exSeq)
   txIntersect <- getTxOfSJExons(db, exSeq, whichExons = 'both')
   txSeqs <- getTxSeqs(db, bsg, exSeq)
@@ -106,7 +110,10 @@ designPrimers <- function(exSeq, db, bsg, opts = list()) {
        products = split(seqs, seqs$sjId))
 }
 
-.designForSJ <- function(circSeqs, ex, ts, opts = list()) {
+.designForSJ <- function(circSeqs,
+                         ex,
+                         ts,
+                         opts = list()) {
   # add sequences to the db and corresponding tx's
   dbConn <- RSQLite::dbConnect(RSQLite::SQLite(), ":memory:")
   stringSet <- DNAStringSet(circSeqs$circSeq)
@@ -137,15 +144,17 @@ designPrimers <- function(exSeq, db, bsg, opts = list()) {
       worstScore = -10,
       #minProductSize = 60,
       #minEfficiency = .8,
-      #verbose = FALSE
+      verbose = FALSE
     )
   })
   primers <- decipher2iranges(primers)
   names(primers) <- circSeqs$seqId
+  lengthRange <- c(opts$minLength, opts$maxLength)
   bestPrimers <- lapply(names(primers), function(sjId) {
     sj <- IRanges(width(ex$seq[ex$exon_id == circSeqs$upExonId]), width = 2)
     selectBestPrimers(p=primers[[sjId]], sj, lengthRange)
   })
+  names(bestPrimers) <- names(primers)
   primersGR <- lapply(names(bestPrimers), function(seqId) {
     i <- which(seqId == circSeqs$seqId)
     upExon   <- ex[which(mcols(ex)$exon_id == circSeqs$upExonId[i])]
@@ -154,7 +163,7 @@ designPrimers <- function(exSeq, db, bsg, opts = list()) {
                 upExon = upExon,
                 downExon = downExon)
   })
-  names(primersGR) <- names(primers)
+  names(primersGR) <- names(bestPrimers)
   GRangesList(primersGR)
 }
 
