@@ -59,13 +59,13 @@ test_that("correct coordinate transform", {
   
   x <- IRanges(5,9)
   expect_equal(IRanges(1005, 1009),
-               ranges(circ2genome(x, upExon, downExon)))
+               ranges(circtools:::circ2genome(x, upExon, downExon)))
   x <- IRanges(15,19)
   expect_equal(IRanges(5, 9),
-               ranges(circ2genome(x, upExon, downExon)))
+               ranges(circtools:::circ2genome(x, upExon, downExon)))
   
   x <- IRanges(9,19)
   expect_equal(IRanges(c(1, 1009), c(9, 1010)),
-               sort(ranges(circ2genome(x, upExon, downExon))))
+               sort(ranges(circtools:::circ2genome(x, upExon, downExon))))
   
 })

@@ -1,17 +1,17 @@
 Package: circtools
-Title: Design and analysis of circ-RNA-seq experiments.
+Title: Design and analysis of circ-RNA-seq experiments
 Version: 0.0.0.9000
 Authors@R: person("Alexey", "Uvarovskii", email = "alexey.mipt@gmail.com", role = c("aut", "cre"))
-Description: Visualisation tools for circular RNAs
+Description: Visualisation tools for circular RNAs.
 Depends: R (>= 3.3.3)
 License: GPLv3
 Encoding: UTF-8
 LazyData: true
-Remotes: bioc::3.4/ensembldb
-Depends:
-  S4Vectors , GenomicRanges (>= 1.26.4),
-  GenomicFeatures (>= 1.26.4), IRanges, ensembldb
-Imports: methods, graphics
+Remotes: bioc::3.5/ensembldb
+Depends: GenomicRanges (>= 1.26.4), GenomicFeatures (>= 1.26.4),
+  ensembldb, BSgenome
+Imports: methods, graphics, AnnotationFilter, Rsamtools, htmltools, DECIPHER,
+  RSQLite, S4Vectors,  IRanges, Biostrings
 Suggests: testthat,
     knitr,
     rmarkdown,

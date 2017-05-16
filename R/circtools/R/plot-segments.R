@@ -136,13 +136,13 @@ plotTranscripts <- function(exons,
     opts = opts
   )
   if ( !is.null(exons$strand)) {
-    par(xpd = TRUE)
+    graphics::par(xpd = TRUE)
     xy <- par()$usr
     direction <- switch(as.character(unique(exons$strand)),
                         "-" = 1,
                         "+" = 2,
                         0)
-    arrows(y0 = xy[3], y1 = xy[3], x0 = xy[1], x1 = xy[2], 
+    graphics::arrows(y0 = xy[3], y1 = xy[3], x0 = xy[1], x1 = xy[2], 
            length = getPanelHeight(1),
            angle = 15,
            code = direction,
@@ -178,7 +178,7 @@ plotTranscripts <- function(exons,
       ylim = c(.5, length(primers$id) -.5),
       opts = list(col = "firebrick3")
     )
-    box()
+    graphics::box()
   } else {
     margins()
     graphics::plot.new()
@@ -266,7 +266,7 @@ plotRanges <- function(ids,
     linesStarts <- vapply(split(starts, ids), min, double(1)) 
     linesEnds <- vapply(split(starts, ids), max, double(1)) 
     uniq_ids <- unique(ids)
-    segments(linesStarts[uniq_ids], as.numeric(uniq_ids),
+    graphics::segments(linesStarts[uniq_ids], as.numeric(uniq_ids),
              linesEnds[uniq_ids], as.numeric(uniq_ids),
              col = options$col)
   }

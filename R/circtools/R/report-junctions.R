@@ -44,7 +44,7 @@ getReportTemplate <- function(x) {
 
 #' Write an HTML report for circular RNA candidates
 #'
-#' @param exSeq an object created by \code{\link{getExSeq}}
+#' @param exSeq an object created by \code{\link{getExonSeqs}}
 #' @param file a report file name
 #'
 #' @export
@@ -89,8 +89,11 @@ reportCircs <- function(exSeq, file) {
   htmltools::save_html(res, file)
 }
 
+#' Merge subsequent cells which have the same value
+#' 
 #' @param x a list of tags
 #' @param f a factor to span the cells
+#' @noRd
 spanCells <- function(x, f) {
   r <- rle(f)
   indexesToKeep <- c(1, 1 + cumsum(r$lengths))

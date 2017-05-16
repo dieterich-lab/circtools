@@ -40,10 +40,11 @@ getSjExons <- function(db, circsGR, filter=list()) {
 #' @export
 #'
 #' @importFrom GenomicRanges findOverlaps mcols
-#' @importFrom ensembldb genes GRangesFilter
+#' @importFrom ensembldb genes 
+#' @importFrom AnnotationFilter GRangesFilter
 CircData <- function(db, circCoords) {
   # why does not work with a list of two filters?
-  sjFilter <- GRangesFilter(circCoords, "overlapping")
+  sjFilter <- AnnotationFilter::GRangesFilter(circCoords, "overlapping")
   sjGenes <- genes(db, filter = sjFilter)
   circsGeneHits <- findOverlaps(circCoords, sjGenes)
   
@@ -107,7 +108,7 @@ plotCirc <- function(sjIds,
   circs <- circData$circCoords[circIndex]
   ex <- exons(
     circData$db,
-    filter = GeneidFilter(circGenes),
+    filter = AnnotationFilter::GeneIdFilter(circGenes),
     columns = c("gene_id", "tx_id", "tx_name")
   )
   plotTranscripts(
@@ -137,10 +138,6 @@ plotCirc <- function(sjIds,
 #' 
 #' @export
 #'
-#' @examples
-#' \dontrun{
-#' 
-#' }
 getExonSeqs <- function(circData, bsg, faFile, 
                         type = c('all', 'shortest', 'longest')) {
   type <- match.arg(type)
@@ -148,13 +145,13 @@ getExonSeqs <- function(circData, bsg, faFile,
       stop("Specify only one sequence source: BSgenome or FaFile")
   ex <- getSjExons(db = circData$db, 
                    circsGR = circData$circCoords,
-                   filter = GeneidFilter(circData$sjGeneIds))
+                   filter = AnnotationFilter::GeneIdFilter(circData$sjGeneIds))
   byCirc <- GenomicRanges::split(ex, GenomicRanges::mcols(ex)$sjId)
   if (type != "all") {
     fun <- switch(
       type,
-      shortest = function(x) x[which.min(width(x))],
-      longest  = function(x) x[which.max(width(x))]
+      shortest = function(x) x[which.min(GenomicRanges::width(x))],
+      longest  = function(x) x[which.max(GenomicRanges::width(x))]
     )
     byCirc <- S4Vectors::endoapply(byCirc, function(gr) {
       bySide <- GenomicRanges::split(gr, gr$side)
