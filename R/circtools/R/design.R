@@ -25,7 +25,7 @@
                      sjId = sjId,
                      upExonId = df$exon_id[up],
                      downExonId = df$exon_id[down],
-                     circSeq = paste0(df$seq[down], df$seq[up])
+                     circSeq = paste0(df$seq[up], df$seq[down])
                    )
                  })
   as.data.frame(do.call(rbind, res), stringsAsFactors = FALSE)
@@ -187,7 +187,7 @@ selectBestPrimers <- function(p, sj, lengthRange) {
   sjPrimers <- p[from(findOverlaps(p, sj))]
   sjPrimers <- split(sjPrimers, S4Vectors::mcols(sjPrimers)$type)
   best <- lapply(sjPrimers, function(x) {
-    p[which.max(S4Vectors::mcols(x)$efficiency)]
+    x[which.max(S4Vectors::mcols(x)$efficiency)]
   })
   p <- split(p, S4Vectors::mcols(p)$type)
   # forward primer on sj
@@ -318,8 +318,12 @@ splitPrimer <- function(x, upExon, downExon) {
 exons4primers <- function(db, primer) {
   conditions <- c('within', 'overlapping')
   ex <- lapply(conditions, function(cc) {
-   exons(db, filter = AnnotationFilter::GRangesFilter(primer, condition = cc),
-          return.type = 'data.frame', columns = 'exon_id')
+    ensembldb::exons(
+      db,
+      filter = AnnotationFilter::GRangesFilter(primer, condition = cc),
+      return.type = 'data.frame',
+      columns = 'exon_id'
+    )
   })
   names(ex) <- conditions
 }

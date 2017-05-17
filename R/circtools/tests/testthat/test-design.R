@@ -69,3 +69,39 @@ test_that("correct coordinate transform", {
                sort(ranges(circtools:::circ2genome(x, upExon, downExon))))
   
 })
+
+test_that("return correct exon seqs", {
+  gr <- GRanges(
+    seqnames = c('a', 'a'),
+    ranges = IRanges(start = c(1, 10), end = c(2, 11)),
+    strand = rep('+',2),
+    sjId = rep('sjId',2),
+    exon_id = c('e1', 'e2'),
+    gene_id = rep('gene',2),
+    side = c('left', 'right'),
+    seq = c(DNAStringSet('AA'), DNAStringSet('GG'))
+  )
+  res <- .getCircSJSeq(gr) 
+  expect_equal(
+    res,
+    data.frame(
+      sjId = 'sjId',
+      upExonId = 'e2',
+      downExonId = 'e1',
+      circSeq = 'GGAA',
+      stringsAsFactors = FALSE
+    )
+  )
+  strand(gr) <- '-'
+  res <- .getCircSJSeq(gr) 
+  expect_equal(
+    res,
+    data.frame(
+      sjId = 'sjId',
+      upExonId = 'e1',
+      downExonId = 'e2',
+      circSeq = 'AAGG',
+      stringsAsFactors = FALSE
+    )
+  )
+})
