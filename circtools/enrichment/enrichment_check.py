@@ -102,7 +102,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                                                               bed_file=supplied_bed,
                                                               annotation=gene_annotation_file,
                                                               genome_file=self.cli_params.genome_file),
-                                            range(self.cli_params.num_iterations))
+                                            range(1, self.cli_params.num_iterations+1))
 
         shuffled_peaks_linear.append(supplied_bed)
 
@@ -111,7 +111,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                                                                 bed_file=supplied_bed,
                                                                 annotation=circle_annotation_file,
                                                                 genome_file=self.cli_params.genome_file),
-                                              range(self.cli_params.num_iterations))
+                                              range(1, self.cli_params.num_iterations+1))
 
         shuffled_peaks_circular.append(supplied_bed)
 
@@ -121,14 +121,14 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                                                 annotation_bed=annotation_bed,
                                                 shuffled_peaks_linear=shuffled_peaks_linear,
                                                 shuffled_peaks_circular=shuffled_peaks_circular
-                                                ), range(self.cli_params.num_iterations + 1))
+                                                ), range(1, self.cli_params.num_iterations+1))
 
         result_table = self.generate_count_table(results)
 
         result_file = self.cli_params.output_directory + "/output_" + time_format + ".csv"
 
-        with open(result_file, "w") as text_file:
-            print(result_table, end="", file=text_file)
+        with open(result_file, 'w') as text_file:
+            text_file.write(result_table)
 
         # ------------------------------------- Function definitions start here ---------------------------------------
 
