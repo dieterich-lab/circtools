@@ -2,26 +2,26 @@
 % Please edit documentation in R/design.R
 \name{decipher2iranges}
 \alias{decipher2iranges}
-\title{Creates  IRanges objects with metadata on
-\itemize{
-\item seqId
-\item productSize
-\item type: \link{'forward', 'reverse'}
-\item seq: the primer sequence.
-@param primers is a list of results from \link\link{DECIPHER}{DesignPrimers}
-@return  a list with an IRanges item for every primer pair
-}}
+\title{Creates  IRanges objects}
 \usage{
 decipher2iranges(primers)
 }
+\arguments{
+\item{primers}{is a list of results from
+\code{\link[DECIPHER]{DesignPrimers}}}
+}
+\value{
+a list with an \code{\link[IRanges]{IRanges}}
+item for every primer pair
+}
 \description{
-Creates  IRanges objects with metadata on
+The  metadata include:
 \itemize{
 \item seqId
 \item productSize
-\item type: \link{'forward', 'reverse'}
+\item type: ['forward', 'reverse']
 \item seq: the primer sequence.
-@param primers is a list of results from \link\link{DECIPHER}{DesignPrimers}
-@return  a list with an IRanges item for every primer pair
 }
+
+['forward', 'reverse']: R:'forward',%20'reverse'%5C
 }

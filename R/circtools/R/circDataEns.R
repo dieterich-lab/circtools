@@ -33,8 +33,8 @@ getSjExons <- function(db, circsGR, filter=list()) {
 
 #' Create a CircData object
 #'
-#' @param db 
-#' @param circCoords 
+#' @param db an ensembldb object
+#' @param circCoords an IRanges object
 #'
 #' @return a CircData object
 #' @export
@@ -63,14 +63,15 @@ CircData <- function(db, circCoords) {
 #'
 #' @param sjIds a character identifiers for the circular transcript 
 #'   to be plotted.
-#' @param circGene a character identifier for a gene, which transcripts are to 
-#'   be plotted. If `sjIds` is not set, all circular transcripts defined in
-#'   `circData` will be used. The identifier is identical to the GENEID
-#'   record in the EnsDb or TxDB objects.
 #' @param circData an object returned by CircData
 #' @param primers a data.frame or an IRanges object for the primers
 #' @param counts a data.frame with an id column (tx_id) and corresponding
 #'   read counts.
+#' @param circGenes a character vector or list with the gene id's, for which
+#' circular transcripts must be plotted
+#'   
+#' @param opts a list with options for the \code{\link{plotTranscripts}} 
+#' opts argument.
 #'
 #' @export
 #'
@@ -126,7 +127,9 @@ plotCirc <- function(sjIds,
 #' @param circData a `CircData` object
 #' @param bsg a `BSgenome` entity
 #' @param faFile a \code{\link{FaFile}} object
-#' @param type 
+#' @param type a character: whether to include all, only the shortest or 
+#'   the longest exons, which can form the splice junction
+#'   
 #'
 #' @return GRangesList object with a record for every circular id
 #' defined in the `circData` argument. The metadata in the list items 

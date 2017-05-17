@@ -4,16 +4,27 @@
 \alias{designPrimers}
 \title{Design primers}
 \usage{
-designPrimers(exSeq, db, bsg, opts = list())
+designPrimers(exSeq, db, bsg, opts = list(minLength = 0, maxLength = Inf))
 }
 \arguments{
 \item{exSeq}{a GRanges list with GRanges of exons on the splice junction.
 Every item represents an individual splice junction.}
 
-\item{db}{}
+\item{db}{an ensembldb object}
 
-\item{bsg}{}
+\item{bsg}{a BSgenome object}
+
+\item{opts}{a named list with the design options (see details).}
+}
+\value{
+a list with \code{primers} and \code{product} items.
 }
 \description{
 Design primers
+}
+\details{
+The following options are available for the primer design:
+\itemize{
+\item minLength (0), maxLength (Inf): a min and max product length
+}
 }

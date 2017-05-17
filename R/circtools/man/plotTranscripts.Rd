@@ -16,9 +16,9 @@ plotTranscripts(exons, counts = NULL, primers = NULL, circs = NULL,
 
 \item{circs}{a counts data.frame}
 
-\item{opts}{an option list}
+\item{minAspectRatio}{a minimal ratio of a segment height to its width}
 
-\item{minRatio}{a minimal aspect ratio for plotted segments (height/width)}
+\item{opts}{an option list}
 }
 \value{
 Used for its side effects. Plots intervals for exons,

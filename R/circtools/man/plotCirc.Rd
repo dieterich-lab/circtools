@@ -11,6 +11,9 @@ plotCirc(sjIds, circGenes, circData, primers = NULL, counts = NULL,
 \item{sjIds}{a character identifiers for the circular transcript
 to be plotted.}
 
+\item{circGenes}{a character vector or list with the gene id's, for which
+circular transcripts must be plotted}
+
 \item{circData}{an object returned by CircData}
 
 \item{primers}{a data.frame or an IRanges object for the primers}
@@ -18,10 +21,8 @@ to be plotted.}
 \item{counts}{a data.frame with an id column (tx_id) and corresponding
 read counts.}
 
-\item{circGene}{a character identifier for a gene, which transcripts are to
-be plotted. If \code{sjIds} is not set, all circular transcripts defined in
-\code{circData} will be used. The identifier is identical to the GENEID
-record in the EnsDb or TxDB objects.}
+\item{opts}{a list with options for the \code{\link{plotTranscripts}}
+opts argument.}
 }
 \description{
 Plot a transcript scheme

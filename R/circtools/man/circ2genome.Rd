@@ -9,9 +9,12 @@ circ2genome(x, upExon, downExon)
 \arguments{
 \item{x}{a IRanges object}
 
-\item{upexon}{a GRanges object}
+\item{upExon}{a GRanges object}
 
-\item{downexon}{a GRanges object}
+\item{downExon}{a GRanges object}
+}
+\value{
+GRangesList
 }
 \description{
 Works only within two adjacent splice junction exons termed

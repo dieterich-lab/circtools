@@ -7,7 +7,7 @@
 reportCircs(exSeq, file)
 }
 \arguments{
-\item{exSeq}{an object created by \code{\link{getExSeq}}}
+\item{exSeq}{an object created by \code{\link{getExonSeqs}}}
 
 \item{file}{a report file name}
 }

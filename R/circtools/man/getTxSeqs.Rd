@@ -15,7 +15,7 @@ getTxSeqs(db, bsg, exSeq)
 \item{exSeq}{the result of \code{\link{getExonSeqs}} function}
 }
 \value{
-a list by transcripts with their sequences (\code{\link{DNAString}})
+a list by transcripts with their sequences (\code{\link[Biostrings]{DNAString}})
 }
 \description{
 Retirieve transcript seqs for the genes of circs

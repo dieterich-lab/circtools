@@ -55,8 +55,8 @@ getYLim <- function() graphics::par()$usr[3:4]
 #' @param circs a counts data.frame
 #' @param counts an interval data.frame
 #' @param primers an interval data.frame
-#' @param minRatio a minimal aspect ratio for plotted segments (height/width)
 #' @param opts an option list
+#' @param minAspectRatio a minimal ratio of a segment height to its width
 #' 
 #' @return Used for its side effects. Plots intervals for exons,
 #' primers and transcript counts if provided.
@@ -137,7 +137,7 @@ plotTranscripts <- function(exons,
   )
   if ( !is.null(exons$strand)) {
     graphics::par(xpd = TRUE)
-    xy <- par()$usr
+    xy <- graphics::par()$usr
     direction <- switch(as.character(unique(exons$strand)),
                         "-" = 1,
                         "+" = 2,
@@ -148,7 +148,7 @@ plotTranscripts <- function(exons,
            code = direction,
            lwd = 2,
            col = "deepskyblue1")
-    par(xpd = FALSE)
+    graphics::par(xpd = FALSE)
   }
   # add circ rectangles if defined
   isoformsYLim <- getYLim()

@@ -1,6 +1,11 @@
 #' Generate sequencing of splice junction regions
 #'
-#' @param exSeq 
+#' @param exSeq a GRanges object with the metadata columns:
+#'   - exon_id
+#'   - gene_id
+#'   - sjId (splice junction id)
+#'   - side ('left', 'right')
+#'   - seq, a DNAStringSet
 #'
 #' @return a data.frame with sjId in rownames and circSeq column with
 #' the splice junction sequences
@@ -28,9 +33,10 @@
 
 #' Generate splice junction sequencies for a list of circs
 #'
-#' @param exSeqList 
+#' @param exSeqList a list of exSeq items, defined in `\link{.getCircSJSeq}`
 #'
 #' @return a list
+#' @noRd
 #'
 getCircSeqFromList <- function(exSeqList) {
   seqs <- do.call(rbind, lapply(exSeqList, .getCircSJSeq))
@@ -78,7 +84,7 @@ getTxSeqs <- function(db, bsg, exSeq) {
   geneIds <- vapply(exSeq, function(x) unique(
     S4Vectors::mcols(x)$gene_id), character(1))
   ex <- ensembldb::exonsBy(db, filter = AnnotationFilter::GeneIdFilter(geneIds))
-  seqs <- extractTranscriptSeqs(bsg, ex)
+  seqs <- GenomicFeatures::extractTranscriptSeqs(bsg, ex)
   seqs
 }
 
@@ -86,10 +92,15 @@ getTxSeqs <- function(db, bsg, exSeq) {
 #'
 #' @param exSeq a GRanges list with GRanges of exons on the splice junction.
 #'   Every item represents an individual splice junction.
-#' @param db 
-#' @param bsg 
+#' @param db an ensembldb object
+#' @param bsg a BSgenome object
+#' @param opts a named list with the design options (see details).
 #'
 #' @return a list with `primers` and `product` items.
+#' @details  
+#' 
+#' The following options are available for the primer design:
+#'   - minLength (0), maxLength (Inf): a min and max product length
 #' @export
 #'
 designPrimers <- function(exSeq,
@@ -189,7 +200,7 @@ selectBestPrimers <- function(p, sj, lengthRange) {
                           p$reverse[which.max(mcols(p$reverse[o])$efficiency)])
   }
   # reverse primer on sj
-  rangeForStart <- end(best$reverse) - lengthRange + 1
+  rangeForStart <- IRanges::end(best$reverse) - lengthRange + 1
   o <- IRanges::start(p$forward) >= rangeForStart[1] &
        IRanges::start(p$forward) <= rangeForStart[2]
   if (any(o)) {
@@ -207,7 +218,7 @@ selectBestPrimers <- function(p, sj, lengthRange) {
 #'  The  metadata include:
 #'   - seqId
 #'   - productSize
-#'   - type: ['forward', 'reverse']
+#'   - type: \['forward', 'reverse'\]
 #'   - seq: the primer sequence.
 #'   
 #' @param primers is a list of results from 
@@ -224,7 +235,7 @@ decipher2iranges <- function(primers) {
     S4Vectors::mcols(fw)$type <- 'forward'
     S4Vectors::mcols(fw)$efficiency <- p$forward_efficiency[fwSelect,1]
     rvSelect <- p$score_reverse > -Inf
-    rv <- IRanges(start = p$start_reverse[rvSelect],
+    rv <- IRanges::IRanges(start = p$start_reverse[rvSelect],
                   width = nchar(p$reverse_primer[rvSelect,1]))
     S4Vectors::mcols(rv)$seq <- p$reverse_primer[rvSelect,1]
     S4Vectors::mcols(rv)$type <- 'reverse'
@@ -263,8 +274,8 @@ decipher2iranges <- function(primers) {
 #' upstream and downatream ones.
 #'
 #' @param x a IRanges object
-#' @param upexon a GRanges object
-#' @param downexon a GRanges object
+#' @param upExon a GRanges object
+#' @param downExon a GRanges object
 #'
 #' @return GRangesList
 #'
@@ -292,7 +303,7 @@ circ2genome <- function(x, upExon, downExon) {
 
 # We assume that primer length is > 2
 splitPrimer <- function(x, upExon, downExon) {
-  if (IRanges::overlapsAny(x, upExon) && overlapsAny(x, downExon)) {
+  if (IRanges::overlapsAny(x, upExon) && IRanges::overlapsAny(x, downExon)) {
     x <- GenomicRanges::narrow(x, start = 2, end = -2)
     sp <- GenomicRanges::setdiff(c(upExon, downExon),x)
     mcols(sp) <- mcols(x)
