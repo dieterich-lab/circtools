@@ -25,9 +25,16 @@
    cols <- cols[!vapply(cols, anyNA, logical(1))]
    htmltools::tags$tr(cols)
   }
-  do.call(Map, c(f=f, colList)) 
+  do.call(Map, c(f = f, colList)) 
 }
 
+#' Define relative positions of exons in transcript coordinates
+#'
+#' @param strand + - *
+#' @param side 'left' or 'right', in relation to the genome coordinates
+#'
+#' @return a character vector with 'downstream' and 'upstream' values
+#' @noRd
 .getStream <- function(strand, side) {
   res <- rep("upstream", length(strand))
   res[ strand == '+' & side == 'left'] <- 'downstream'
