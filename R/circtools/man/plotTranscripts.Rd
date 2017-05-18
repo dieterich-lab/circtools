@@ -27,3 +27,11 @@ primers and transcript counts if provided.
 \description{
 Plots isoforms structure, primer position and isoform counts if provided
 }
+\details{
+all interval data.frames must have start and end fields.
+\code{exons} is assumed to have \code{strand} (character) and \code{tx_id} fields.
+\code{primers} must have \code{id} to distinguish forward, reverse primers for
+different circular transcripts.
+\code{cirsc} must contain sjId field.
+\code{counts} has id and count fields.
+}

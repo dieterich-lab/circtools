@@ -5,7 +5,7 @@
 \title{Plot a transcript scheme}
 \usage{
 plotCirc(sjIds, circGenes, circData, primers = NULL, counts = NULL,
-  opts = NULL)
+  countThres = -Inf, opts = NULL)
 }
 \arguments{
 \item{sjIds}{a character identifiers for the circular transcript
@@ -20,6 +20,9 @@ circular transcripts must be plotted}
 
 \item{counts}{a data.frame with an id column (tx_id) and corresponding
 read counts.}
+
+\item{countThres}{the transcripts with the read counts exceeding the
+threshold value will be plotted (default: 0)}
 
 \item{opts}{a list with options for the \code{\link{plotTranscripts}}
 opts argument.}

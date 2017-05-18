@@ -17,7 +17,8 @@ juctions.}
 }
 \value{
 a list with \code{left} and \code{right} GRanges of the
-intersecting exons.
+intersecting exons. 'left' means that an exon GRanges start coordinate is
+the same as the SJ start, 'right' is the same, but for exon GRanges ends.
 }
 \description{
 Get coordinates of splice junction exons
