@@ -59,8 +59,8 @@ getYLim <- function() graphics::par()$usr[3:4]
 #' @param minAspectRatio a minimal ratio of a segment height to its width
 #' 
 #' @details all interval data.frames must have start and end fields.
-#' `exons` is assumed to have `strand` (character) and `tx_id' fields.
-#' `primers` must have 'id' to distinguish forward, reverse primers for 
+#' `exons` is assumed to have `strand` (character) and `tx_id` fields.
+#' `primers` must have `id` to distinguish forward, reverse primers for 
 #' different circular transcripts.
 #' `cirsc` must contain sjId field. 
 #'  `counts` has id and count fields.
@@ -75,7 +75,7 @@ plotTranscripts <- function(exons,
                             circs = NULL,
                             minAspectRatio = .2,
                             opts = list()) {
-  .opts <- list(normalise = 5)
+  .opts <- list(normalise = -5)
   .opts[names(opts)] <- opts
   if (.opts$normalise > 0) {
     n <- normaliseData(
@@ -255,7 +255,7 @@ plotRanges <- function(ids,
     uniq_ids <- unique(ids)
     graphics::segments(linesStarts[uniq_ids], as.numeric(uniq_ids),
              linesEnds[uniq_ids], as.numeric(uniq_ids),
-             col = options$col)
+             col = options$col, lend = 2)
   }
 }
 
