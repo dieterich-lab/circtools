@@ -123,7 +123,7 @@ plotCirc <- function(sjIds,
     primers$id <- paste(primers$seqId, primers$type) 
   }
   if (!is.null(counts)) {
-   counts <- droplevels(counts[counts$count > countThres, ])
+   counts <- droplevels(counts[counts$count >= countThres, ])
    ex <- ex[mcols(ex)$tx_id %in% counts$id]
   }
   plotTranscripts(
