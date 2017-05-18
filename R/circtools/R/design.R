@@ -280,6 +280,7 @@ decipher2iranges <- function(primers) {
 #' @return GRangesList
 #'
 circ2genome <- function(x, upExon, downExon) { 
+  x <- splitPrimer(x, upExonWidth = width(upExon))
   circStrand <- unique(GenomicRanges::strand(upExon))
   # transform to the genome coords and order as c(min, max) using `range`
   res <-   lapply(
@@ -297,17 +298,13 @@ circ2genome <- function(x, upExon, downExon) {
     strand = S4Vectors::Rle(unique(GenomicRanges::strand(upExon)), length(x))
   )
   S4Vectors::mcols(res) <- S4Vectors::mcols(x)
-  res <- lapply(res, splitPrimer, upExon = upExon, downExon = downExon)
-  do.call(c, res)
+  res
 }
 
-# We assume that primer length is > 2
-splitPrimer <- function(x, upExon, downExon) {
-  if (IRanges::overlapsAny(x, upExon) && IRanges::overlapsAny(x, downExon)) {
-    x <- GenomicRanges::narrow(x, start = 2, end = -2)
-    sp <- GenomicRanges::setdiff(c(upExon, downExon),x)
-    mcols(sp) <- mcols(x)
-    sp
+splitPrimer <- function(x, upExonWidth) {
+  if (start(x) <= upExonWidth && end(x) > upExonWidth) {
+    c(GenomicRanges::restrict(x, end = upExonWidth),
+      GenomicRanges::restrict(x, start = upExonWidth + 1))
   } else {
     x
   }
