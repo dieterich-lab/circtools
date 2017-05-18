@@ -58,6 +58,13 @@ getYLim <- function() graphics::par()$usr[3:4]
 #' @param opts an option list
 #' @param minAspectRatio a minimal ratio of a segment height to its width
 #' 
+#' @details all interval data.frames must have start and end fields.
+#' `exons` is assumed to have `strand` (character) and `tx_id' fields.
+#' `primers` must have 'id' to distinguish forward, reverse primers for 
+#' different circular transcripts.
+#' `cirsc` must contain sjId field. 
+#'  `counts` has id and count fields.
+#' 
 #' @return Used for its side effects. Plots intervals for exons,
 #' primers and transcript counts if provided.
 #' @export
@@ -70,22 +77,6 @@ plotTranscripts <- function(exons,
                             opts = list()) {
   .opts <- list(normalise = 5)
   .opts[names(opts)] <- opts
-  # TODO clean naming convention --> id, ids => seqnames ranges object?
-  toDF <- function(x, idColumnName = "id") {
-    if (!is.null(x) && is(x, "GRangesList")) {
-      grList2df(x, idColumnName)
-    } else if (!is.null(x)) {
-      x <- as.data.frame(x)
-      if (is.null(x[[idColumnName]]))
-        stop(paste0("The column ", idColumnName, " is NULL!"))
-      x
-    } else
-      NULL
-  }
-  exons <- toDF(exons, "tx_id")
-  circs <- toDF(circs, "sjId")
-  primers <- toDF(primers)
-  ##
   if (.opts$normalise > 0) {
     n <- normaliseData(
       exons = exons,
@@ -122,7 +113,8 @@ plotTranscripts <- function(exons,
   )
   # plot exons -- bottom left
   # leave 0.5 + 0.5 = 1 margin lines around the labels
-  labWidth <- maxLabelWidth(as.character(exons$tx_id)) + 1 
+  labWidth <- maxLabelWidth(c(as.character(exons$tx_id),
+                              as.character(primers$id))) + 1 
   op <- margins(left = labWidth, bottom = numMarginLines)
   # plot segments
   if (is.null(exons$tx_id))
@@ -310,15 +302,4 @@ plotCounts <- function(id, count, ylim = c(.5, length(id) + .5)) {
     yaxs = "i"
   )
   graphics::segments(.5, y0 = as.numeric(id), count + .5, lwd = 2)
-}
-
-
-# create a data.frame from a named list of ranges
-# used to flatten exon-by-transcript lists to pass to a plotting function
-grList2df <- function(grl, idColumn = "id") {
-  nrows <- IRanges::elementNROWS(grl)
-  id <- rep(names(nrows), times = nrows)
-  rangesDF <- as.data.frame(unlist(grl, use.names = FALSE))
-  rangesDF[[idColumn]] <- id
-  rangesDF
 }

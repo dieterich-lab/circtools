@@ -113,12 +113,18 @@ plotCirc <- function(sjIds,
     filter = AnnotationFilter::GeneIdFilter(circGenes),
     columns = c("gene_id", "tx_id", "tx_name")
   )
+  if (!is.null(primers)) {
+    primers <-  as.data.frame(primers, row.names = NULL)
+    primers$type[ primers$type == 'forward'] <- 'FW'
+    primers$type[ primers$type == 'reverse'] <- 'RV'
+    primers$id <- paste(primers$seqId, primers$type) 
+  }
   plotTranscripts(
-    ex,
-    circs = circs,
+    exons   = as.data.frame(ex, row.names = NULL),
+    circs   = as.data.frame(circs, row.names = NULL),
     primers = primers,
-    counts = counts,
-    opts = opts
+    counts  = counts,
+    opts    = opts
   )
 }
 
