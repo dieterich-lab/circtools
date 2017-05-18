@@ -118,15 +118,16 @@ plotCirc <- function(sjIds,
   )
   if (!is.null(primers)) {
     primers <-  as.data.frame(primers, row.names = NULL)
-    primers$type[ primers$type == 'forward'] <- 'FW'
-    primers$type[ primers$type == 'reverse'] <- 'RV'
+    primers$type[primers$type == 'forward'] <- 'FW'
+    primers$type[primers$type == 'reverse'] <- 'RV'
     primers$id <- paste(primers$seqId, primers$type) 
   }
   if (!is.null(counts)) {
-   ex <- ex[mcols(ex)$tx_id %in% counts$id[counts$count > countThres]]
+   counts <- droplevels(counts[counts$count > countThres, ])
+   ex <- ex[mcols(ex)$tx_id %in% counts$id]
   }
   plotTranscripts(
-    exons   = as.data.frame(ex, row.names = NULL),
+    exons   = droplevels(as.data.frame(ex, row.names = NULL)),
     circs   = as.data.frame(circs, row.names = NULL),
     primers = primers,
     counts  = counts,

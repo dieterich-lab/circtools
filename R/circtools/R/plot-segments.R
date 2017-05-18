@@ -92,7 +92,6 @@ plotTranscripts <- function(exons,
     if (!is.null(primers))
       primers[, cols] <- n$primers
   }
-  ##
   # pre-defined
   numMarginLines <- 3
   widths <- c(2, 1)
@@ -154,9 +153,6 @@ plotTranscripts <- function(exons,
   exonsXLim <- range(exons$start, exons$end)
   # plot primers -- upper left
   if (!is.null(primers)) {
-    graphics::abline(h = graphics::par()$usr[4] + .1,
-           col = "deepskyblue1",
-           lwd = inches_per_line()  * 96)
     op <- margins(left = labWidth,
                   top = 0,
                   bottom = .1)
@@ -181,6 +177,7 @@ plotTranscripts <- function(exons,
     margins(left   = 1,
             bottom = numMarginLines,
             right  = 0.2)
+    counts <- counts[match(counts$id, levels(factor(exons$tx_id))),]
     plotCounts(id    = counts$id,
                count = counts$count,
                ylim = isoformsYLim)
@@ -238,9 +235,7 @@ plotRanges <- function(ids,
     las  = 1,
     cex  = graphics::par()$cex
   )
-  #seg_width_y <- segmentSize * xy_per_in()[2]
   seg_width_y <- segmentSize 
-  #min_width_x <- xy_per_in()[1] * minWidth
   x_to_y <- xy_per_in()[1] / xy_per_in()[2]
   min_width_x <- segmentSize * x_to_y * minWidth
   o <- (ends - starts) < min_width_x
@@ -268,8 +263,6 @@ plotRanges <- function(ids,
 annotateCircs <- function(ids, starts, ends, alpha = .2) {
     stopifnot(length(starts) == length(ends))
     stopifnot(alpha > 0 & alpha <= 1)
-    #colors <- rainbow(length(starts), s = .6, alpha = alpha)
-    #colorsLine <- rainbow(length(starts), s = 1, alpha = 1)
     colors <- grDevices::adjustcolor("darkseagreen1", alpha=.1)
     colorsLine <- "darkolivegreen4"
     shift <- c(.2, -.5)
