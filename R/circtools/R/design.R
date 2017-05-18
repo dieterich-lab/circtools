@@ -280,7 +280,7 @@ decipher2iranges <- function(primers) {
 #' @return GRangesList
 #'
 circ2genome <- function(x, upExon, downExon) { 
-  x <- splitPrimer(x, upExonWidth = width(upExon))
+  x <- splitPrimer(x, upExonWidth = GenomicRanges::width(upExon))
   circStrand <- unique(GenomicRanges::strand(upExon))
   # transform to the genome coords and order as c(min, max) using `range`
   res <-   lapply(
@@ -302,7 +302,7 @@ circ2genome <- function(x, upExon, downExon) {
 }
 
 splitPrimer <- function(x, upExonWidth) {
-  if (start(x) <= upExonWidth && end(x) > upExonWidth) {
+  if (IRanges::start(x) <= upExonWidth && IRanges::end(x) > upExonWidth) {
     c(GenomicRanges::restrict(x, end = upExonWidth),
       GenomicRanges::restrict(x, start = upExonWidth + 1))
   } else {
