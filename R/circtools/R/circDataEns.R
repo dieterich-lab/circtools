@@ -73,6 +73,8 @@ CircData <- function(db, circCoords) {
 #'   
 #' @param opts a list with options for the \code{\link{plotTranscripts}} 
 #' opts argument.
+#' @param countThres the transcripts with the read counts exceeding the 
+#' threshold value will be plotted (default: 0)
 #'
 #' @export
 #'
@@ -81,6 +83,7 @@ plotCirc <- function(sjIds,
                      circData,
                      primers = NULL,
                      counts = NULL, 
+                     countThres = -Inf,
                      opts = NULL) {
   if (!missing(circGenes)) {
     if (length(circGenes) > 1)
@@ -118,6 +121,9 @@ plotCirc <- function(sjIds,
     primers$type[ primers$type == 'forward'] <- 'FW'
     primers$type[ primers$type == 'reverse'] <- 'RV'
     primers$id <- paste(primers$seqId, primers$type) 
+  }
+  if (!is.null(counts)) {
+   ex <- ex[mcols(ex)$tx_id %in% counts$id[counts$count > countThres]]
   }
   plotTranscripts(
     exons   = as.data.frame(ex, row.names = NULL),
