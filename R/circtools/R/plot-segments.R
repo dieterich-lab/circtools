@@ -100,9 +100,8 @@ plotTranscripts <- function(exons,
   addNet <- function() {
     if (.opts$net && .opts$normalise) {
       cols <- c('start', 'end')
-      positions <-
-        rbind(exons[, cols], circs[, cols], primers[, cols])
-      abline(v = unique(unlist(positions)), col = .opts$netColor)
+      positions <- rbind(exons[, cols], circs[, cols], primers[, cols])
+      graphics::abline(v = unique(unlist(positions)), col = .opts$netColor)
     }
   }
   # pre-defined
@@ -165,7 +164,7 @@ plotTranscripts <- function(exons,
       alpha  = .1
     )
   exonsXLim <- range(exons$start, exons$end)
-  exonsXLim <- par()$usr[1:2]
+  exonsXLim <- graphics::par()$usr[1:2]
   # plot primers -- upper left
   if (!is.null(primers)) {
     op <- margins(left   = labWidth,
