@@ -30,3 +30,17 @@ opts argument.}
 \description{
 Plot a transcript scheme
 }
+\details{
+The default options in the list \code{opts} are the following:\preformatted{   normalise   = TRUE
+   net         = TRUE
+   primerColor = "firebrick3"
+   exonColor   = "deepskyblue1"
+   netColor    = "grey"
+}
+\itemize{
+\item normalise: if the coordinates should be transformed to pseudoposition
+for better representation
+\item net: if \code{normalise = TRUE}, add vertical lines to track exon and primer
+positions
+}
+}
