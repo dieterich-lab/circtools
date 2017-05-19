@@ -222,6 +222,8 @@ plotCirc(circGenes = bcl6EnsId,
          opts = list(normalise = FALSE))
 ```
 
+### Filter by counts and easy view
+
 Sometimes it is cleaner to keep only expressed transcripts. 
 One can specify a threshold for read count in `countThres` argument.
 In addition, by default, all the coordinated used for plotting are 
