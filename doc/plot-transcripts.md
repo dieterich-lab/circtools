@@ -1,7 +1,7 @@
 Circtools
 ================
 Alexey Uvarovskii
-2017-05-18
+2017-05-19
 
 Introduction
 ------------
@@ -91,11 +91,11 @@ tail(counts)
 ```
 
     ##                 id count
-    ## 6  ENST00000450123     0
-    ## 7  ENST00000470319  1344
-    ## 8  ENST00000479110   949
-    ## 9  ENST00000480458   870
-    ## 10 ENST00000496823     0
+    ## 6  ENST00000450123  1361
+    ## 7  ENST00000470319   976
+    ## 8  ENST00000479110   985
+    ## 9  ENST00000480458     0
+    ## 10 ENST00000496823   514
     ## 11 ENST00000621333     0
 
 The workflow entry point
@@ -229,17 +229,20 @@ primers$primers$`3:187734869-187737088`
 plotCirc(circGenes = bcl6EnsId,
          circData = circData,
          counts = counts, 
-         primers = primers$primers$`3:187734869-187737088`)
+         primers = primers$primers$`3:187734869-187737088`, 
+         opts = list(normalise = FALSE))
 ```
 
 ![](plot-transcripts_files/figure-markdown_github/unnamed-chunk-16-1.png)
 
-Sometimes it is cleaner to keep only expressed transcripts:
+### Filter by counts and easy view
+
+Sometimes it is cleaner to keep only expressed transcripts. One can specify a threshold for read count in `countThres` argument. In addition, by default, all the coordinated used for plotting are transformed for easier interpretation of relative position. It can be turned off in `opts$normalise = FALSE`.
 
 ``` r
 plotCirc(circGenes = bcl6EnsId,
          circData = circData,
-         counts = counts, 
+         #counts = counts, 
          primers = primers$primers$`3:187734869-187737088`,
          countThres = 1)
 ```
