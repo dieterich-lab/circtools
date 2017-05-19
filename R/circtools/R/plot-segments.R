@@ -75,14 +75,19 @@ plotTranscripts <- function(exons,
                             circs = NULL,
                             minAspectRatio = .2,
                             opts = list()) {
-  .opts <- list(normalise = -5)
+  .opts <- list(
+    normalise = TRUE,
+    net = TRUE,
+    primerColor = "firebrick3",
+    exonColor = "deepskyblue1",
+    netColor = 'grey'
+  )
   .opts[names(opts)] <- opts
-  if (.opts$normalise > 0) {
+  if (.opts$normalise) {
     n <- normaliseData(
       exons = exons,
       circs = circs,
-      primers = primers,
-      ratio = .opts$normalise
+      primers = primers
     )
     cols <- c('start', 'end')
     if (!is.null(exons))
@@ -91,6 +96,14 @@ plotTranscripts <- function(exons,
       circs[, cols] <- n$circs
     if (!is.null(primers))
       primers[, cols] <- n$primers
+  }
+  addNet <- function() {
+    if (.opts$net && .opts$normalise) {
+      cols <- c('start', 'end')
+      positions <-
+        rbind(exons[, cols], circs[, cols], primers[, cols])
+      abline(v = unique(unlist(positions)), col = .opts$netColor)
+    }
   }
   # pre-defined
   numMarginLines <- 3
@@ -124,8 +137,9 @@ plotTranscripts <- function(exons,
     ends        = exons$end,
     segmentSize = segmentSize,
     minWidth    = minAspectRatio,
-    opts = opts
+    opts = .opts
   )
+  addNet()
   if ( !is.null(exons$strand)) {
     graphics::par(xpd = TRUE)
     xy <- graphics::par()$usr
@@ -138,7 +152,7 @@ plotTranscripts <- function(exons,
            angle = 15,
            code = direction,
            lwd = 2,
-           col = "deepskyblue1")
+           col = .opts$exonColor)
     graphics::par(xpd = FALSE)
   }
   # add circ rectangles if defined
@@ -148,24 +162,26 @@ plotTranscripts <- function(exons,
       ids    = circs$sjId,
       starts = circs$start,
       ends   = circs$end,
-      alpha = .1
+      alpha  = .1
     )
   exonsXLim <- range(exons$start, exons$end)
+  exonsXLim <- par()$usr[1:2]
   # plot primers -- upper left
   if (!is.null(primers)) {
-    op <- margins(left = labWidth,
-                  top = 0,
+    op <- margins(left   = labWidth,
+                  top    = 0,
                   bottom = .1)
     plotRanges(
       ids    = primers$id,
       starts = primers$start,
       ends   = primers$end,
       segmentSize = segmentSize,
-      minWidth = 0, #minAspectRatio,
+      minWidth    = .1, 
       xlim = exonsXLim,
-      ylim = c(.5, length(primers$id) -.5),
-      opts = list(col = "firebrick3")
+      ylim = c(.5, length(primers$id) - .5), 
+      opts = .opts 
     )
+    addNet()
     graphics::box()
   } else {
     margins()
@@ -180,7 +196,7 @@ plotTranscripts <- function(exons,
     counts <- counts[match(counts$id, levels(factor(exons$tx_id))),]
     plotCounts(id    = counts$id,
                count = counts$count,
-               ylim = isoformsYLim)
+               ylim  = isoformsYLim)
   }
 }
 
@@ -223,6 +239,7 @@ plotRanges <- function(ids,
     xlim = xlim,
     ylim = ylim,
     yaxs = "i",
+    xaxs = "i",
     ylab = "",
     xlab = ""
   )
