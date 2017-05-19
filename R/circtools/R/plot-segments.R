@@ -291,7 +291,7 @@ annotateCircs <- function(ids, starts, ends, alpha = .2) {
       xright = ends,
       ybottom = ylim[1] + step * (seq_along(starts) - 1),
       ytop = ylim[2] + step * (seq_along(starts) - 1), 
-      col = colors,
+      #col = colors,
       border = colorsLine,
       lwd = 2
     )
