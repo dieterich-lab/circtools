@@ -79,8 +79,8 @@ plotTranscripts <- function(exons,
     normalise = TRUE,
     net = TRUE,
     primerColor = "firebrick3",
-    exonColor = "deepskyblue1",
-    netColor = 'grey'
+    exonColor = "black", 
+    netColor = "grey"
   )
   .opts[names(opts)] <- opts
   if (.opts$normalise) {
@@ -135,6 +135,7 @@ plotTranscripts <- function(exons,
     starts      = exons$start,
     ends        = exons$end,
     segmentSize = segmentSize,
+    col = .opts$exonColor,
     minWidth    = minAspectRatio,
     opts = .opts
   )
@@ -176,6 +177,7 @@ plotTranscripts <- function(exons,
       ends   = primers$end,
       segmentSize = segmentSize,
       minWidth    = .1, 
+      col = .opts$primerColor,
       xlim = exonsXLim,
       ylim = c(.5, length(primers$id) - .5), 
       opts = .opts 
@@ -214,6 +216,7 @@ plotTranscripts <- function(exons,
 #'   - col, the color of the segments (default: "dodgerblue4")
 #'   - connect, a logical. If the segments must be connected with lines 
 #'   (default: TRUE).
+#' @param col the color of the segments
 #'
 #' @return Used for its side effect. Plots segments corresponding to given 
 #' intervals. 
@@ -224,10 +227,11 @@ plotRanges <- function(ids,
                        ends,
                        segmentSize,
                        minWidth = 0,
+                       col = "dodgerblue4",
                        xlim = range(starts, ends),
                        ylim = c(0.0, 1 + length(levels(ids))),
                        opts) {
-  options <- list(col = "dodgerblue4", connect = TRUE)
+  options <- list(connect = TRUE)
   options[names(opts)] <- opts
   ids <- as.factor(ids)
   no_axis()
@@ -261,7 +265,7 @@ plotRanges <- function(ids,
     ybottom = y_pos - seg_width_y / 2,
     xright  = ends,
     ytop    = y_pos + seg_width_y / 2,
-    col     = options$col,
+    col     = col,
     border  = NA
   )
   # add connecting lines
@@ -271,7 +275,7 @@ plotRanges <- function(ids,
     uniq_ids <- unique(ids)
     graphics::segments(linesStarts[uniq_ids], as.numeric(uniq_ids),
              linesEnds[uniq_ids], as.numeric(uniq_ids),
-             col = options$col, lend = 2)
+             col = col, lend = 2)
   }
 }
 

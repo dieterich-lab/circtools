@@ -144,7 +144,8 @@ bcl6EnsId
 ```{r, fig.height=3, fig.width=6}
 plotCirc(circGenes = bcl6EnsId,
          circData = circData,
-         counts = counts)
+         counts = counts, 
+         opts = list(normalise = FALSE))
 ```
 
 ## Report sequences of the splice junction exons

@@ -91,12 +91,12 @@ tail(counts)
 ```
 
     ##                 id count
-    ## 6  ENST00000450123  1361
-    ## 7  ENST00000470319   976
-    ## 8  ENST00000479110   985
+    ## 6  ENST00000450123   705
+    ## 7  ENST00000470319   800
+    ## 8  ENST00000479110     0
     ## 9  ENST00000480458     0
-    ## 10 ENST00000496823   514
-    ## 11 ENST00000621333     0
+    ## 10 ENST00000496823     0
+    ## 11 ENST00000621333  1185
 
 The workflow entry point
 ------------------------
@@ -122,7 +122,8 @@ bcl6EnsId
 ``` r
 plotCirc(circGenes = bcl6EnsId,
          circData = circData,
-         counts = counts)
+         counts = counts, 
+         opts = list(normalise = FALSE))
 ```
 
 ![](plot-transcripts_files/figure-markdown_github/unnamed-chunk-9-1.png)
