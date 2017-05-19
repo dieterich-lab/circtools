@@ -218,16 +218,21 @@ primers$primers$`3:187734869-187737088`
 plotCirc(circGenes = bcl6EnsId,
          circData = circData,
          counts = counts, 
-         primers = primers$primers$`3:187734869-187737088`)
+         primers = primers$primers$`3:187734869-187737088`, 
+         opts = list(normalise = FALSE))
 ```
 
-Sometimes it is cleaner to keep only expressed transcripts:
+Sometimes it is cleaner to keep only expressed transcripts. 
+One can specify a threshold for read count in `countThres` argument.
+In addition, by default, all the coordinated used for plotting are 
+transformed for easier interpretation of relative position.
+It can be turned off in `opts$normalise = FALSE`.
 
-```{r, fig.height=2, fig.width=6}
+```{r, fig.height=4, fig.width=6}
 
 plotCirc(circGenes = bcl6EnsId,
          circData = circData,
-         counts = counts, 
+         #counts = counts, 
          primers = primers$primers$`3:187734869-187737088`,
          countThres = 1)
 ```
