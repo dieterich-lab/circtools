@@ -55,8 +55,15 @@ getYLim <- function() graphics::par()$usr[3:4]
 #' @param circs a counts data.frame
 #' @param counts an interval data.frame
 #' @param primers an interval data.frame
-#' @param minRatio a minimal aspect ratio for plotted segments (height/width)
 #' @param opts an option list
+#' @param minAspectRatio a minimal ratio of a segment height to its width
+#' 
+#' @details all interval data.frames must have start and end fields.
+#' `exons` is assumed to have `strand` (character) and `tx_id` fields.
+#' `primers` must have `id` to distinguish forward, reverse primers for 
+#' different circular transcripts.
+#' `cirsc` must contain sjId field. 
+#'  `counts` has id and count fields.
 #' 
 #' @return Used for its side effects. Plots intervals for exons,
 #' primers and transcript counts if provided.
@@ -68,21 +75,35 @@ plotTranscripts <- function(exons,
                             circs = NULL,
                             minAspectRatio = .2,
                             opts = list()) {
-  # TODO clean naming convention --> id, ids => seqnames ranges object?
-  toDF <- function(x, idColumnName = "id") {
-    if (!is.null(x) && is(x, "GRangesList")) {
-      grList2df(x, idColumnName)
-    } else if (!is.null(x)) {
-      x <- as.data.frame(x)
-      if (is.null(x[[idColumnName]]))
-        stop(paste0("The column ", idColumnName, " is NULL!"))
-      x
-    } else
-      NULL
+  .opts <- list(
+    normalise = TRUE,
+    net = TRUE,
+    primerColor = "firebrick3",
+    exonColor = "black", 
+    netColor = "grey"
+  )
+  .opts[names(opts)] <- opts
+  if (.opts$normalise) {
+    n <- normaliseData(
+      exons = exons,
+      circs = circs,
+      primers = primers
+    )
+    cols <- c('start', 'end')
+    if (!is.null(exons))
+      exons[, cols] <- n$exons
+    if (!is.null(circs))
+      circs[, cols] <- n$circs
+    if (!is.null(primers))
+      primers[, cols] <- n$primers
   }
-  exons <- toDF(exons, "tx_id")
-  circs <- toDF(circs, "CIRCID")
-  primers <- toDF(primers)
+  addNet <- function() {
+    if (.opts$net && .opts$normalise) {
+      cols <- c('start', 'end')
+      positions <- rbind(exons[, cols], circs[, cols], primers[, cols])
+      graphics::abline(v = unique(unlist(positions)), col = .opts$netColor)
+    }
+  }
   # pre-defined
   numMarginLines <- 3
   widths <- c(2, 1)
@@ -103,7 +124,8 @@ plotTranscripts <- function(exons,
   )
   # plot exons -- bottom left
   # leave 0.5 + 0.5 = 1 margin lines around the labels
-  labWidth <- maxLabelWidth(as.character(exons$tx_id)) + 1 
+  labWidth <- maxLabelWidth(c(as.character(exons$tx_id),
+                              as.character(primers$id))) + 1 
   op <- margins(left = labWidth, bottom = numMarginLines)
   # plot segments
   if (is.null(exons$tx_id))
@@ -113,53 +135,55 @@ plotTranscripts <- function(exons,
     starts      = exons$start,
     ends        = exons$end,
     segmentSize = segmentSize,
+    col = .opts$exonColor,
     minWidth    = minAspectRatio,
-    opts = opts
+    opts = .opts
   )
+  addNet()
   if ( !is.null(exons$strand)) {
-    par(xpd = TRUE)
-    xy <- par()$usr
+    graphics::par(xpd = TRUE)
+    xy <- graphics::par()$usr
     direction <- switch(as.character(unique(exons$strand)),
                         "-" = 1,
                         "+" = 2,
                         0)
-    arrows(y0 = xy[3], y1 = xy[3], x0 = xy[1], x1 = xy[2], 
+    graphics::arrows(y0 = xy[3], y1 = xy[3], x0 = xy[1], x1 = xy[2], 
            length = getPanelHeight(1),
            angle = 15,
            code = direction,
            lwd = 2,
-           col = "deepskyblue1")
-    par(xpd = FALSE)
+           col = .opts$exonColor)
+    graphics::par(xpd = FALSE)
   }
   # add circ rectangles if defined
   isoformsYLim <- getYLim()
   if (!is.null(circs))
     annotateCircs(
-      ids    = circs$CIRCID,
+      ids    = circs$sjId,
       starts = circs$start,
       ends   = circs$end,
-      alpha = .1
+      alpha  = .1
     )
   exonsXLim <- range(exons$start, exons$end)
+  exonsXLim <- graphics::par()$usr[1:2]
   # plot primers -- upper left
   if (!is.null(primers)) {
-    graphics::abline(h = graphics::par()$usr[4] + .1,
-           col = "deepskyblue1",
-           lwd = inches_per_line()  * 96)
-    op <- margins(left = labWidth,
-                  top = 0,
+    op <- margins(left   = labWidth,
+                  top    = 0,
                   bottom = .1)
     plotRanges(
       ids    = primers$id,
       starts = primers$start,
       ends   = primers$end,
       segmentSize = segmentSize,
-      minWidth = minAspectRatio,
+      minWidth    = .1, 
+      col = .opts$primerColor,
       xlim = exonsXLim,
-      ylim = c(.5, length(primers$id) -.5),
-      opts = list(col = "firebrick3")
+      ylim = c(.5, length(primers$id) - .5), 
+      opts = .opts 
     )
-    box()
+    addNet()
+    graphics::box()
   } else {
     margins()
     graphics::plot.new()
@@ -170,9 +194,10 @@ plotTranscripts <- function(exons,
     margins(left   = 1,
             bottom = numMarginLines,
             right  = 0.2)
+    counts <- counts[match(counts$id, levels(factor(exons$tx_id))),]
     plotCounts(id    = counts$id,
                count = counts$count,
-               ylim = isoformsYLim)
+               ylim  = isoformsYLim)
   }
 }
 
@@ -191,6 +216,7 @@ plotTranscripts <- function(exons,
 #'   - col, the color of the segments (default: "dodgerblue4")
 #'   - connect, a logical. If the segments must be connected with lines 
 #'   (default: TRUE).
+#' @param col the color of the segments
 #'
 #' @return Used for its side effect. Plots segments corresponding to given 
 #' intervals. 
@@ -201,10 +227,11 @@ plotRanges <- function(ids,
                        ends,
                        segmentSize,
                        minWidth = 0,
+                       col = "dodgerblue4",
                        xlim = range(starts, ends),
                        ylim = c(0.0, 1 + length(levels(ids))),
                        opts) {
-  options <- list(col = "dodgerblue4", connect = TRUE)
+  options <- list(connect = TRUE)
   options[names(opts)] <- opts
   ids <- as.factor(ids)
   no_axis()
@@ -215,6 +242,7 @@ plotRanges <- function(ids,
     xlim = xlim,
     ylim = ylim,
     yaxs = "i",
+    xaxs = "i",
     ylab = "",
     xlab = ""
   )
@@ -227,9 +255,7 @@ plotRanges <- function(ids,
     las  = 1,
     cex  = graphics::par()$cex
   )
-  #seg_width_y <- segmentSize * xy_per_in()[2]
   seg_width_y <- segmentSize 
-  #min_width_x <- xy_per_in()[1] * minWidth
   x_to_y <- xy_per_in()[1] / xy_per_in()[2]
   min_width_x <- segmentSize * x_to_y * minWidth
   o <- (ends - starts) < min_width_x
@@ -239,7 +265,7 @@ plotRanges <- function(ids,
     ybottom = y_pos - seg_width_y / 2,
     xright  = ends,
     ytop    = y_pos + seg_width_y / 2,
-    col     = options$col,
+    col     = col,
     border  = NA
   )
   # add connecting lines
@@ -247,9 +273,9 @@ plotRanges <- function(ids,
     linesStarts <- vapply(split(starts, ids), min, double(1)) 
     linesEnds <- vapply(split(starts, ids), max, double(1)) 
     uniq_ids <- unique(ids)
-    segments(linesStarts[uniq_ids], as.numeric(uniq_ids),
+    graphics::segments(linesStarts[uniq_ids], as.numeric(uniq_ids),
              linesEnds[uniq_ids], as.numeric(uniq_ids),
-             col = options$col)
+             col = col, lend = 2)
   }
 }
 
@@ -257,8 +283,6 @@ plotRanges <- function(ids,
 annotateCircs <- function(ids, starts, ends, alpha = .2) {
     stopifnot(length(starts) == length(ends))
     stopifnot(alpha > 0 & alpha <= 1)
-    #colors <- rainbow(length(starts), s = .6, alpha = alpha)
-    #colorsLine <- rainbow(length(starts), s = 1, alpha = 1)
     colors <- grDevices::adjustcolor("darkseagreen1", alpha=.1)
     colorsLine <- "darkolivegreen4"
     shift <- c(.2, -.5)
@@ -271,7 +295,7 @@ annotateCircs <- function(ids, starts, ends, alpha = .2) {
       xright = ends,
       ybottom = ylim[1] + step * (seq_along(starts) - 1),
       ytop = ylim[2] + step * (seq_along(starts) - 1), 
-      col = colors,
+      #col = colors,
       border = colorsLine,
       lwd = 2
     )
@@ -291,15 +315,4 @@ plotCounts <- function(id, count, ylim = c(.5, length(id) + .5)) {
     yaxs = "i"
   )
   graphics::segments(.5, y0 = as.numeric(id), count + .5, lwd = 2)
-}
-
-
-# create a data.frame from a named list of ranges
-# used to flatten exon-by-transcript lists to pass to a plotting function
-grList2df <- function(grl, idColumn = "id") {
-  nrows <- IRanges::elementNROWS(grl)
-  id <- rep(names(nrows), times = nrows)
-  rangesDF <- as.data.frame(unlist(grl, use.names = FALSE))
-  rangesDF[[idColumn]] <- id
-  rangesDF
 }

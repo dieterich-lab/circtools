@@ -14,7 +14,8 @@ getExonSeqs(circData, bsg, faFile, type = c("all", "shortest", "longest"))
 
 \item{faFile}{a \code{\link{FaFile}} object}
 
-\item{type}{}
+\item{type}{a character: whether to include all, only the shortest or
+the longest exons, which can form the splice junction}
 }
 \value{
 GRangesList object with a record for every circular id
@@ -24,15 +25,10 @@ include:
 \item \code{exon_id} and \code{gene_id}
 \item \code{seq}, a DNAStringSet object
 \item \code{side}, a character string ("left" or "right")
-\item \code{CIRCID}, a character string derived from the circData object
+\item \code{sjId}, a character string derived from the circData object
 }
 }
 \description{
 Retrieve sequences of the exons, which have common start or end with
 the splice junction coordinates provided in circData
-}
-\examples{
-\dontrun{
-
-}
 }

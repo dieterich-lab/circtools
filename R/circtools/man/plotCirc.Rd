@@ -4,11 +4,15 @@
 \alias{plotCirc}
 \title{Plot a transcript scheme}
 \usage{
-plotCirc(circIds, circGenes, circData, primers = NULL, counts = NULL)
+plotCirc(sjIds, circGenes, circData, primers = NULL, counts = NULL,
+  countThres = -Inf, opts = NULL)
 }
 \arguments{
-\item{circIds}{a character identifiers for the circular transcript
+\item{sjIds}{a character identifiers for the circular transcript
 to be plotted.}
+
+\item{circGenes}{a character vector or list with the gene id's, for which
+circular transcripts must be plotted}
 
 \item{circData}{an object returned by CircData}
 
@@ -17,11 +21,26 @@ to be plotted.}
 \item{counts}{a data.frame with an id column (tx_id) and corresponding
 read counts.}
 
-\item{circGene}{a character identifier for a gene, which transcripts are to
-be plotted. If \code{circIds} is not set, all circular transcripts defined in
-\code{circData} will be used. The identifier is identical to the GENEID
-record in the EnsDb or TxDB objects.}
+\item{countThres}{the transcripts with the read counts exceeding the
+threshold value will be plotted (default: 0)}
+
+\item{opts}{a list with options for the \code{\link{plotTranscripts}}
+opts argument.}
 }
 \description{
 Plot a transcript scheme
+}
+\details{
+The default options in the list \code{opts} are the following:\preformatted{   normalise   = TRUE
+   net         = TRUE
+   primerColor = "firebrick3"
+   exonColor   = "deepskyblue1"
+   netColor    = "grey"
+}
+\itemize{
+\item normalise: if the coordinates should be transformed to pseudoposition
+for better representation
+\item net: if \code{normalise = TRUE}, add vertical lines to track exon and primer
+positions
+}
 }

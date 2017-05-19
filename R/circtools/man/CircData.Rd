@@ -7,9 +7,9 @@
 CircData(db, circCoords)
 }
 \arguments{
-\item{db}{}
+\item{db}{an ensembldb object}
 
-\item{circCoords}{}
+\item{circCoords}{an IRanges object}
 }
 \value{
 a CircData object

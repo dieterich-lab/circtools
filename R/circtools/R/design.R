@@ -1,13 +1,19 @@
 #' Generate sequencing of splice junction regions
 #'
-#' @param exSeq 
+#' @param exSeq a GRanges object with the metadata columns:
+#'   - exon_id
+#'   - gene_id
+#'   - sjId (splice junction id)
+#'   - side ('left', 'right')
+#'   - seq, a DNAStringSet
 #'
-#' @return a data.frame with CIRCID in rownames and circSeq column with
+#' @return a data.frame with sjId in rownames and circSeq column with
 #' the splice junction sequences
+#' @noRd
 #'
 .getCircSJSeq <- function(exSeq) {
-  df <- mcols(exSeq)
-  circId <- unique(mcols(exSeq)$CIRCID)
+  df <- S4Vectors::mcols(exSeq)
+  sjId <- unique(S4Vectors::mcols(exSeq)$sjId)
   strand <- as.character(strand(exSeq))
   stream <- .getStream(strand, df$side)
   indByStream <- expand.grid(split(seq_along(stream), stream))
@@ -16,10 +22,10 @@
                    up <- indByStream$upstream[i]
                    down <- indByStream$downstream[i]
                    c(
-                     CIRCID = circId,
+                     sjId = sjId,
                      upExonId = df$exon_id[up],
                      downExonId = df$exon_id[down],
-                     circSeq = paste0(df$seq[down], df$seq[up])
+                     circSeq = paste0(df$seq[up], df$seq[down])
                    )
                  })
   as.data.frame(do.call(rbind, res), stringsAsFactors = FALSE)
@@ -27,9 +33,10 @@
 
 #' Generate splice junction sequencies for a list of circs
 #'
-#' @param exSeqList 
+#' @param exSeqList a list of exSeq items, defined in `\link{.getCircSJSeq}`
 #'
-#' @return
+#' @return a list
+#' @noRd
 #'
 getCircSeqFromList <- function(exSeqList) {
   seqs <- do.call(rbind, lapply(exSeqList, .getCircSJSeq))
@@ -42,21 +49,21 @@ getCircSeqFromList <- function(exSeqList) {
 #'
 #' @param db ensembldb object
 #' @param exSeq result of getExonSeqs
-#' @param filter a character:
+#' @param whichExons a character:
 #'   - 'any': all transcripts which intersect whether with the left or right
 #'       splice junction exons
 #'   - 'both': only those, which intersect with the both, left and right exons.
 #'
 #' @return a list of transcripts ids by circ
 #'
-getTxForCircs <- function(db, exSeq, filter=c('any', 'both')){
-  filter <- match.arg(filter)
+getTxOfSJExons <- function(db, exSeq, whichExons=c('any', 'both')){
+  whichExons <- match.arg(whichExons)
   lapply(exSeq, function(x) {
     sides <- split(x, mcols(x)$side)
     txBySide <- lapply(sides, function(e)
-      mcols(transcriptsByOverlaps(db, e))$tx_id)
+      mcols(ensembldb::transcriptsByOverlaps(db, e))$tx_id)
     res <- switch(
-      filter,
+      whichExons,
       any = union(txBySide$left, txBySide$right),
       both = intersect(txBySide$left, txBySide$right)
     )
@@ -71,58 +78,73 @@ getTxForCircs <- function(db, exSeq, filter=c('any', 'both')){
 #'   (see `x` argument in \code{\link{extractTranscriptSeqs}})
 #' @param exSeq the result of \code{\link{getExonSeqs}} function
 #'
-#' @return a list by transcripts with their sequences (`\link{DNAString}`)
+#' @return a list by transcripts with their sequences (`\link[Biostrings]{DNAString}`)
 #'
 getTxSeqs <- function(db, bsg, exSeq) {
-  geneIds <- vapply(exSeq, function(x) unique(mcols(x)$gene_id), character(1))
-  ex <- exonsBy(db, filter = GeneidFilter(geneIds))
-  seqs <- extractTranscriptSeqs(bsg, ex)
+  geneIds <- vapply(exSeq, function(x) unique(
+    S4Vectors::mcols(x)$gene_id), character(1))
+  ex <- ensembldb::exonsBy(db, filter = AnnotationFilter::GeneIdFilter(geneIds))
+  seqs <- GenomicFeatures::extractTranscriptSeqs(bsg, ex)
   seqs
 }
 
 #' Design primers
 #'
-#' @param exSeq 
-#' @param db 
-#' @param bsg 
+#' @param exSeq a GRanges list with GRanges of exons on the splice junction.
+#'   Every item represents an individual splice junction.
+#' @param db an ensembldb object
+#' @param bsg a BSgenome object
+#' @param opts a named list with the design options (see details).
 #'
-#' @return
+#' @return a list with `primers` and `product` items.
+#' @details  
+#' 
+#' The following options are available for the primer design:
+#'   - minLength (0), maxLength (Inf): a min and max product length
 #' @export
 #'
-designPrimers <- function(exSeq, db, bsg) {
+designPrimers <- function(exSeq,
+                          db,
+                          bsg,
+                          opts = list(minLength = 0, maxLength = Inf)) {
+  # TODO choice if intersect with SJ
   seqs <- getCircSeqFromList(exSeq)
-  txIntersect <- getTxForCircs(db, exSeq, 'both')
+  txIntersect <- getTxOfSJExons(db, exSeq, whichExons = 'both')
   txSeqs <- getTxSeqs(db, bsg, exSeq)
   
-  # lapply per circId
-  res <- lapply(names(exSeq), function(circId) {
-    ts <- txSeqs[txIntersect[[circId]]]
-    .designForCirc(seqs[seqs$CIRCID == circId,], exSeq[[circId]], ts)
+  # lapply per sjId
+  res <- lapply(names(exSeq), function(sjId) {
+    ts <- txSeqs[txIntersect[[sjId]]]
+    .designForSJ(seqs[seqs$sjId == sjId,], exSeq[[sjId]],
+                   ts, opts = opts)
   })
   names(res) <- names(exSeq)
   list(primers = res,
-       products = split(seqs, seqs$CIRCID))
+       products = split(seqs, seqs$sjId))
 }
 
-.designForCirc <- function(circSeqs, ex, ts) {
+.designForSJ <- function(circSeqs,
+                         ex,
+                         ts,
+                         opts = list()) {
+  # add sequences to the db and corresponding tx's
   dbConn <- RSQLite::dbConnect(RSQLite::SQLite(), ":memory:")
+  stringSet <- Biostrings::DNAStringSet(circSeqs$circSeq)
+  names(stringSet) <- circSeqs$seqId
   suppressWarnings({
     DECIPHER::Seqs2DB(
-      DNAStringSet(circSeqs$circSeq),
+      c(stringSet, ts),
       "XStringSet",
       dbConn,
-      identifier = circSeqs$seqId,
+      identifier = c(circSeqs$seqId, names(ts)),
       verbose = FALSE
     )
-    # add corresponding tx's
-    DECIPHER::Seqs2DB(
-      ts, "XStringSet", dbConn, identifier = names(ts), verbose = FALSE)
   })
+  # generate sequence tiles for DesignPrimers function
   tiles <- DECIPHER::TileSeqs(dbConn,
                               add2tbl = "Tiles",
                               minCoverage = 1,
                               verbose = FALSE)
-  # design for every seqId
   # TODO: suppress msgs
   primers <- lapply(circSeqs$seqId, function(seqId) {
     primers <- DECIPHER::DesignPrimers(
@@ -130,68 +152,116 @@ designPrimers <- function(exSeq, db, bsg) {
       identifier = seqId,
       minCoverage = 1,
       minGroupCoverage = 1,
-      numPrimerSets = 1,
-      maxSearchSize = 20,
-      minProductSize = 60,
-      minEfficiency = .9,
+      #numPrimerSets = 5,
+      maxSearchSize = 1e4,
+      worstScore = -10,
+      #minProductSize = 60,
+      #minEfficiency = .8,
       verbose = FALSE
     )
   })
   primers <- decipher2iranges(primers)
   names(primers) <- circSeqs$seqId
-  
-  primersGR <- lapply(names(primers), function(seqId) {
+  lengthRange <- c(opts$minLength, opts$maxLength)
+  bestPrimers <- lapply(names(primers), function(sjId) {
+    sj <- IRanges::IRanges(
+      Biostrings::width(ex$seq[ex$exon_id == circSeqs$upExonId]), width = 2)
+    selectBestPrimers(p=primers[[sjId]], sj, lengthRange)
+  })
+  names(bestPrimers) <- names(primers)
+  primersGR <- lapply(names(bestPrimers), function(seqId) {
     i <- which(seqId == circSeqs$seqId)
-    upExon   <- ex[which(mcols(ex)$exon_id == circSeqs$upExonId[i])]
-    downExon <- ex[which(mcols(ex)$exon_id == circSeqs$downExonId[i])]
-    circ2genome(primers[[seqId]],
+    upExon   <- ex[which(S4Vectors::mcols(ex)$exon_id == circSeqs$upExonId[i])]
+    downExon <- ex[which(S4Vectors::mcols(ex)$exon_id == circSeqs$downExonId[i])]
+    circ2genome(bestPrimers[[seqId]],
                 upExon = upExon,
                 downExon = downExon)
   })
-  names(primersGR) <- names(primers)
-  primersGR
+  names(primersGR) <- names(bestPrimers)
+  GenomicRanges::GRangesList(primersGR)
 }
 
-#' Creates  IRanges objects with metadata on 
+  
+
+selectBestPrimers <- function(p, sj, lengthRange) {
+  sjPrimers <- p[from(findOverlaps(p, sj))]
+  sjPrimers <- split(sjPrimers, S4Vectors::mcols(sjPrimers)$type)
+  best <- lapply(sjPrimers, function(x) {
+    x[which.max(S4Vectors::mcols(x)$efficiency)]
+  })
+  p <- split(p, S4Vectors::mcols(p)$type)
+  # forward primer on sj
+  rangeForEnd <- IRanges::start(best$forward) + lengthRange - 1
+  o <- IRanges::end(p$reverse) >= rangeForEnd[1] &
+       IRanges::end(p$reverse) <= rangeForEnd[2]
+  result <- list()
+  if (any(o)) {
+    result$forwardSJ <- c(best$forward,
+                          p$reverse[which.max(mcols(p$reverse[o])$efficiency)])
+  }
+  # reverse primer on sj
+  rangeForStart <- IRanges::end(best$reverse) - lengthRange + 1
+  o <- IRanges::start(p$forward) >= rangeForStart[1] &
+       IRanges::start(p$forward) <= rangeForStart[2]
+  if (any(o)) {
+    result$reverseSJ <- c(p$forward[which.max(mcols(p$forward[o])$efficiency)],
+        best$reverse)
+  }
+  bestInd <- which.max(lapply(result, function(x) {
+    sum(S4Vectors::mcols(x)$efficiency)
+  }))
+  result[[bestInd]]
+}
+
+#' Creates  IRanges objects 
+#' 
+#'  The  metadata include:
 #'   - seqId
 #'   - productSize
-#'   - type: ['forward', 'reverse']
+#'   - type: \['forward', 'reverse'\]
 #'   - seq: the primer sequence.
-#'   @param primers is a list of results from \link[DECIPHER]{DesignPrimers}
-#'   @return  a list with an IRanges item for every primer pair
+#'   
+#' @param primers is a list of results from 
+#' \code{\link[DECIPHER]{DesignPrimers}}
+#' 
+#' @return  a list with an \code{\link[IRanges]{IRanges}}
+#'  item for every primer pair
 decipher2iranges <- function(primers) {
   res <- lapply(primers, function(p) {
-    fw <- IRanges(start = p$start_forward,
-                  width = nchar(p$forward_primer[1]))
-    mcols(fw)$seq <- p$forward_primer[1]
-    mcols(fw)$type <- 'forward'
-    rv <- IRanges(start = p$start_reverse,
-                  width = nchar(p$reverse_primer[1]))
-    mcols(rv)$seq <- p$reverse_primer[1]
-    mcols(rv)$type <- 'reverse'
-    pair <- c(fw,rv)
-    mcols(pair)$seqId <- p$identifier
-    mcols(pair)$productSize <- p$product_size
-    pair
+    fwSelect <- p$score_forward > -Inf
+    fw <- IRanges::IRanges(start = p$start_forward[fwSelect],
+                  width = nchar(p$forward_primer[fwSelect,1]))
+    S4Vectors::mcols(fw)$seq <- p$forward_primer[fwSelect,1]
+    S4Vectors::mcols(fw)$type <- 'forward'
+    S4Vectors::mcols(fw)$efficiency <- p$forward_efficiency[fwSelect,1]
+    rvSelect <- p$score_reverse > -Inf
+    rv <- IRanges::IRanges(start = p$start_reverse[rvSelect],
+                  width = nchar(p$reverse_primer[rvSelect,1]))
+    S4Vectors::mcols(rv)$seq <- p$reverse_primer[rvSelect,1]
+    S4Vectors::mcols(rv)$type <- 'reverse'
+    S4Vectors::mcols(rv)$efficiency <- p$reverse_efficiency[rvSelect,1]
+    both <- c(fw,rv)
+    S4Vectors::mcols(both)$seqId <- p$identifier[1]
+    both
   })
-  names(res) <- primers$identifier
+  #names(res) <- primers$identifier
   res
 }
 
 .toGenome <- function(x, circStrand, upExon, downExon) {
   vapply(x, function(y) {
     if (circStrand == '+') {
-      if (y <= width(upExon)) {
-        res <- y + start(upExon) - 1
+      if (y <= IRanges::width(upExon)) {
+        res <- y + IRanges::start(upExon) - 1
       } else {
-        res <- y - width(upExon) + start(downExon) - 1
+        res <- y - IRanges::width(upExon) + IRanges::start(downExon) - 1
       }
       res
     } else {
-      if (y <= width(upExon)) {
-        res <- end(upExon) - y + 1
+      if (y <= IRanges::width(upExon)) {
+        res <- IRanges::end(upExon) - y + 1
       } else {
-        res <-  end(downExon) - (y - width(upExon)) + 1
+        res <-  IRanges::end(downExon) - (y - IRanges::width(upExon)) + 1
       }
       res
     }
@@ -204,42 +274,53 @@ decipher2iranges <- function(primers) {
 #' upstream and downatream ones.
 #'
 #' @param x a IRanges object
-#' @param upexon a GRanges object
-#' @param downexon a GRanges object
+#' @param upExon a GRanges object
+#' @param downExon a GRanges object
 #'
-#' @return 
+#' @return GRangesList
 #'
 circ2genome <- function(x, upExon, downExon) { 
-  circStrand <- unique(strand(upExon))
+  x <- splitPrimer(x, upExonWidth = GenomicRanges::width(upExon))
+  circStrand <- unique(GenomicRanges::strand(upExon))
   # transform to the genome coords and order as c(min, max) using `range`
-  res <- mapply(range,
-    lapply(
-      list(start(x), end(x)),
-      .toGenome,
-      upExon = upExon,
-      downExon = downExon,
-      circStrand = circStrand
-    )
+  res <-   lapply(
+    list(start = IRanges::start(x), end = IRanges::end(x)),
+    .toGenome,
+    upExon = upExon,
+    downExon = downExon,
+    circStrand = circStrand
   )
-  res <- GRanges(
-    seqnames = Rle(unique(seqnames(upExon)), length(x)),
-    IRanges(start = res[1, ], end = res[2, ]),
-    strand = Rle(unique(strand(upExon)), length(x))
+  res <- do.call(rbind, Map(range, res$start, res$end))
+  res <- GenomicRanges::GRanges(
+    seqnames = S4Vectors::Rle(
+      unique(GenomicRanges::seqnames(upExon)), length(x)),
+    IRanges::IRanges(start = res[, 1], end = res[, 2]),
+    strand = S4Vectors::Rle(unique(GenomicRanges::strand(upExon)), length(x))
   )
-  mcols(res) <- mcols(x)
-  res <- lapply(res, splitPrimer, upExon = upExon, downExon = downExon)
-  do.call(c, res)
+  S4Vectors::mcols(res) <- S4Vectors::mcols(x)
+  res
 }
 
-# We assume that primer length is > 2
-splitPrimer <- function(x, upExon, downExon) {
-  if (overlapsAny(x, upExon) && overlapsAny(x, downExon)) {
-    x <- GenomicRanges::narrow(x, start = 2, end = -2)
-    sp <- GenomicRanges::setdiff(c(upExon, downExon),x)
-    mcols(sp) <- mcols(x)
-    sp
+splitPrimer <- function(x, upExonWidth) {
+  if (IRanges::start(x) <= upExonWidth && IRanges::end(x) > upExonWidth) {
+    c(GenomicRanges::restrict(x, end = upExonWidth),
+      GenomicRanges::restrict(x, start = upExonWidth + 1))
   } else {
     x
   }
 }
 
+# get exons which intersect with the designed primers
+# 
+exons4primers <- function(db, primer) {
+  conditions <- c('within', 'overlapping')
+  ex <- lapply(conditions, function(cc) {
+    ensembldb::exons(
+      db,
+      filter = AnnotationFilter::GRangesFilter(primer, condition = cc),
+      return.type = 'data.frame',
+      columns = 'exon_id'
+    )
+  })
+  names(ex) <- conditions
+}
