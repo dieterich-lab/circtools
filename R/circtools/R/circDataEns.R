@@ -75,7 +75,19 @@ CircData <- function(db, circCoords) {
 #' opts argument.
 #' @param countThres the transcripts with the read counts exceeding the 
 #' threshold value will be plotted (default: 0)
-#'
+#' 
+#' @details The default options in the list `opts` are the following:
+#' ```
+#'    normalise   = TRUE
+#'    net         = TRUE
+#'    primerColor = "firebrick3"
+#'    exonColor   = "deepskyblue1"
+#'    netColor    = "grey"
+#' ```  
+#' - normalise: if the coordinates should be transformed to pseudoposition 
+#' for better representation
+#' - net: if `normalise = TRUE`, add vertical lines to track exon and primer
+#' positions
 #' @export
 #'
 plotCirc <- function(sjIds,
