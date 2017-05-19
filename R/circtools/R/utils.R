@@ -1,20 +1,16 @@
 
-unifyDiff <- function(x,y, ratio){
+
+unifyDiff <- function(x,y) {
     points <- cbind(x,y)
     o <- order(points)
-    deltas <- diff(points[o])
-    nonZeroDeltas <- deltas[deltas>0]
-    logs <- log(nonZeroDeltas/min(nonZeroDeltas))
-    logs <- logs / max(logs) * log(ratio)
-    # back
-    nonZeroDeltas <- exp(logs)
-    deltas[deltas > 0] <- nonZeroDeltas
-    points[o] <- cumsum(c(1,deltas))
+    res <- rle(points[o]) 
+    res$values <- seq_along(unique(res$values))
+    points[o] <- inverse.rle(res)
     list(points[seq_along(x)],
          points[seq_along(y) + length(x)])
 }
 
-normaliseData <- function(..., ratio=5){
+normaliseData <- function(...){
     dat <- list(...)
     toProcess <- vapply(dat, Negate(is.null), logical(1))
     columns <- c("start", "end")
@@ -25,7 +21,7 @@ normaliseData <- function(..., ratio=5){
     )
     result <- as.data.frame(
         do.call(cbind,
-                unifyDiff(positions$start, positions$end, ratio = ratio))
+                unifyDiff(positions$start, positions$end))
     )
     names(result) <- columns
     dat[toProcess] <- split(result, positions$id)
