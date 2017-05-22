@@ -98,30 +98,17 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         circ_rna_bed.saveas(circle_annotation_file)
 
         # create list of shuffled peaks
-        shuffled_peaks_linear = mp_pool.map(functools.partial(self.shuffle_peaks_through_genome,
-                                                              bed_file=supplied_bed,
-                                                              annotation=gene_annotation_file,
-                                                              genome_file=self.cli_params.genome_file),
-                                            range(1, self.cli_params.num_iterations+1))
-
-        shuffled_peaks_linear.append(supplied_bed)
-
-        # create list of shuffled peaks
-        shuffled_peaks_circular = mp_pool.map(functools.partial(self.shuffle_peaks_through_genome,
-                                                                bed_file=supplied_bed,
-                                                                annotation=circle_annotation_file,
-                                                                genome_file=self.cli_params.genome_file),
-                                              range(1, self.cli_params.num_iterations+1))
-
-        shuffled_peaks_circular.append(supplied_bed)
+        shuffled_peaks = mp_pool.map(functools.partial(self.shuffle_peaks_through_genome,
+                                                       bed_file=supplied_bed,
+                                                       genome_file=self.cli_params.genome_file),
+                                     range(1, self.cli_params.num_iterations + 1))
 
         # do the intersections
         results = mp_pool.map(functools.partial(self.random_sample_step,
                                                 circ_rna_bed=circ_rna_bed,
                                                 annotation_bed=annotation_bed,
-                                                shuffled_peaks_linear=shuffled_peaks_linear,
-                                                shuffled_peaks_circular=shuffled_peaks_circular
-                                                ), range(1, self.cli_params.num_iterations+1))
+                                                shuffled_peaks_linear=shuffled_peaks,
+                                                ), range(self.cli_params.num_iterations + 1))
 
         result_table = self.generate_count_table(results)
 
@@ -172,9 +159,8 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
             # create a "virtual" BED file
             virtual_bed_file = pybedtools.BedTool(bed_content, from_string=True)
-            print(virtual_bed_file)
-
-            test = annotation_bed.intersect(virtual_bed_file, s=True, wb=True)
+            # Todo: figure out what this code was supposed to do
+            test = annotation_bed.intersect(virtual_bed_file, s=True)
 
         self.log_entry("Done parsing circular RNA input file:")
         self.log_entry("=> %s circular RNAs, %s nt average (theoretical unspliced) length" %
@@ -243,7 +229,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         return chromosome_name
 
-    def read_annotation_file(self, annotation_file):
+    def read_annotation_file(self, annotation_file, entity="gene"):
         """Reads a GTF file
         Will halt the program if file not accessible
         Returns a BedTool object only containing gene sections
@@ -260,7 +246,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
             with file_handle:
                 line_iterator = iter(file_handle)
                 bed_content = ""
-                gene_entry = 1
+                entity_count = 1
                 for line in line_iterator:
                     # we skip any comment lines
                     if line.startswith("#"):
@@ -270,7 +256,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                     columns = line.split('\t')
 
                     # we only want the coordinates of the gene entries
-                    if not (columns[2] == "exon"):
+                    if not (columns[2] == entity):
                         continue
 
                     # columns 8 is the long annotation string from GTF
@@ -283,16 +269,16 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                     # concatenate lines to one string
                     bed_content += '\t'.join(entry) + "\n"
 
-                    sys.stdout.write("Processing exon # %s \r" % gene_entry)
+                    sys.stdout.write("Processing %s # %s \r" % entity, entity_count)
                     sys.stdout.flush()
 
-                    gene_entry += 1
+                    entity_count += 1
 
                 # "escape the \r from counting output"
                 sys.stdout.write("\n")
 
                 # count will be increased one more time even if done - so we subtract 1
-                self.log_entry("Processed %s genes" % (gene_entry - 1))
+                self.log_entry("Processed %s entries" % (entity_count - 1))
 
             # create a "virtual" BED file
             virtual_bed_file = pybedtools.BedTool(bed_content, from_string=True)
@@ -301,13 +287,13 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         return virtual_bed_file
 
-    def shuffle_peaks_through_genome(self, iteration, bed_file, annotation, genome_file):
+    def shuffle_peaks_through_genome(self, iteration, bed_file, genome_file):
         """Gets a (virtual) BED files and shuffle its contents throughout the supplied genome
         Will only use supplied annotation for features (in our case only transcript regions)
         """
 
         self.log_entry("Starting shuffling thread %d" % iteration)
-        shuffled_bed = bed_file.shuffle(g=genome_file, chrom=True, incl=annotation)
+        shuffled_bed = bed_file.shuffle(g=genome_file, chrom=True)
         self.log_entry("Finished shuffling thread %d" % iteration)
 
         return shuffled_bed
@@ -319,24 +305,35 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         # we employ the c=true parameter to directly get the counts as part of the results
         intersect_return = base_bed.intersect(query_bed, c=True)
-
         return intersect_return
 
     @staticmethod
-    def process_intersection(intersection_output, tag):
+    def process_intersection(intersection_output, tag, normalize=True):
         """Gets two bed files (supplied peaks and circle coordinates) and does an intersection
         """
         # initialise empty dict
         count_table = {}
 
+        def normalize_count(start, stop, count):
+            if normalize:
+                return (stop-start)/count
+            else:
+                return count
+
         feature_iterator = iter(intersection_output)
         for bed_feature in feature_iterator:
+
             key = tag + "\t" + bed_feature.name +\
                   "\t" + bed_feature.chrom + "_" +\
                   str(bed_feature.start) + "_" +\
                   str(bed_feature.stop) +\
                   bed_feature.strand
-            count_table[key] = bed_feature[6]  # [6] == number of "hits"
+
+            # [6] == number of "hits"
+            # also we normalize the counts here to the length of the feature if selected
+            count_table[key] = normalize_count(bed_feature.start, bed_feature.start, bed_feature[6])
+
+
 
         return count_table
 
@@ -376,15 +373,14 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         return result_table
 
-    def random_sample_step(self, iteration, circ_rna_bed, annotation_bed, shuffled_peaks_linear,
-                           shuffled_peaks_circular):
+    def random_sample_step(self, iteration, circ_rna_bed, annotation_bed, shuffled_peaks):
         """Logs to log file and prints on screen
         """
         self.log_entry("Starting intersection thread %d" % iteration)
 
         # get circular and linear intersect
-        circular_intersect = self.do_intersection(shuffled_peaks_circular[iteration], circ_rna_bed)
-        linear_intersect = self.do_intersection(shuffled_peaks_linear[iteration], annotation_bed)
+        circular_intersect = self.do_intersection(shuffled_peaks[iteration], circ_rna_bed)
+        linear_intersect = self.do_intersection(shuffled_peaks[iteration], annotation_bed)
 
         # process results of the intersects
         linear_count_table = self.process_intersection(linear_intersect, "lin")
