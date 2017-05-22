@@ -269,7 +269,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                     # concatenate lines to one string
                     bed_content += '\t'.join(entry) + "\n"
 
-                    sys.stdout.write("Processing %s # %s \r" % entity, entity_count)
+                    sys.stdout.write("Processing %s # %s \r" % (entity, entity_count))
                     sys.stdout.flush()
 
                     entity_count += 1
