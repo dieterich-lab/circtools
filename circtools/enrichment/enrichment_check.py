@@ -378,6 +378,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         gene_dict_linear = {}
 
         # we stored the observed values in the last column of the nested dicts
+        # we can also use this as "number of iterations done"
         observed_index = len(count_table_list)-1
 
         # for circular and linear intersection
@@ -385,13 +386,24 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
             # for each iteration
             for gene, nested_dict in count_table_list[i].items():
-                #print("%s, %s, %s" % (gene, nested_dict['lin'], count_table_list[observed_index][gene]['lin']))
                 observed_value = count_table_list[observed_index][gene]['lin']
 
+                # for each location key (for linear that's only one anyway. for circular it may me multiple)
                 for location_key, shuffled_value in nested_dict['lin'].items():
+
+                    # let's test if we observed a higher count in this iteration than web observed experimentally
                     if shuffled_value > observed_value[location_key]:
-                        gene_dict_linear[gene] +=1
-                        #print("%d > %d" % (shuffled_value, observed_value[location_key]))
+
+                        # Yes, it's higher, so we update the count of "more than observed" for this gene
+                        if gene not in gene_dict_linear:
+                            gene_dict_linear[gene] = 1
+                        else:
+                            gene_dict_linear[gene] += 1
+
+        for gene in gene_dict_linear:
+
+        #    if (gene_dict_linear[gene]/observed_index) < 0.5:
+            print("%s: %f" % (gene, gene_dict_linear[gene]/observed_index))
 
     @staticmethod
     def generate_count_table(count_table):
