@@ -328,20 +328,24 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         print(taglist)
 
         for intersection in intersection_output:
-            print (active_tag)
 
+            # switch between linear (first) and circular (second)
             tag = taglist[active_tag]
+
+            # extract the suitable intersection data
             feature_iterator = iter(intersection)
+
+            # iterate through circular/linear intersection
             for bed_feature in feature_iterator:
 
+                # key has the form: chromosome_start_stop[strand]
                 key = bed_feature.chrom + "_" +\
                       str(bed_feature.start) + "_" +\
                       str(bed_feature.stop) +\
                       bed_feature.strand
 
-                # [6] == number of "hits"
-                # also we normalize the counts here to the length of the feature if selected
 
+                # we have to create the nested dictionaries if not already existing
                 if bed_feature.name not in count_table:
                     count_table[bed_feature.name] = {}
 
@@ -351,12 +355,18 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                 if key not in count_table[bed_feature.name][tag]:
                     count_table[bed_feature.name][tag][key] = {}
 
+                # [6] == number of "hits"
+                # also we normalize the counts here to the length of the feature if selected
+
+                # set the appropriate dict entry
                 count_table[bed_feature.name][tag][key] = normalize_count(bed_feature.start,
                                                                           bed_feature.stop,
                                                                           int(bed_feature[6])
                                                                           )
+            # set to next tag (0: linear, 1: circular)
             active_tag += 1
 
+        # return one unified count table
         return count_table
 
     @staticmethod
