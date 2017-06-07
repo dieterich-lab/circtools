@@ -22,6 +22,7 @@ import sys
 import re
 import multiprocessing
 import functools
+from math import log
 
 import pybedtools
 import circ_module.circ_template
@@ -101,15 +102,16 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         shuffled_peaks = mp_pool.map(functools.partial(self.shuffle_peaks_through_genome,
                                                        bed_file=supplied_bed,
                                                        genome_file=self.cli_params.genome_file),
-                                     range(1, self.cli_params.num_iterations + 1))
+                                     range(self.cli_params.num_iterations+1))
+        shuffled_peaks.append(supplied_bed)
 
         # do the intersections
         results = mp_pool.map(functools.partial(self.random_sample_step,
                                                 circ_rna_bed=circ_rna_bed,
                                                 annotation_bed=annotation_bed,
-                                                shuffled_peaks_linear=shuffled_peaks,
-                                                ), range(self.cli_params.num_iterations + 1))
-
+                                                shuffled_peaks=shuffled_peaks,
+                                                ), range(self.cli_params.num_iterations+1))
+        exit(0)
         result_table = self.generate_count_table(results)
 
         result_file = self.cli_params.output_directory + "/output_" + time_format + ".csv"
@@ -293,7 +295,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         """
 
         self.log_entry("Starting shuffling thread %d" % iteration)
-        shuffled_bed = bed_file.shuffle(g=genome_file, chrom=True)
+        shuffled_bed = bed_file.shuffle(g=genome_file)
         self.log_entry("Finished shuffling thread %d" % iteration)
 
         return shuffled_bed
@@ -308,32 +310,52 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         return intersect_return
 
     @staticmethod
-    def process_intersection(intersection_output, tag, normalize=True):
+    def process_intersection(intersection_output, taglist, normalize=False):
         """Gets two bed files (supplied peaks and circle coordinates) and does an intersection
         """
         # initialise empty dict
         count_table = {}
 
         def normalize_count(start, stop, count):
-            if normalize:
-                return (stop-start)/count
+            if normalize and count > 0:
+                return count/(stop-start)
+            elif normalize and count > 0:
+                return 0
             else:
                 return count
 
-        feature_iterator = iter(intersection_output)
-        for bed_feature in feature_iterator:
+        active_tag = 0
+        print(taglist)
 
-            key = tag + "\t" + bed_feature.name +\
-                  "\t" + bed_feature.chrom + "_" +\
-                  str(bed_feature.start) + "_" +\
-                  str(bed_feature.stop) +\
-                  bed_feature.strand
+        for intersection in intersection_output:
+            print (active_tag)
 
-            # [6] == number of "hits"
-            # also we normalize the counts here to the length of the feature if selected
-            count_table[key] = normalize_count(bed_feature.start, bed_feature.start, bed_feature[6])
+            tag = taglist[active_tag]
+            feature_iterator = iter(intersection)
+            for bed_feature in feature_iterator:
 
+                key = bed_feature.chrom + "_" +\
+                      str(bed_feature.start) + "_" +\
+                      str(bed_feature.stop) +\
+                      bed_feature.strand
 
+                # [6] == number of "hits"
+                # also we normalize the counts here to the length of the feature if selected
+
+                if bed_feature.name not in count_table:
+                    count_table[bed_feature.name] = {}
+
+                if tag not in count_table[bed_feature.name]:
+                    count_table[bed_feature.name][tag] = {}
+
+                if key not in count_table[bed_feature.name][tag]:
+                    count_table[bed_feature.name][tag][key] = {}
+
+                count_table[bed_feature.name][tag][key] = normalize_count(bed_feature.start,
+                                                                          bed_feature.stop,
+                                                                          int(bed_feature[6])
+                                                                          )
+            active_tag += 1
 
         return count_table
 
@@ -359,13 +381,13 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
                 if "lin" in key:
                     if key in count_table[i][0]:
-                        result_table += count_table[i][0][key] + "\t"
+                        result_table += str(count_table[i][0][key]) + "\t"
                     else:
                         result_table += "0\t"
 
                 if "circ" in key:
                     if key in count_table[i][1]:
-                        result_table += count_table[i][1][key] + "\t"
+                        result_table += str(count_table[i][1][key]) + "\t"
                     else:
                         result_table += "0\t"
 
@@ -383,12 +405,14 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         linear_intersect = self.do_intersection(shuffled_peaks[iteration], annotation_bed)
 
         # process results of the intersects
-        linear_count_table = self.process_intersection(linear_intersect, "lin")
-        circular_count_table = self.process_intersection(circular_intersect, "circ")
+        # linear_count_table = self.process_intersection(linear_intersect, "lin")
+        # circular_count_table = self.process_intersection(circular_intersect, "circ")
+
+        intersects = self.process_intersection([circular_intersect, linear_intersect], ["circ", "lin"])
 
         self.log_entry("Finished intersection thread %d" % iteration)
 
-        return linear_count_table, circular_count_table
+        return intersects
 
     def module_name(self):
         """"Return a string representing the name of the module."""
