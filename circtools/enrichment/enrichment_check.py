@@ -110,6 +110,9 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                                                 annotation_bed=annotation_bed,
                                                 shuffled_peaks=shuffled_peaks,
                                                 ), range(self.cli_params.num_iterations+1))
+
+        self.run_permutation_test(results)
+
         exit(0)
         result_table = self.generate_count_table(results)
 
@@ -370,15 +373,35 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         return count_table
 
     @staticmethod
+    def run_permutation_test(count_table_list):
+
+        gene_dict_linear = {}
+
+        # we stored the observed values in the last column of the nested dicts
+        observed_index = len(count_table_list)-1
+
+        # for circular and linear intersection
+        for i in range(0, observed_index):
+
+            # for each iteration
+            for gene, nested_dict in count_table_list[i].items():
+                #print("%s, %s, %s" % (gene, nested_dict['lin'], count_table_list[observed_index][gene]['lin']))
+                observed_value = count_table_list[observed_index][gene]['lin']
+
+                for location_key, shuffled_value in nested_dict['lin'].items():
+                    if shuffled_value > observed_value[location_key]:
+                        gene_dict_linear[gene] +=1
+                        #print("%d > %d" % (shuffled_value, observed_value[location_key]))
+
+    @staticmethod
     def generate_count_table(count_table):
-        """Gets two bed files (supplied peaks and circle coordinates) and does an intersection
+        """Gets the generated count table with all hit entries and builds a simple table
         """
 
         all_keys = []
 
         for iteration in range(len(count_table)):
             all_keys += list(count_table[iteration][0])
-            all_keys += list(count_table[iteration][1])
 
         all_keys_unique = set(all_keys)
 
@@ -417,7 +440,8 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         # process results of the intersects
         intersects = self.process_intersection([circular_intersect, linear_intersect], ["circ", "lin"])
 
-        self.log_entry("Finished intersection thread %d" % iteration)
+        entries = len(intersects)
+        self.log_entry("Finished intersection thread %d (%d entries in dictionary)" % (iteration, entries))
 
         return intersects
 
