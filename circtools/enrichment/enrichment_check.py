@@ -329,7 +329,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         for intersection in intersection_output:
 
-            # switch between linear (first) and circular (second)
+            # switch between circular (first) and linear (second)
             tag = taglist[active_tag]
 
             # extract the suitable intersection data
@@ -343,7 +343,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                       str(bed_feature.start) + "_" +\
                       str(bed_feature.stop) +\
                       bed_feature.strand
-
 
                 # we have to create the nested dictionaries if not already existing
                 if bed_feature.name not in count_table:
@@ -363,7 +362,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                                                                           bed_feature.stop,
                                                                           int(bed_feature[6])
                                                                           )
-            # set to next tag (0: linear, 1: circular)
+            # set to next tag (0: circular, 1: linear)
             active_tag += 1
 
         # return one unified count table
@@ -415,9 +414,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         linear_intersect = self.do_intersection(shuffled_peaks[iteration], annotation_bed)
 
         # process results of the intersects
-        # linear_count_table = self.process_intersection(linear_intersect, "lin")
-        # circular_count_table = self.process_intersection(circular_intersect, "circ")
-
         intersects = self.process_intersection([circular_intersect, linear_intersect], ["circ", "lin"])
 
         self.log_entry("Finished intersection thread %d" % iteration)
