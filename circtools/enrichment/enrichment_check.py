@@ -315,6 +315,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
     def process_intersection(intersection_output, tag_list, normalize=False):
         """Gets two bed files (supplied peaks and circle coordinates) and does an intersection
         """
+
         # initialise empty dict
         count_table = {}
 
@@ -450,10 +451,8 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         linear_intersect = self.do_intersection(shuffled_peaks[iteration], annotation_bed)
 
         # process results of the intersects
-        intersects = self.process_intersection([circular_intersect, linear_intersect], ["circ", "lin"])
-
-        entries = len(intersects)
-        self.log_entry("Finished intersection thread %d (%d entries in dictionary)" % (iteration, entries))
+        intersects = [circular_intersect, linear_intersect]
+        self.log_entry("Finished intersection thread %d" % iteration)
 
         return intersects
 
