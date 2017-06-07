@@ -22,7 +22,6 @@ import sys
 import re
 import multiprocessing
 import functools
-from math import log
 
 import pybedtools
 import circ_module.circ_template
@@ -310,12 +309,13 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         return intersect_return
 
     @staticmethod
-    def process_intersection(intersection_output, taglist, normalize=False):
+    def process_intersection(intersection_output, tag_list, normalize=False):
         """Gets two bed files (supplied peaks and circle coordinates) and does an intersection
         """
         # initialise empty dict
         count_table = {}
 
+        # wrapper function to transparently allow for normalization
         def normalize_count(start, stop, count):
             if normalize and count > 0:
                 return count/(stop-start)
@@ -324,13 +324,14 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
             else:
                 return count
 
+        # initialize to 0 (-> circular)
         active_tag = 0
-        print(taglist)
 
+        # for circular and linear intersection
         for intersection in intersection_output:
 
             # switch between circular (first) and linear (second)
-            tag = taglist[active_tag]
+            tag = tag_list[active_tag]
 
             # extract the suitable intersection data
             feature_iterator = iter(intersection)
