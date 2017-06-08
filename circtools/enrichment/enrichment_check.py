@@ -439,41 +439,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         return gene_dict
 
-    @staticmethod
-    def generate_count_table(count_table):
-        """Gets the generated count table with all hit entries and builds a simple table
-        """
-
-        # all_keys = []
-        #
-        # for iteration in range(len(count_table)):
-        #     all_keys += list(count_table[iteration][0])
-        #
-        # all_keys_unique = set(all_keys)
-        #
-        # result_table = ""
-        #
-        # for key in all_keys_unique:
-        #     result_table += key + "\t"
-        #
-        #     for i in range(len(count_table)):
-        #
-        #         if "lin" in key:
-        #             if key in count_table[i][0]:
-        #                 result_table += str(count_table[i][0][key]) + "\t"
-        #             else:
-        #                 result_table += "0\t"
-        #
-        #         if "circ" in key:
-        #             if key in count_table[i][1]:
-        #                 result_table += str(count_table[i][1][key]) + "\t"
-        #             else:
-        #                 result_table += "0\t"
-        #
-        #     result_table += "\n"
-
-        # return result_table
-
     def random_sample_step(self, iteration, circ_rna_bed, annotation_bed, shuffled_peaks):
         """Logs to log file and prints on screen
         """
