@@ -98,12 +98,14 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         circ_rna_bed.saveas(circle_annotation_file)
 
         # create list of shuffled peaks
-        shuffled_peaks = mp_pool.map(functools.partial(self.shuffle_peaks_through_genome,
+        shuffled_peaks = (mp_pool.map(functools.partial(self.shuffle_peaks_through_genome,
                                                        bed_file=supplied_bed,
                                                        genome_file=self.cli_params.genome_file),
-                                     range(self.cli_params.num_iterations+1))
-        shuffled_peaks.append(supplied_bed)
+                                     range(self.cli_params.num_iterations)))
 
+        shuffled_peaks.insert(0, supplied_bed)
+
+        # shuffled_peaks.append(supplied_bed)
         # do the intersections
         results = mp_pool.map(functools.partial(self.random_sample_step,
                                                 circ_rna_bed=circ_rna_bed,
@@ -111,9 +113,11 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                                                 shuffled_peaks=shuffled_peaks,
                                                 ), range(self.cli_params.num_iterations+1))
 
-        self.run_permutation_test(results)
+        final = self.run_permutation_test(self, results)
 
+        self.print_results(final, self.cli_params.num_iterations)
         exit(0)
+
         result_table = self.generate_count_table(results)
 
         result_file = self.cli_params.output_directory + "/output_" + time_format + ".csv"
@@ -312,7 +316,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         return intersect_return
 
     @staticmethod
-    def process_intersection(intersection_output, tag_list, normalize=False):
+    def process_intersection(intersection_input, normalize=False):
         """Gets two bed files (supplied peaks and circle coordinates) and does an intersection
         """
 
@@ -328,118 +332,147 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
             else:
                 return count
 
-        # initialize to 0 (-> circular)
-        active_tag = 0
+        intersection = pybedtools.BedTool(intersection_input)
 
-        # for circular and linear intersection
-        for intersection in intersection_output:
+        # # initialize to 0 (-> circular)
+        # active_tag = 0
+        #
+        # # switch between circular (first) and linear (second)
+        # tag = tag_list[active_tag]
 
-            # switch between circular (first) and linear (second)
-            tag = tag_list[active_tag]
+        # extract the suitable intersection data
+        feature_iterator = iter(intersection)
 
-            # extract the suitable intersection data
-            feature_iterator = iter(intersection)
+        # iterate through circular/linear intersection
+        for bed_feature in feature_iterator:
 
-            # iterate through circular/linear intersection
-            for bed_feature in feature_iterator:
+            # key has the form: chromosome_start_stop[strand]
+            key = bed_feature.chrom + "_" +\
+                  str(bed_feature.start) + "_" +\
+                  str(bed_feature.stop) +\
+                  bed_feature.strand
 
-                # key has the form: chromosome_start_stop[strand]
-                key = bed_feature.chrom + "_" +\
-                      str(bed_feature.start) + "_" +\
-                      str(bed_feature.stop) +\
-                      bed_feature.strand
+            # we have to create the nested dictionaries if not already existing
+            if bed_feature.name not in count_table:
+                count_table[bed_feature.name] = {}
 
-                # we have to create the nested dictionaries if not already existing
-                if bed_feature.name not in count_table:
-                    count_table[bed_feature.name] = {}
+            if key not in count_table[bed_feature.name]:
+                count_table[bed_feature.name][key] = {}
 
-                if tag not in count_table[bed_feature.name]:
-                    count_table[bed_feature.name][tag] = {}
+            # [6] == number of "hits"
+            # also we normalize the counts here to the length of the feature if selected
 
-                if key not in count_table[bed_feature.name][tag]:
-                    count_table[bed_feature.name][tag][key] = {}
-
-                # [6] == number of "hits"
-                # also we normalize the counts here to the length of the feature if selected
-
-                # set the appropriate dict entry
-                count_table[bed_feature.name][tag][key] = normalize_count(bed_feature.start,
-                                                                          bed_feature.stop,
-                                                                          int(bed_feature[6])
-                                                                          )
-            # set to next tag (0: circular, 1: linear)
-            active_tag += 1
+            # set the appropriate dict entry
+            count_table[bed_feature.name][key] = normalize_count(bed_feature.start,
+                                                                      bed_feature.stop,
+                                                                      int(bed_feature[6])
+                                                                      )
 
         # return one unified count table
         return count_table
 
     @staticmethod
-    def run_permutation_test(count_table_list):
+    def print_results(gene_dict, num_iterations):
+        for gene in gene_dict:
+            for rna_type in range(0, 2):
+                if rna_type in gene_dict[gene]:
+                    for location_key in gene_dict[gene][rna_type]:
+                        #print("%s\t%s\t%s" % (gene, rna_type,  gene_dict[gene][rna_type][location_key]))
 
-        gene_dict_linear = {}
+                        if (gene_dict[gene][rna_type][location_key] / num_iterations) <= 0.25:
+                            print("%s\t%s\t%s\t%f" % (gene, rna_type , location_key,  gene_dict[gene][rna_type][location_key] / num_iterations))
+
+    @staticmethod
+    def run_permutation_test(self, intersection_tuple_list):
+
+        gene_dict = {}
 
         # we stored the observed values in the last column of the nested dicts
         # we can also use this as "number of iterations done"
-        observed_index = len(count_table_list)-1
+        num_iterations = len(intersection_tuple_list)
 
-        # for circular and linear intersection
-        for i in range(0, observed_index):
+        # we pre-process the first entry of the list because here we stored the observed counts
+        # order of tuples: pos 0: circular rna, pos 1: linear rna
+        observed_counts = (
+            self.process_intersection(intersection_tuple_list[0][0]),
+            self.process_intersection(intersection_tuple_list[0][1])
+        )
 
-            # for each iteration
-            for gene, nested_dict in count_table_list[i].items():
-                observed_value = count_table_list[observed_index][gene]['lin']
+        # iterate over actual intersections
+        for iteration in range(1, num_iterations):
 
-                # for each location key (for linear that's only one anyway. for circular it may me multiple)
-                for location_key, shuffled_value in nested_dict['lin'].items():
+            # iterate through circular and linear intersection
+            for rna_type in range(0, 2):
 
-                    # let's test if we observed a higher count in this iteration than web observed experimentally
-                    if shuffled_value > observed_value[location_key]:
+                processed_counts = self.process_intersection(intersection_tuple_list[iteration][rna_type])
 
-                        # Yes, it's higher, so we update the count of "more than observed" for this gene
-                        if gene not in gene_dict_linear:
-                            gene_dict_linear[gene] = 1
-                        else:
-                            gene_dict_linear[gene] += 1
+                for gene, nested_dict in processed_counts.items():
 
-        for gene in gene_dict_linear:
+                    # we need to get the observed count for this gene before we start
+                    observed_value_dict = observed_counts[rna_type][gene]
 
-        #    if (gene_dict_linear[gene]/observed_index) < 0.5:
-            print("%s: %f" % (gene, gene_dict_linear[gene]/observed_index))
+                    # for each location key (for linear that's only one anyway. for circular it may me multiple)
+                    for location_key, shuffled_value in nested_dict.items():
+
+                        # let's test if we observed a higher count in this iteration than web observed experimentally
+                        # first make sure the location exists.. should always be true for linear rna but not for
+                        # circular RNAs
+                        if location_key in observed_value_dict and shuffled_value > observed_value_dict[location_key]:
+
+                            # Yes, it's higher, so we update the count of "more than observed" for this gene
+                            if gene not in gene_dict:
+
+                                # initialize new dict entry
+                                gene_dict[gene] = {}
+
+                            # look if we already have circ/linear rna entries
+                            if rna_type not in gene_dict[gene]:
+                                # first time we see a higher shuffled value
+                                gene_dict[gene][rna_type] = {}
+
+                            if location_key not in gene_dict[gene][rna_type]:
+                                gene_dict[gene][rna_type][location_key] = 1
+
+                            else:
+                                # not the first time, just increase
+                                gene_dict[gene][rna_type][location_key] += 1
+
+        return gene_dict
 
     @staticmethod
     def generate_count_table(count_table):
         """Gets the generated count table with all hit entries and builds a simple table
         """
 
-        all_keys = []
+        # all_keys = []
+        #
+        # for iteration in range(len(count_table)):
+        #     all_keys += list(count_table[iteration][0])
+        #
+        # all_keys_unique = set(all_keys)
+        #
+        # result_table = ""
+        #
+        # for key in all_keys_unique:
+        #     result_table += key + "\t"
+        #
+        #     for i in range(len(count_table)):
+        #
+        #         if "lin" in key:
+        #             if key in count_table[i][0]:
+        #                 result_table += str(count_table[i][0][key]) + "\t"
+        #             else:
+        #                 result_table += "0\t"
+        #
+        #         if "circ" in key:
+        #             if key in count_table[i][1]:
+        #                 result_table += str(count_table[i][1][key]) + "\t"
+        #             else:
+        #                 result_table += "0\t"
+        #
+        #     result_table += "\n"
 
-        for iteration in range(len(count_table)):
-            all_keys += list(count_table[iteration][0])
-
-        all_keys_unique = set(all_keys)
-
-        result_table = ""
-
-        for key in all_keys_unique:
-            result_table += key + "\t"
-
-            for i in range(len(count_table)):
-
-                if "lin" in key:
-                    if key in count_table[i][0]:
-                        result_table += str(count_table[i][0][key]) + "\t"
-                    else:
-                        result_table += "0\t"
-
-                if "circ" in key:
-                    if key in count_table[i][1]:
-                        result_table += str(count_table[i][1][key]) + "\t"
-                    else:
-                        result_table += "0\t"
-
-            result_table += "\n"
-
-        return result_table
+        # return result_table
 
     def random_sample_step(self, iteration, circ_rna_bed, annotation_bed, shuffled_peaks):
         """Logs to log file and prints on screen
