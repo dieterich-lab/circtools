@@ -335,12 +335,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         intersection = pybedtools.BedTool(intersection_input)
 
-        # # initialize to 0 (-> circular)
-        # active_tag = 0
-        #
-        # # switch between circular (first) and linear (second)
-        # tag = tag_list[active_tag]
-
         # extract the suitable intersection data
         feature_iterator = iter(intersection)
 
@@ -360,15 +354,11 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
             if key not in count_table[bed_feature.name]:
                 count_table[bed_feature.name][key] = {}
 
-            # [6] == number of "hits"
-            # also we normalize the counts here to the length of the feature if selected
-
             # set the appropriate dict entry
             count_table[bed_feature.name][key] = normalize_count(bed_feature.start,
                                                                  bed_feature.stop,
                                                                  int(bed_feature[6])
                                                                  )
-
         # return one unified count table
         return count_table
 
@@ -380,7 +370,13 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                 if rna_type in gene_dict[gene]:
                     for location_key in gene_dict[gene][rna_type]:
                         if (gene_dict[gene][rna_type][location_key] / num_iterations) <= threshold:
-                            print("%s\t%s\t%s\t%f" % (gene, rna_type, location_key,  gene_dict[gene][rna_type][location_key] / num_iterations))
+                            print("%s\t%s\t%s\t%f" % (
+                                                        gene,
+                                                        rna_type,
+                                                        location_key,
+                                                        gene_dict[gene][rna_type][location_key] / num_iterations
+                                                     )
+                                  )
 
     @staticmethod
     def run_permutation_test(self, intersection_tuple_list):
@@ -403,8 +399,8 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         for iteration in range(1, num_iterations):
 
             # print a line every 100 iterations completed
-            if iteration % 100 == 0:
-                self.log_entry("%d iterations completed")
+            if iteration % 10 == 0:
+                self.log_entry("%d iterations completed", iteration)
 
             # iterate through circular and linear intersection
             for rna_type in range(0, 2):
@@ -489,7 +485,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         # process results of the intersects
         intersects = [circular_intersect, linear_intersect]
 
-        if iteration % 100 == 0:
+        if iteration % 10 == 0:
             self.log_entry("Processed %d intersections" % iteration)
 
         return intersects
