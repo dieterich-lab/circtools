@@ -426,7 +426,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
                             # Yes, it's higher, so we update the count of "more than observed" for this gene
                             if gene not in gene_dict:
-
                                 # initialize new dict entry
                                 gene_dict[gene] = {}
 
