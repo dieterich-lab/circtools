@@ -115,7 +115,8 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         final = self.run_permutation_test(self, results)
 
-        self.print_results(final, self.cli_params.num_iterations)
+        self.print_results(final, self.cli_params.num_iterations, self.cli_params.threshold)
+
         exit(0)
 
         result_table = self.generate_count_table(results)
@@ -372,18 +373,20 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         return count_table
 
     @staticmethod
-    def print_results(gene_dict, num_iterations):
+    def print_results(gene_dict, num_iterations, threshold):
+        print(threshold)
         for gene in gene_dict:
             for rna_type in range(0, 2):
                 if rna_type in gene_dict[gene]:
                     for location_key in gene_dict[gene][rna_type]:
                         #print("%s\t%s\t%s" % (gene, rna_type,  gene_dict[gene][rna_type][location_key]))
 
-                        if (gene_dict[gene][rna_type][location_key] / num_iterations) <= 0.25:
+                        if (gene_dict[gene][rna_type][location_key] / num_iterations) <= threshold:
                             print("%s\t%s\t%s\t%f" % (gene, rna_type , location_key,  gene_dict[gene][rna_type][location_key] / num_iterations))
 
     @staticmethod
     def run_permutation_test(self, intersection_tuple_list):
+        self.log_entry("Starting permutation test")
 
         gene_dict = {}
 
@@ -400,6 +403,10 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         # iterate over actual intersections
         for iteration in range(1, num_iterations):
+
+            # print a line every 100 iterations completed
+            if iteration % 100 == 0:
+                self.log_entry("%d iterations completed")
 
             # iterate through circular and linear intersection
             for rna_type in range(0, 2):
@@ -477,7 +484,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
     def random_sample_step(self, iteration, circ_rna_bed, annotation_bed, shuffled_peaks):
         """Logs to log file and prints on screen
         """
-        self.log_entry("Starting intersection thread %d" % iteration)
 
         # get circular and linear intersect
         circular_intersect = self.do_intersection(shuffled_peaks[iteration], circ_rna_bed)
@@ -485,7 +491,9 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         # process results of the intersects
         intersects = [circular_intersect, linear_intersect]
-        self.log_entry("Finished intersection thread %d" % iteration)
+
+        if iteration % 100 == 0:
+            self.log_entry("Processed %d intersections" % iteration)
 
         return intersects
 
