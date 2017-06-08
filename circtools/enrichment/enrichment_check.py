@@ -327,7 +327,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         # wrapper function to transparently allow for normalization
         def normalize_count(start, stop, count):
             if normalize and count > 0:
-                return count/(stop-start)
+                return count / (stop - start)
             elif normalize and count > 0:
                 return 0
             else:
@@ -348,9 +348,9 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         for bed_feature in feature_iterator:
 
             # key has the form: chromosome_start_stop[strand]
-            key = bed_feature.chrom + "_" +\
-                  str(bed_feature.start) + "_" +\
-                  str(bed_feature.stop) +\
+            key = bed_feature.chrom + "_" + \
+                  str(bed_feature.start) + "_" + \
+                  str(bed_feature.stop) + \
                   bed_feature.strand
 
             # we have to create the nested dictionaries if not already existing
@@ -365,9 +365,9 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
             # set the appropriate dict entry
             count_table[bed_feature.name][key] = normalize_count(bed_feature.start,
-                                                                      bed_feature.stop,
-                                                                      int(bed_feature[6])
-                                                                      )
+                                                                 bed_feature.stop,
+                                                                 int(bed_feature[6])
+                                                                 )
 
         # return one unified count table
         return count_table
@@ -379,10 +379,8 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
             for rna_type in range(0, 2):
                 if rna_type in gene_dict[gene]:
                     for location_key in gene_dict[gene][rna_type]:
-                        #print("%s\t%s\t%s" % (gene, rna_type,  gene_dict[gene][rna_type][location_key]))
-
                         if (gene_dict[gene][rna_type][location_key] / num_iterations) <= threshold:
-                            print("%s\t%s\t%s\t%f" % (gene, rna_type , location_key,  gene_dict[gene][rna_type][location_key] / num_iterations))
+                            print("%s\t%s\t%s\t%f" % (gene, rna_type, location_key,  gene_dict[gene][rna_type][location_key] / num_iterations))
 
     @staticmethod
     def run_permutation_test(self, intersection_tuple_list):
