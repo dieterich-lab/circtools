@@ -127,6 +127,22 @@ class CircTools(object):
                            default="/tmp/"
                            )
 
+        group.add_argument("-T",
+                           "--threshold",
+                           dest="threshold",
+                           help="p-value cutoff",
+                           type=int,
+                           default=2
+                           )
+
+        group.add_argument("-P",
+                           "--pval",
+                           dest="pval",
+                           help="p-value cutoff",
+                           type=float,
+                           default=0.05
+                           )
+
         args = parser.parse_args(sys.argv[2:])
 
         # start the enrichment module

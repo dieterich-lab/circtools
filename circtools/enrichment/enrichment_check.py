@@ -115,7 +115,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         final = self.run_permutation_test(self, results)
 
-        self.print_results(final, self.cli_params.num_iterations, self.cli_params.threshold)
+        self.print_results(final, self.cli_params.num_iterations, self.cli_params.pval, self.cli_params.threshold)
 
         exit(0)
 
@@ -363,18 +363,25 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         return count_table
 
     @staticmethod
-    def print_results(gene_dict, num_iterations, threshold):
-        print(threshold)
+    def print_results(result_list, num_iterations, pval, threshold):
+
+        gene_dict = result_list[0]
+        mean_dict = result_list[1]
+        observed_dict = result_list[2]
+
         for gene in gene_dict:
             for rna_type in range(0, 2):
                 if rna_type in gene_dict[gene]:
                     for location_key in gene_dict[gene][rna_type]:
-                        if (gene_dict[gene][rna_type][location_key] / num_iterations) <= threshold:
-                            print("%s\t%s\t%s\t%f" % (
+                        if (gene_dict[gene][rna_type][location_key] / num_iterations) <= pval and (
+                                    observed_dict[gene][rna_type][location_key] > threshold):
+                            print("%s\t%s\t%s\t%f\t%d\t%d" % (
                                                         gene,
                                                         rna_type,
                                                         location_key,
-                                                        gene_dict[gene][rna_type][location_key] / num_iterations
+                                                        gene_dict[gene][rna_type][location_key] / num_iterations,
+                                                        observed_dict[gene][rna_type][location_key],
+                                                        mean_dict[gene][rna_type][location_key]
                                                      )
                                   )
 
@@ -383,6 +390,8 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         self.log_entry("Starting permutation test")
 
         gene_dict = {}
+        mean_dict = {}
+        observed_dict = {}
 
         # we stored the observed values in the last column of the nested dicts
         # we can also use this as "number of iterations done"
@@ -400,7 +409,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
             # print a line every 100 iterations completed
             if iteration % 10 == 0:
-                self.log_entry("%d iterations completed", iteration)
+                self.log_entry("%d iterations completed" % iteration)
 
             # iterate through circular and linear intersection
             for rna_type in range(0, 2):
@@ -424,20 +433,27 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                             if gene not in gene_dict:
                                 # initialize new dict entry
                                 gene_dict[gene] = {}
+                                mean_dict[gene] = {}
+                                observed_dict[gene] = {}
 
                             # look if we already have circ/linear rna entries
                             if rna_type not in gene_dict[gene]:
                                 # first time we see a higher shuffled value
                                 gene_dict[gene][rna_type] = {}
+                                mean_dict[gene][rna_type] = {}
+                                observed_dict[gene][rna_type] = {}
 
                             if location_key not in gene_dict[gene][rna_type]:
                                 gene_dict[gene][rna_type][location_key] = 1
+                                mean_dict[gene][rna_type][location_key] = shuffled_value
+                                observed_dict[gene][rna_type][location_key] = observed_value_dict[location_key]
 
                             else:
                                 # not the first time, just increase
                                 gene_dict[gene][rna_type][location_key] += 1
+                                mean_dict[gene][rna_type][location_key] += shuffled_value
 
-        return gene_dict
+        return gene_dict, mean_dict, observed_dict
 
     def random_sample_step(self, iteration, circ_rna_bed, annotation_bed, shuffled_peaks):
         """Logs to log file and prints on screen
