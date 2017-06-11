@@ -115,11 +115,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         final = self.run_permutation_test(self, results)
 
-        self.print_results(final, self.cli_params.num_iterations, self.cli_params.pval, self.cli_params.threshold)
-
-        exit(0)
-
-        result_table = self.generate_count_table(results)
+        result_table = self.print_results(final, self.cli_params.num_iterations, self.cli_params.pval, self.cli_params.threshold)
 
         result_file = self.cli_params.output_directory + "/output_" + time_format + ".csv"
 
@@ -369,21 +365,24 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         mean_dict = result_list[1]
         observed_dict = result_list[2]
 
+        result_string = ""
+
         for gene in gene_dict:
             for rna_type in range(0, 2):
                 if rna_type in gene_dict[gene]:
                     for location_key in gene_dict[gene][rna_type]:
                         if (gene_dict[gene][rna_type][location_key] / num_iterations) <= pval and (
                                     observed_dict[gene][rna_type][location_key] > threshold):
-                            print("%s\t%s\t%s\t%f\t%d\t%d" % (
-                                                        gene,
-                                                        rna_type,
-                                                        location_key,
-                                                        gene_dict[gene][rna_type][location_key] / num_iterations,
-                                                        observed_dict[gene][rna_type][location_key],
-                                                        mean_dict[gene][rna_type][location_key]
-                                                     )
-                                  )
+                            result_string += ("%s\t%s\t%s\t%f\t%d\t%d\n" % (
+                                gene,
+                                rna_type,
+                                location_key,
+                                gene_dict[gene][rna_type][location_key] / num_iterations,
+                                observed_dict[gene][rna_type][location_key],
+                                mean_dict[gene][rna_type][location_key] / gene_dict[gene][rna_type][location_key]
+                            )
+                                              )
+        return result_string
 
     @staticmethod
     def run_permutation_test(self, intersection_tuple_list):
