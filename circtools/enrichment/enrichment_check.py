@@ -329,32 +329,37 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
             else:
                 return count
 
-        intersection = pybedtools.BedTool(intersection_input)
+        # print(intersection_input)
+        #
+        # intersection = pybedtools.BedTool(intersection_input)
+        #
+        # # extract the suitable intersection data
+        # feature_iterator = iter(intersection)
+        #
+        # # iterate through circular/linear intersection
+        # for bed_feature in feature_iterator:
 
-        # extract the suitable intersection data
-        feature_iterator = iter(intersection)
+        for line in str(intersection_input).splitlines():
 
-        # iterate through circular/linear intersection
-        for bed_feature in feature_iterator:
-
+            bed_feature = line.split('\t')
             # key has the form: chromosome_start_stop[strand]
-            key = bed_feature.chrom + "_" + \
-                  str(bed_feature.start) + "_" + \
-                  str(bed_feature.stop) + \
-                  bed_feature.strand
+            key = bed_feature[0] + "_" + \
+                  str(bed_feature[1]) + "_" + \
+                  str(bed_feature[2]) + \
+                  bed_feature[5]
 
             # we have to create the nested dictionaries if not already existing
-            if bed_feature.name not in count_table:
-                count_table[bed_feature.name] = {}
+            if bed_feature[3] not in count_table:
+                count_table[bed_feature[3]] = {}
 
-            if key not in count_table[bed_feature.name]:
-                count_table[bed_feature.name][key] = {}
+            if key not in count_table[bed_feature[3]]:
+                count_table[bed_feature[3]][key] = {}
 
             # set the appropriate dict entry
-            count_table[bed_feature.name][key] = normalize_count(bed_feature.start,
-                                                                 bed_feature.stop,
-                                                                 int(bed_feature[6])
-                                                                 )
+            count_table[bed_feature[3]][key] = normalize_count(bed_feature[1],
+                                                               bed_feature[2],
+                                                               int(bed_feature[6])
+                                                               )
         # return one unified count table
         return count_table
 
@@ -365,12 +370,16 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         mean_dict = result_list[1]
         observed_dict = result_list[2]
 
-        result_string = ""
+        result_string = "gene\trna\tlocation\tpval\tobserved\tsim_mean\n"
 
         for gene in gene_dict:
             for rna_type in range(0, 2):
                 if rna_type in gene_dict[gene]:
                     for location_key in gene_dict[gene][rna_type]:
+
+                        distance = mean_dict[gene][rna_type][location_key] / gene_dict[gene][rna_type][location_key] - \
+                                   observed_dict[gene][rna_type][location_key]
+
                         if (gene_dict[gene][rna_type][location_key] / num_iterations) <= pval and (
                                     observed_dict[gene][rna_type][location_key] > threshold):
                             result_string += ("%s\t%s\t%s\t%f\t%d\t%d\n" % (
