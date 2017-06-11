@@ -329,16 +329,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
             else:
                 return count
 
-        # print(intersection_input)
-        #
-        # intersection = pybedtools.BedTool(intersection_input)
-        #
-        # # extract the suitable intersection data
-        # feature_iterator = iter(intersection)
-        #
-        # # iterate through circular/linear intersection
-        # for bed_feature in feature_iterator:
-
         for line in str(intersection_input).splitlines():
 
             bed_feature = line.split('\t')
@@ -381,7 +371,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                                    observed_dict[gene][rna_type][location_key]
 
                         if (gene_dict[gene][rna_type][location_key] / num_iterations) <= pval and (
-                                    observed_dict[gene][rna_type][location_key] > threshold):
+                                   observed_dict[gene][rna_type][location_key] > threshold ):
                             result_string += ("%s\t%s\t%s\t%f\t%d\t%d\n" % (
                                 gene,
                                 rna_type,
@@ -435,7 +425,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                         # let's test if we observed a higher count in this iteration than web observed experimentally
                         # first make sure the location exists.. should always be true for linear rna but not for
                         # circular RNAs
-                        if location_key in observed_value_dict and shuffled_value > observed_value_dict[location_key]:
+                        if location_key in observed_value_dict and shuffled_value < observed_value_dict[location_key]:
 
                             # Yes, it's higher, so we update the count of "more than observed" for this gene
                             if gene not in gene_dict:
