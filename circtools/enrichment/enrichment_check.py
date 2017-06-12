@@ -324,7 +324,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         def normalize_count(start, stop, count):
             if normalize and count > 0:
                 return count / (stop - start)
-            elif normalize and count > 0:
+            elif normalize and count == 0:
                 return 0
             else:
                 return count
@@ -370,15 +370,16 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                         distance = mean_dict[gene][rna_type][location_key] / gene_dict[gene][rna_type][location_key] - \
                                    observed_dict[gene][rna_type][location_key]
 
-                        if (gene_dict[gene][rna_type][location_key] / num_iterations) <= pval and (
-                                   observed_dict[gene][rna_type][location_key] > threshold ):
-                            result_string += ("%s\t%s\t%s\t%f\t%d\t%d\n" % (
+                        if (gene_dict[gene][rna_type][location_key] / num_iterations) <= pval:
+                            result_string += ("%s\t%s\t%s\t%f\t%d\t%d\t%f\t%d\n" % (
                                 gene,
                                 rna_type,
                                 location_key,
                                 gene_dict[gene][rna_type][location_key] / num_iterations,
+                                gene_dict[gene][rna_type][location_key],
                                 observed_dict[gene][rna_type][location_key],
-                                mean_dict[gene][rna_type][location_key] / gene_dict[gene][rna_type][location_key]
+                                mean_dict[gene][rna_type][location_key] / gene_dict[gene][rna_type][location_key],
+                                mean_dict[gene][rna_type][location_key]
                             )
                                               )
         return result_string
