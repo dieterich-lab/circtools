@@ -113,6 +113,15 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                                                 shuffled_peaks=shuffled_peaks,
                                                 ), range(self.cli_params.num_iterations+1))
 
+        observed_counts = (
+            self.process_intersection(results[1][0]),
+            self.process_intersection(results[1][1])
+        )
+        # import pprint
+        # pp = pprint.PrettyPrinter(indent=4)
+        # pp.pprint(observed_counts[1])
+        # exit()
+
         final = self.run_permutation_test(self, results)
 
         result_table = self.print_results(final, self.cli_params.num_iterations, self.cli_params.pval, self.cli_params.threshold)
@@ -324,7 +333,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         def normalize_count(start, stop, count):
             if normalize and count > 0:
                 return count / (stop - start)
-            elif normalize and count == 0:
+            elif normalize and count == 0 * 1000:
                 return 0
             else:
                 return count
@@ -369,10 +378,14 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                 if rna_type in gene_dict[gene]:
                     for location_key in gene_dict[gene][rna_type]:
 
-                        distance = mean_dict[gene][rna_type][location_key] / gene_dict[gene][rna_type][location_key] - \
-                                   observed_dict[gene][rna_type][location_key]
+                        # distance = mean_dict[gene][rna_type][location_key] / gene_dict[gene][rna_type][location_key] - \
+                        #            observed_dict[gene][rna_type][location_key]
 
                         confidence_interval = proportion_confint(gene_dict[gene][rna_type][location_key], num_iterations,method="beta")
+
+                        sim_mean = 0
+                        if gene_dict[gene][rna_type][location_key] > 0:
+                            sim_mean = mean_dict[gene][rna_type][location_key] / gene_dict[gene][rna_type][location_key]
 
                         if (gene_dict[gene][rna_type][location_key] / num_iterations) <= pval:
                             result_string += ("%s\t%s\t%s\t%f\t%d\t%d\t%f\t%d\t%s\n" % (
@@ -382,7 +395,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                                 gene_dict[gene][rna_type][location_key] / num_iterations,
                                 gene_dict[gene][rna_type][location_key],
                                 observed_dict[gene][rna_type][location_key],
-                                mean_dict[gene][rna_type][location_key] / gene_dict[gene][rna_type][location_key],
+                                sim_mean,
                                 mean_dict[gene][rna_type][location_key],
                                 confidence_interval
                             )
@@ -424,14 +437,14 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
                     # we need to get the observed count for this gene before we start
                     observed_value_dict = observed_counts[rna_type][gene]
-
                     # for each location key (for linear that's only one anyway. for circular it may me multiple)
                     for location_key, shuffled_value in nested_dict.items():
+                        #print("%s\t%d" % (location_key,observed_value_dict[location_key]))
 
                         # let's test if we observed a higher count in this iteration than web observed experimentally
                         # first make sure the location exists.. should always be true for linear rna but not for
                         # circular RNAs
-                        if location_key in observed_value_dict and shuffled_value >= observed_value_dict[location_key]:
+                        if shuffled_value >= observed_value_dict[location_key]:
 
                             # Yes, it's higher, so we update the count of "more than observed" for this gene
                             if gene not in gene_dict:
@@ -456,6 +469,25 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                                 # not the first time, just increase
                                 gene_dict[gene][rna_type][location_key] += 1
                                 mean_dict[gene][rna_type][location_key] += shuffled_value
+                        else:
+                            # Yes, it's higher, so we update the count of "more than observed" for this gene
+                            if gene not in gene_dict:
+                                # initialize new dict entry
+                                gene_dict[gene] = {}
+                                mean_dict[gene] = {}
+                                observed_dict[gene] = {}
+
+                            # look if we already have circ/linear rna entries
+                            if rna_type not in gene_dict[gene]:
+                                # first time we see a higher shuffled value
+                                gene_dict[gene][rna_type] = {}
+                                mean_dict[gene][rna_type] = {}
+                                observed_dict[gene][rna_type] = {}
+
+                            if location_key not in gene_dict[gene][rna_type]:
+                                gene_dict[gene][rna_type][location_key] = 0
+                                mean_dict[gene][rna_type][location_key] = shuffled_value
+                                observed_dict[gene][rna_type][location_key] = observed_value_dict[location_key]
 
         return gene_dict, mean_dict, observed_dict
 
