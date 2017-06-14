@@ -356,11 +356,13 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
     @staticmethod
     def print_results(result_list, num_iterations, pval, threshold):
 
+        from statsmodels.stats.proportion import proportion_confint
+
         gene_dict = result_list[0]
         mean_dict = result_list[1]
         observed_dict = result_list[2]
 
-        result_string = "gene\trna\tlocation\tpval\tobserved\tsim_mean\n"
+        result_string = "gene\trna\tlocation\tpval\traw_sim_vs_observed\tobserved\tsim_mean\tsim_mean_raw\tconfidence_interval_0.05\n"
 
         for gene in gene_dict:
             for rna_type in range(0, 2):
@@ -370,8 +372,10 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                         distance = mean_dict[gene][rna_type][location_key] / gene_dict[gene][rna_type][location_key] - \
                                    observed_dict[gene][rna_type][location_key]
 
+                        confidence_interval = proportion_confint(gene_dict[gene][rna_type][location_key], num_iterations,method="beta")
+
                         if (gene_dict[gene][rna_type][location_key] / num_iterations) <= pval:
-                            result_string += ("%s\t%s\t%s\t%f\t%d\t%d\t%f\t%d\n" % (
+                            result_string += ("%s\t%s\t%s\t%f\t%d\t%d\t%f\t%d\t%s\n" % (
                                 gene,
                                 rna_type,
                                 location_key,
@@ -379,7 +383,8 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                                 gene_dict[gene][rna_type][location_key],
                                 observed_dict[gene][rna_type][location_key],
                                 mean_dict[gene][rna_type][location_key] / gene_dict[gene][rna_type][location_key],
-                                mean_dict[gene][rna_type][location_key]
+                                mean_dict[gene][rna_type][location_key],
+                                confidence_interval
                             )
                                               )
         return result_string
@@ -426,7 +431,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                         # let's test if we observed a higher count in this iteration than web observed experimentally
                         # first make sure the location exists.. should always be true for linear rna but not for
                         # circular RNAs
-                        if location_key in observed_value_dict and shuffled_value < observed_value_dict[location_key]:
+                        if location_key in observed_value_dict and shuffled_value >= observed_value_dict[location_key]:
 
                             # Yes, it's higher, so we update the count of "more than observed" for this gene
                             if gene not in gene_dict:
