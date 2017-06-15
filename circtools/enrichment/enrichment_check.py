@@ -390,7 +390,20 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         observed_dict = result_list[2]
 
         # construct header of the CSV output file
-        result_string = "gene\tlocation\tpval\traw_sim_vs_observed\tobserved\tsim_mean\tsim_mean_raw\tconfidence_interval_0.05\n"
+        result_string = "gene\t" \
+                        "location\t" \
+                        "p-val\t" \
+                        "raw_count_host_gene\t" \
+                        "observed_input_peaks_host_gene\t" \
+                        "length_host_gene_without_circ_rna\t" \
+                        "length_normalized_count_host_gene\t" \
+                        "host_gene_confidence_interval_0.05\t" \
+                        "raw_count_circ_rna\t" \
+                        "observed_input_peaks_circ_rna\t" \
+                        "length_circ_rna\t" \
+                        "length_normalized_count_circ_rna\t" \
+                        "circ_rna_confidence_interval_0.05\t" \
+                        "distance_normalized_counts\n"
 
         # for all genes we have seen
         for gene in gene_dict:
