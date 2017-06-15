@@ -383,76 +383,58 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
     def print_results(self, result_list, num_iterations, pval, threshold):
 
+        # import method for binomial test (tip of @Alexey)
         from statsmodels.stats.proportion import proportion_confint
 
         gene_dict = result_list[0]
         mean_dict = result_list[1]
         observed_dict = result_list[2]
 
-        #result_string = "gene\trna\tlocation\tpval\traw_sim_vs_observed\tobserved\tsim_mean\tsim_mean_raw\tconfidence_interval_0.05\n"
-        result_string=""
+        # construct header of the CSV output file
+        result_string = "gene\tlocation\tpval\traw_sim_vs_observed\tobserved\tsim_mean\tsim_mean_raw\tconfidence_interval_0.05\n"
+
+        # for all genes we have seen
         for gene in gene_dict:
-            for rna_type in range(1, 2):
-                if rna_type in gene_dict[gene]:
-                    for location_key_lin in gene_dict[gene][1]:
-                        if 0 in gene_dict[gene]:
+            # make sure we found a circular RNA
+            if 0 in gene_dict[gene]:
+                # get the location key of the linear host RNA
+                for location_key_linear in gene_dict[gene][1]:
+                    # for each location key of the circRNA
+                    for location_key_circular in gene_dict[gene][0]:
 
+                        # get length of the host gene without the circRNA annotation
+                        # this is a list: entry 0: circular RNA, entry 1: linear RNA
+                        length = self.linear_length_wo_circ(location_key_circular, location_key_linear)
 
-                            #print("LIN: %s" % location_key_lin)
+                        # hint: count means: we saw simulated data that had more peaks in the region than we observed
+                        # experimentally
 
-                            for location_key in gene_dict[gene][0]:
+                        # get the length-normalized count for the linear RNA
+                        count_linear = self.normalize_count(length[1], gene_dict[gene][1][location_key_linear] -
+                                                            gene_dict[gene][0][location_key_circular])
 
-                                length = self.linear_length_wo_circ(location_key, location_key_lin)
-                                count_lin = self.normalize_count(length[1],gene_dict[gene][1][location_key_lin] - gene_dict[gene][0][location_key])
-                                count_circ = self.normalize_count(length[0],gene_dict[gene][0][location_key])
-                                if (length[1] > 0 ) and count_lin > threshold:
+                        # get the length-normalized count for the circular RNA
+                        count_circular = self.normalize_count(length[0], gene_dict[gene][0][location_key_circular])
 
-                                    if (count_circ < count_lin):
+                        # check that the host gene length is not 0 and that we are above the user-defined threshold
+                        if (length[1] > 0) and count_linear > threshold:
 
-                                        distance = count_lin - count_circ
-                        #            observed_dict[gene][rna_type][location_key]
+                            # we only want to see entries where the count is lower for the circ RNA
+                            if count_circular < count_linear:
 
-#                                         print("\t\tCIRC: %s\t%d\t%f\t%d\t%f" % (location_key,
-#                                                                                 length[1],
-#                                                                                 self.normalize_count(length[1], count_lin),
-#                                                                                 length[0],
-#                                                                                 self.normalize_count(length[0], count_circ),
-# )
-#                                               )
-                                        result_string+=("%s\t%s\t%d\t%f\t%d\t%f\t%f\n" % (gene,location_key,
-                                                                                length[1],
-                                                                                count_lin,
-                                                                                length[0],
-                                                                                count_circ,
-                                                                                distance
-                                                                                )
-                                              )
+                                # this distance is a kind of measure how far apart linear and circular RNA are
+                                distance = count_linear - count_circular
 
-
-                        # distance = mean_dict[gene][rna_type][location_key] / gene_dict[gene][rna_type][location_key] - \
-                        #            observed_dict[gene][rna_type][location_key]
-
-                        # confidence_interval = proportion_confint(gene_dict[gene][rna_type][location_key], num_iterations,method="beta")
-                        #
-                        # sim_mean = 0
-                        # if gene_dict[gene][rna_type][location_key] > 0:
-                        #     sim_mean = mean_dict[gene][rna_type][location_key] / gene_dict[gene][rna_type][location_key]
-                        #
-                        # lin_only_count_obs =  observed_dict[gene][1][location_key] - observed_dict[gene][0][location_key]
-                        #
-                        # if (gene_dict[gene][0][location_key] / num_iterations) <= pval and observed_dict[gene][0][location_key] > threshold:
-                        #     result_string += ("%s\t%s\t%s\t%f\t%d\t%d\t%f\t%d\t%s\n" % (
-                        #         gene,
-                        #         rna_type,
-                        #         location_key,
-                        #         gene_dict[gene][0][location_key] / num_iterations,
-                        #         gene_dict[gene][0][location_key],
-                        #         observed_dict[gene][0][location_key],
-                        #         sim_mean,
-                        #         mean_dict[gene][0][location_key],
-                        #         confidence_interval
-                        #     )
-                        #                       )
+                                # construct the result line
+                                result_string += ("%s\t%s\t%d\t%f\t%d\t%f\t%f\n" % (gene, location_key_circular,
+                                                                                    length[1],
+                                                                                    count_linear,
+                                                                                    length[0],
+                                                                                    count_circular,
+                                                                                    distance
+                                                                                    )
+                                                  )
+        # return the data string
         return result_string
 
     @staticmethod
@@ -492,7 +474,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                     observed_value_dict = observed_counts[rna_type][gene]
                     # for each location key (for linear that's only one anyway. for circular it may me multiple)
                     for location_key, shuffled_value in nested_dict.items():
-                        #print("%s\t%d" % (location_key,observed_value_dict[location_key]))
 
                         # let's test if we observed a higher count in this iteration than web observed experimentally
                         # first make sure the location exists.. should always be true for linear rna but not for
