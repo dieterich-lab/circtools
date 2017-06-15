@@ -344,7 +344,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
             # key has the form: chromosome_start_stop[strand]
             key = bed_feature[0] + "_" + \
                   str(bed_feature[1]) + "_" + \
-                  str(bed_feature[2]) + \
+                  str(bed_feature[2]) + "_" + \
                   bed_feature[5]
 
             # we have to create the nested dictionaries if not already existing
@@ -363,7 +363,25 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         return count_table
 
     @staticmethod
-    def print_results(result_list, num_iterations, pval, threshold):
+    def decode_location_key(key):
+        tmp = key.split("_")
+        data = {"chr": tmp[0], "start": int(tmp[1]), "stop": int(tmp[2]), "strand": tmp[2]}
+        return data
+
+    def linear_length_wo_circ(self, key_circ, key_linear):
+        circ = self.decode_location_key(key_circ)
+        linear = self.decode_location_key(key_linear)
+        length_circ = (circ["stop"] - circ["start"])
+        length_lin = (linear["stop"] - linear["start"]) - length_circ
+        return length_circ, length_lin
+
+    def normalize_count(self, length, count):
+        if count > 0 and length > 0:
+            return (count / length) * 100000
+        else:
+            return 0
+
+    def print_results(self, result_list, num_iterations, pval, threshold):
 
         from statsmodels.stats.proportion import proportion_confint
 
@@ -371,35 +389,70 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         mean_dict = result_list[1]
         observed_dict = result_list[2]
 
-        result_string = "gene\trna\tlocation\tpval\traw_sim_vs_observed\tobserved\tsim_mean\tsim_mean_raw\tconfidence_interval_0.05\n"
-
+        #result_string = "gene\trna\tlocation\tpval\traw_sim_vs_observed\tobserved\tsim_mean\tsim_mean_raw\tconfidence_interval_0.05\n"
+        result_string=""
         for gene in gene_dict:
-            for rna_type in range(0, 2):
+            for rna_type in range(1, 2):
                 if rna_type in gene_dict[gene]:
-                    for location_key in gene_dict[gene][rna_type]:
+                    for location_key_lin in gene_dict[gene][1]:
+                        if 0 in gene_dict[gene]:
+
+
+                            #print("LIN: %s" % location_key_lin)
+
+                            for location_key in gene_dict[gene][0]:
+
+                                length = self.linear_length_wo_circ(location_key, location_key_lin)
+                                count_lin = self.normalize_count(length[1],gene_dict[gene][1][location_key_lin] - gene_dict[gene][0][location_key])
+                                count_circ = self.normalize_count(length[0],gene_dict[gene][0][location_key])
+                                if (length[1] > 0 ) and count_lin > threshold:
+
+                                    if (count_circ < count_lin):
+
+                                        distance = count_lin - count_circ
+                        #            observed_dict[gene][rna_type][location_key]
+
+#                                         print("\t\tCIRC: %s\t%d\t%f\t%d\t%f" % (location_key,
+#                                                                                 length[1],
+#                                                                                 self.normalize_count(length[1], count_lin),
+#                                                                                 length[0],
+#                                                                                 self.normalize_count(length[0], count_circ),
+# )
+#                                               )
+                                        result_string+=("%s\t%s\t%d\t%f\t%d\t%f\t%f\n" % (gene,location_key,
+                                                                                length[1],
+                                                                                count_lin,
+                                                                                length[0],
+                                                                                count_circ,
+                                                                                distance
+                                                                                )
+                                              )
+
 
                         # distance = mean_dict[gene][rna_type][location_key] / gene_dict[gene][rna_type][location_key] - \
                         #            observed_dict[gene][rna_type][location_key]
 
-                        confidence_interval = proportion_confint(gene_dict[gene][rna_type][location_key], num_iterations,method="beta")
-
-                        sim_mean = 0
-                        if gene_dict[gene][rna_type][location_key] > 0:
-                            sim_mean = mean_dict[gene][rna_type][location_key] / gene_dict[gene][rna_type][location_key]
-
-                        if (gene_dict[gene][rna_type][location_key] / num_iterations) <= pval:
-                            result_string += ("%s\t%s\t%s\t%f\t%d\t%d\t%f\t%d\t%s\n" % (
-                                gene,
-                                rna_type,
-                                location_key,
-                                gene_dict[gene][rna_type][location_key] / num_iterations,
-                                gene_dict[gene][rna_type][location_key],
-                                observed_dict[gene][rna_type][location_key],
-                                sim_mean,
-                                mean_dict[gene][rna_type][location_key],
-                                confidence_interval
-                            )
-                                              )
+                        # confidence_interval = proportion_confint(gene_dict[gene][rna_type][location_key], num_iterations,method="beta")
+                        #
+                        # sim_mean = 0
+                        # if gene_dict[gene][rna_type][location_key] > 0:
+                        #     sim_mean = mean_dict[gene][rna_type][location_key] / gene_dict[gene][rna_type][location_key]
+                        #
+                        # lin_only_count_obs =  observed_dict[gene][1][location_key] - observed_dict[gene][0][location_key]
+                        #
+                        # if (gene_dict[gene][0][location_key] / num_iterations) <= pval and observed_dict[gene][0][location_key] > threshold:
+                        #     result_string += ("%s\t%s\t%s\t%f\t%d\t%d\t%f\t%d\t%s\n" % (
+                        #         gene,
+                        #         rna_type,
+                        #         location_key,
+                        #         gene_dict[gene][0][location_key] / num_iterations,
+                        #         gene_dict[gene][0][location_key],
+                        #         observed_dict[gene][0][location_key],
+                        #         sim_mean,
+                        #         mean_dict[gene][0][location_key],
+                        #         confidence_interval
+                        #     )
+                        #                       )
         return result_string
 
     @staticmethod
