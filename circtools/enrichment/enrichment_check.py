@@ -381,13 +381,12 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         else:
             return 0
 
-    def print_results(self, result_list, num_iterations, pval, threshold):
+    def print_results(self, result_list, num_iterations, p_val, threshold):
 
         # import method for binomial test (tip of @Alexey)
         from statsmodels.stats.proportion import proportion_confint
 
         gene_dict = result_list[0]
-        mean_dict = result_list[1]
         observed_dict = result_list[2]
 
         # construct header of the CSV output file
@@ -397,8 +396,10 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         for gene in gene_dict:
             # make sure we found a circular RNA
             if 0 in gene_dict[gene]:
+
                 # get the location key of the linear host RNA
                 for location_key_linear in gene_dict[gene][1]:
+
                     # for each location key of the circRNA
                     for location_key_circular in gene_dict[gene][0]:
 
@@ -409,31 +410,62 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                         # hint: count means: we saw simulated data that had more peaks in the region than we observed
                         # experimentally
 
+                        # get the count of simulated peaks > than observed peaks
+                        count_linear = gene_dict[gene][1][location_key_linear]
+
+                        # get the count of simulated peaks > than observed peaks
+                        count_circular = gene_dict[gene][0][location_key_circular]
+
                         # get the length-normalized count for the linear RNA
-                        count_linear = self.normalize_count(length[1], gene_dict[gene][1][location_key_linear] -
-                                                            gene_dict[gene][0][location_key_circular])
+                        count_linear_normalized = self.normalize_count(length[1], count_linear - gene_dict[gene][0]
+                            [location_key_circular])
 
                         # get the length-normalized count for the circular RNA
-                        count_circular = self.normalize_count(length[0], gene_dict[gene][0][location_key_circular])
+                        count_circular_normalized = self.normalize_count(length[0], gene_dict[gene][0][location_key_circular])
+
+                        # how many experimental peaks did we see?
+                        observed_count_circular = observed_dict[gene][0][location_key_circular]
+                        observed_count_linear = observed_dict[gene][1][location_key_linear]
+
+                        # compute simple pval
+                        p_val = count_linear / num_iterations
+
+                        # compute a 0.05 confidence interval
+                        confidence_interval_circular = proportion_confint(gene_dict[gene][0][location_key_circular],
+                                                                          num_iterations, method="beta")
+
+                        confidence_interval_linear = proportion_confint(gene_dict[gene][1][location_key_linear],
+                                                                        num_iterations, method="beta")
 
                         # check that the host gene length is not 0 and that we are above the user-defined threshold
-                        if (length[1] > 0) and count_linear > threshold:
+                        # also:
+                        # we only want to see entries where the count is lower for the circ RNA
 
-                            # we only want to see entries where the count is lower for the circ RNA
-                            if count_circular < count_linear:
+                        if (length[1] > 0) \
+                                and count_linear_normalized > threshold\
+                                and count_circular_normalized < count_linear_normalized:
 
                                 # this distance is a kind of measure how far apart linear and circular RNA are
-                                distance = count_linear - count_circular
+                                distance = count_linear_normalized - count_circular_normalized
 
                                 # construct the result line
-                                result_string += ("%s\t%s\t%d\t%f\t%d\t%f\t%f\n" % (gene, location_key_circular,
-                                                                                    length[1],
-                                                                                    count_linear,
-                                                                                    length[0],
-                                                                                    count_circular,
-                                                                                    distance
-                                                                                    )
-                                                  )
+                                result_string += ("%s\t%s\t%f\t%d\t%d\t%d\t%f\t%s\t%d\t%d\t%d\t%f\t%s\t%f\n" %
+                                                      (gene,
+                                                       location_key_circular,
+                                                       p_val,
+                                                       count_linear,
+                                                       observed_count_linear,
+                                                       length[1],
+                                                       count_linear_normalized,
+                                                       confidence_interval_linear,
+                                                       count_circular,
+                                                       observed_count_circular,
+                                                       length[0],
+                                                       count_circular_normalized,
+                                                       confidence_interval_circular,
+                                                       distance
+                                                       )
+                                                      )
         # return the data string
         return result_string
 
