@@ -375,7 +375,8 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         length_lin = (linear["stop"] - linear["start"]) - length_circ
         return length_circ, length_lin
 
-    def normalize_count(self, length, count):
+    @staticmethod
+    def normalize_count(length, count):
         if count > 0 and length > 0:
             return (count / length) * 100000
         else:
