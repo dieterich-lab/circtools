@@ -381,7 +381,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         else:
             return 0
 
-    def print_results(self, result_list, num_iterations, p_val, threshold):
+    def print_results(self, result_list, num_iterations, p_val_threshold, count_threshold):
 
         # import method for binomial test (tip of @Alexey)
         from statsmodels.stats.proportion import proportion_confint
@@ -441,8 +441,8 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                         # also:
                         # we only want to see entries where the count is lower for the circ RNA
 
-                        if (length[1] > 0) \
-                                and count_linear_normalized > threshold\
+                        if (length[1] > 0) and p_val <= p_val_threshold \
+                                and observed_count_circular > count_threshold\
                                 and count_circular_normalized < count_linear_normalized:
 
                                 # this distance is a kind of measure how far apart linear and circular RNA are
