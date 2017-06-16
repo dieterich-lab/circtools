@@ -89,7 +89,9 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         annotation_bed.saveas(gene_annotation_file)
 
         # read in circular RNA predictions from DCC
-        circ_rna_bed = self.read_circ_rna_file(self.cli_params.circ_rna_input, annotation_bed)
+        circ_rna_bed = self.read_circ_rna_file(self.cli_params.circ_rna_input,
+                                               annotation_bed,
+                                               self.cli_params.has_header)
 
         # do circle saves
         circle_annotation_file = self.cli_params.output_directory + '/' + os.path.basename(
@@ -113,15 +115,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                                                 shuffled_peaks=shuffled_peaks,
                                                 ), range(self.cli_params.num_iterations+1))
 
-        observed_counts = (
-            self.process_intersection(results[1][0]),
-            self.process_intersection(results[1][1])
-        )
-        # import pprint
-        # pp = pprint.PrettyPrinter(indent=4)
-        # pp.pprint(observed_counts[1])
-        # exit()
-
         final = self.run_permutation_test(self, results)
 
         result_table = self.print_results(final, self.cli_params.num_iterations, self.cli_params.pval, self.cli_params.threshold)
@@ -133,7 +126,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         # ------------------------------------- Function definitions start here ---------------------------------------
 
-    def read_circ_rna_file(self, circ_rna_input, annotation_bed):
+    def read_circ_rna_file(self, circ_rna_input, annotation_bed, has_header):
         """Reads a CircCoordinates file produced by DCC
         Will halt the program if file not accessible
         Returns a BedTool object
@@ -150,7 +143,8 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                 line_iterator = iter(file_handle)
                 # skip first line with the header
                 # we assume it's there (DCC default)
-                next(line_iterator)
+                if has_header:
+                    next(line_iterator)
                 bed_content = ""
                 bed_entries = 0
                 bed_peak_sizes = 0
@@ -159,14 +153,9 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
                     # extract chromosome, start, stop, gene name, and strand
                     entry = [self.strip_chr_name(columns[0]), columns[1], columns[2], columns[3], "0", columns[5]]
-                    # print(test)
 
                     # concatenate lines to one string
                     bed_content += '\t'.join(entry) + "\n"
-                    # bed_content += str(test)
-
-                    # sys.stdout.write("Processing circRNA # %s \r" % bed_entries)
-                    # sys.stdout.flush()
 
                     bed_entries += 1
                     bed_peak_sizes += (int(columns[2]) - int(columns[1]))
@@ -283,8 +272,8 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                     # concatenate lines to one string
                     bed_content += '\t'.join(entry) + "\n"
 
-                    sys.stdout.write("Processing %s # %s \r" % (entity, entity_count))
-                    sys.stdout.flush()
+                    # sys.stdout.write("Processing %s # %s \r" % (entity, entity_count))
+                    # sys.stdout.flush()
 
                     entity_count += 1
 
