@@ -143,6 +143,14 @@ class CircTools(object):
                            default=0.05
                            )
 
+        group.add_argument("-H",
+                           "--header",
+                           dest="has_header",
+                           help="Defines if the circRNA input file has a header line [default: no]",
+                           type=bool,
+                           default=False
+                           )
+
         args = parser.parse_args(sys.argv[2:])
 
         # start the enrichment module
