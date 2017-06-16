@@ -117,7 +117,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         final = self.run_permutation_test(self, results)
 
-        result_table = self.print_results(final, self.cli_params.num_iterations, self.cli_params.pval, self.cli_params.threshold)
+        result_table = self.print_results(results, final, self.cli_params.num_iterations, self.cli_params.pval, self.cli_params.threshold)
 
         result_file = self.cli_params.output_directory + "/output_" + time_format + ".csv"
 
@@ -384,13 +384,17 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         else:
             return 0
 
-    def print_results(self, result_list, num_iterations, p_val_threshold, count_threshold):
+    def print_results(self, observed_counts, result_list, num_iterations, p_val_threshold, count_threshold):
 
         # import method for binomial test (tip of @Alexey)
         from statsmodels.stats.proportion import proportion_confint
 
-        gene_dict = result_list[0]
-        observed_dict = result_list[2]
+        observed_dict = (
+            self.process_intersection(observed_counts[0][0]),
+            self.process_intersection(observed_counts[0][1])
+        )
+
+        gene_dict = result_list
 
         # construct header of the CSV output file
         result_string = "gene\t" \
@@ -440,8 +444,8 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                         count_circular_normalized = self.normalize_count(length[0], gene_dict[gene][0][location_key_circular])
 
                         # how many experimental peaks did we see?
-                        observed_count_circular = observed_dict[gene][0][location_key_circular]
-                        observed_count_linear = observed_dict[gene][1][location_key_linear]
+                        observed_count_circular = observed_dict[0][gene][location_key_circular]
+                        observed_count_linear = observed_dict[1][gene][location_key_linear]
 
                         # compute simple pval
                         p_val = count_linear / num_iterations
@@ -532,46 +536,33 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                             if gene not in gene_dict:
                                 # initialize new dict entry
                                 gene_dict[gene] = {}
-                                mean_dict[gene] = {}
-                                observed_dict[gene] = {}
 
                             # look if we already have circ/linear rna entries
                             if rna_type not in gene_dict[gene]:
                                 # first time we see a higher shuffled value
                                 gene_dict[gene][rna_type] = {}
-                                mean_dict[gene][rna_type] = {}
-                                observed_dict[gene][rna_type] = {}
 
                             if location_key not in gene_dict[gene][rna_type]:
                                 gene_dict[gene][rna_type][location_key] = 1
-                                mean_dict[gene][rna_type][location_key] = shuffled_value
-                                observed_dict[gene][rna_type][location_key] = observed_value_dict[location_key]
 
                             else:
                                 # not the first time, just increase
                                 gene_dict[gene][rna_type][location_key] += 1
-                                mean_dict[gene][rna_type][location_key] += shuffled_value
                         else:
                             # Yes, it's higher, so we update the count of "more than observed" for this gene
                             if gene not in gene_dict:
                                 # initialize new dict entry
                                 gene_dict[gene] = {}
-                                mean_dict[gene] = {}
-                                observed_dict[gene] = {}
 
                             # look if we already have circ/linear rna entries
                             if rna_type not in gene_dict[gene]:
                                 # first time we see a higher shuffled value
                                 gene_dict[gene][rna_type] = {}
-                                mean_dict[gene][rna_type] = {}
-                                observed_dict[gene][rna_type] = {}
 
                             if location_key not in gene_dict[gene][rna_type]:
                                 gene_dict[gene][rna_type][location_key] = 0
-                                mean_dict[gene][rna_type][location_key] = shuffled_value
-                                observed_dict[gene][rna_type][location_key] = observed_value_dict[location_key]
 
-        return gene_dict, mean_dict, observed_dict
+        return gene_dict
 
     def random_sample_step(self, iteration, circ_rna_bed, annotation_bed, shuffled_peaks):
         """Logs to log file and prints on screen
