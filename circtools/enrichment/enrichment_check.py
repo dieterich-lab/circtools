@@ -132,6 +132,10 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         Returns a BedTool object
         """
         self.log_entry("Parsing circular RNA input file...")
+
+        # set temporary directory for pybedtools
+        pybedtools.set_tempdir(self.cli_params.tmp_directory)
+
         try:
             file_handle = open(circ_rna_input)
         except PermissionError:
@@ -176,6 +180,10 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         Will halt the program if file not accessible
         Returns a BedTool object
         """
+
+        # set temporary directory for pybedtools
+        pybedtools.set_tempdir(self.cli_params.tmp_directory)
+
         self.log_entry("Parsing BED input file...")
         try:
             file_handle = open(bed_input)
@@ -237,6 +245,10 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         Will halt the program if file not accessible
         Returns a BedTool object only containing gene sections
         """
+
+        # set temporary directory for pybedtools
+        pybedtools.set_tempdir(self.cli_params.tmp_directory)
+
         self.log_entry("Parsing annotation...")
 
         try:
@@ -301,10 +313,11 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         return shuffled_bed
 
-    @staticmethod
-    def do_intersection(query_bed, base_bed):
+    def do_intersection(self, query_bed, base_bed):
         """Gets two bed files (supplied peaks and circle coordinates) and does an intersection
         """
+        # set temporary directory for pybedtools
+        pybedtools.set_tempdir(self.cli_params.tmp_directory)
 
         # we employ the c=true parameter to directly get the counts as part of the results
         intersect_return = base_bed.intersect(query_bed, c=True)
