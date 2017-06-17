@@ -42,10 +42,17 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         # set time format
         time_format = time.strftime("%Y_%m_%d__%H_%M")
-        # time_format = ""
 
         # set up the multiprocessing pool for multi-threading
         mp_pool = multiprocessing.Pool(processes=self.cli_params.num_processes)
+
+        # let's first check if the temporary directory exists
+        if not os.path.exists(self.cli_params.tmp_directory):
+            os.makedirs(self.cli_params.tmp_directory)
+
+        # let's first check if the temporary directory exists
+        if not os.path.exists(self.cli_params.output_directory):
+            os.makedirs(self.cli_params.output_directory)
 
         # let's first check if the output directory exists
         if not (os.access(self.cli_params.output_directory, os.W_OK)):
