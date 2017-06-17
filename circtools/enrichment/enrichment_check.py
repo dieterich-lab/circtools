@@ -145,12 +145,12 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         self.phase_storage = {}
 
         # we need some manual garbage collection to keep memory profile lower
-        import gc
+        # import gc
 
         self.log_entry("Cleaning up... just a second")
 
         # before starting permutation test, clean up
-        gc.collect()
+        # gc.collect()
 
         # for each phase we perform iterations_per_phase tests
         # the remainder is done in an extra run
@@ -194,7 +194,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
             self.log_entry("Cleaning up... just a second")
 
             # clean up here is important to keep memory down
-            gc.collect()
+            # gc.collect()
 
         # generate the result table
         result_table = self.print_results()
