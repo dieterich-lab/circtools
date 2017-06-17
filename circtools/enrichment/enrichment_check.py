@@ -85,8 +85,10 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         # read in annotation
         annotation_bed = self.read_annotation_file(self.cli_params.annotation)
 
-        gene_annotation_file = self.cli_params.output_directory + '/' + \
-                               os.path.basename(self.cli_params.annotation) + \
+        gene_annotation_file = self.cli_params.output_directory +\
+                               '/' + self.cli_params.output_filename +\
+                               "_" + \
+                               os.path.basename(self.cli_params.annotation) +\
                                '_genes.bed'
 
         annotation_bed.saveas(gene_annotation_file)
@@ -97,8 +99,11 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                                                self.cli_params.has_header)
 
         # do circle saves
-        circle_annotation_file = self.cli_params.output_directory + '/' + os.path.basename(
-            self.cli_params.circ_rna_input) + '_circles.bed'
+        circle_annotation_file = self.cli_params.output_directory +\
+                                 '/' + self.cli_params.output_filename +\
+                                 "_" +\
+                                 os.path.basename(self.cli_params.circ_rna_input) +\
+                                 '_circles.bed'
 
         circ_rna_bed.saveas(circle_annotation_file)
 
