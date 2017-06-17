@@ -151,6 +151,12 @@ class CircTools(object):
                            default=False
                            )
 
+        group.add_argument("-F",
+                           "--output-filename",
+                           dest="output_filename",
+                           help="Defines the output file prefix [default: output]",
+                           default="output"
+                           )
         args = parser.parse_args(sys.argv[2:])
 
         # start the enrichment module

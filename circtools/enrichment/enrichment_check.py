@@ -64,7 +64,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         # starting up logging system
         logging.basicConfig(filename=os.path.join(self.cli_params.output_directory,
-                                                  self.program_name + "__" + time_format + ".log"),
+                                                  self.cli_params.output_filename + "_" + time_format + ".log"),
                             filemode="w",
                             level=logging.DEBUG,
                             format="%(asctime)s %(message)s"
@@ -195,7 +195,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         result_table = self.print_results()
 
         # and print it to a file
-        result_file = self.cli_params.output_directory + "/output_" + time_format + ".csv"
+        result_file = self.cli_params.output_directory + "/" + self.cli_params.output_filename + "_" + time_format + ".csv"
 
         with open(result_file, 'w') as text_file:
             text_file.write(result_table)
