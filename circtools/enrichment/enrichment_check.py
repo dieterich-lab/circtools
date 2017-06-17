@@ -129,20 +129,26 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         # we probably have some leftover iterations we have to take care of
         leftover_iterations = (self.cli_params.num_iterations % self.cli_params.num_processes)
 
+        # how many phases do we have?
         num_phases = self.cli_params.num_processes
 
+        # add one to compensate for remaining permutations
         if leftover_iterations > 0:
             num_phases += 1
 
         # we'll store the final results here
         self.phase_storage = {}
 
+        # we need some manual garbage collection to keep memory profile lower
         import gc
 
         self.log_entry("Cleaning up... just a second")
 
+        # before starting permutation test, clean up
         gc.collect()
 
+        # for each phase we perform iterations_per_phase tests
+        # the remainder is done in an extra run
         for phase in range(0, num_phases):
 
             self.log_entry("Starting permutation test phase %d" % (phase+1))
@@ -157,29 +163,38 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
             # we now have to convert the temporary dicts into out main dict to save memory
             for current_num in range(0, num_results):
-                # print(key)
+
+                # for each gene per permutation
                 for gene in intermediate_result[current_num]:
 
+                    # initialize with 2 empty dicts for linear and circular RNA
                     if gene not in self.phase_storage:
-                        self.phase_storage[gene] = {0:{}, 1:{}}
+                        self.phase_storage[gene] = {0: {}, 1: {}}
 
+                    # for both RNA types
                     for rna in range(0, 2):
                         if rna in intermediate_result[current_num][gene]:
-
+                            # get the location
                             for location_key in intermediate_result[current_num][gene][rna]:
 
+                                # only if the temporary data says true (= we saw more peaks than observed)
                                 if intermediate_result[current_num][gene][rna][location_key]:
 
+                                    # look if we already have an entry in the main data structure, create one if not
                                     if location_key not in self.phase_storage[gene][rna]:
                                         self.phase_storage[gene][rna][location_key] = 1
                                     else:
                                         self.phase_storage[gene][rna][location_key] += 1
 
             self.log_entry("Cleaning up... just a second")
+
+            # clean up here is important to keep memory down
             gc.collect()
 
+        # generate the result table
         result_table = self.print_results()
 
+        # and print it to a file
         result_file = self.cli_params.output_directory + "/output_" + time_format + ".csv"
 
         with open(result_file, 'w') as text_file:
