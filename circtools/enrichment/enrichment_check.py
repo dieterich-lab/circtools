@@ -387,10 +387,11 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         """Gets a (virtual) BED files and shuffle its contents throughout the supplied genome
         Will only use supplied annotation for features (in our case only transcript regions)
         """
+        # set temporary directory for pybedtools
+        pybedtools.set_tempdir(self.cli_params.tmp_directory)
 
         self.log_entry("Processing shuffling thread %d" % (iteration+1))
         shuffled_bed = bed_file.shuffle(g=genome_file)
-        #self.log_entry("Finished shuffling thread %d" % iteration+1)
 
         return shuffled_bed
 
