@@ -34,6 +34,9 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         self.cli_params = argparse_arguments
         self.program_name = program_name
         self.version = version
+        self.observed_counts = []
+        self.results = []
+        self.phase_storage = {}
 
     def run_module(self):
 
@@ -109,15 +112,73 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         # shuffled_peaks.append(supplied_bed)
         # do the intersections
-        results = mp_pool.map(functools.partial(self.random_sample_step,
+        self.results = mp_pool.map(functools.partial(self.random_sample_step,
                                                 circ_rna_bed=circ_rna_bed,
                                                 annotation_bed=annotation_bed,
                                                 shuffled_peaks=shuffled_peaks,
                                                 ), range(self.cli_params.num_iterations+1))
 
-        final = self.run_permutation_test(self, results)
+        self.observed_counts = (
+            self.process_intersection(self.results[0][0]),
+            self.process_intersection(self.results[0][1])
+        )
 
-        result_table = self.print_results(final, self.cli_params.num_iterations, self.cli_params.pval, self.cli_params.threshold)
+        # how many iterations do we want to do before cleaning up?
+        iterations_per_phase = int(self.cli_params.num_iterations / self.cli_params.num_processes)
+
+        # we probably have some leftover iterations we have to take care of
+        leftover_iterations = (self.cli_params.num_iterations % self.cli_params.num_processes)
+
+        num_phases = self.cli_params.num_processes
+
+        if leftover_iterations > 0:
+            num_phases += 1
+
+        # we'll store the final results here
+        self.phase_storage = {}
+
+        import gc
+
+        self.log_entry("Cleaning up... just a second")
+
+        gc.collect()
+
+        for phase in range(0, num_phases):
+
+            self.log_entry("Starting permutation test phase %d" % (phase+1))
+
+            # results of one phase of the computation
+            intermediate_result = mp_pool.map(functools.partial(self.run_permutation_test),
+                                              range(phase*iterations_per_phase, (phase+1)*iterations_per_phase)
+                                              )
+
+            # how many results did we get back?
+            num_results = len(intermediate_result)
+
+            # we now have to convert the temporary dicts into out main dict to save memory
+            for current_num in range(0, num_results):
+                # print(key)
+                for gene in intermediate_result[current_num]:
+
+                    if gene not in self.phase_storage:
+                        self.phase_storage[gene] = {0:{}, 1:{}}
+
+                    for rna in range(0, 2):
+                        if rna in intermediate_result[current_num][gene]:
+
+                            for location_key in intermediate_result[current_num][gene][rna]:
+
+                                if intermediate_result[current_num][gene][rna][location_key]:
+
+                                    if location_key not in self.phase_storage[gene][rna]:
+                                        self.phase_storage[gene][rna][location_key] = 1
+                                    else:
+                                        self.phase_storage[gene][rna][location_key] += 1
+
+            self.log_entry("Cleaning up... just a second")
+            gc.collect()
+
+        result_table = self.print_results()
 
         result_file = self.cli_params.output_directory + "/output_" + time_format + ".csv"
 
@@ -307,12 +368,9 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         Will only use supplied annotation for features (in our case only transcript regions)
         """
 
-        # set temporary directory for pybedtools
-        pybedtools.set_tempdir(self.cli_params.tmp_directory)
-
-        self.log_entry("Starting shuffling thread %d" % iteration)
+        self.log_entry("Processing shuffling thread %d" % (iteration+1))
         shuffled_bed = bed_file.shuffle(g=genome_file)
-        self.log_entry("Finished shuffling thread %d" % iteration)
+        #self.log_entry("Finished shuffling thread %d" % iteration+1)
 
         return shuffled_bed
 
@@ -387,40 +445,38 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         else:
             return 0
 
-    def print_results(self, result_list, num_iterations, p_val_threshold, count_threshold):
+    def print_results(self):
 
         # import method for binomial test (tip of @Alexey)
         from statsmodels.stats.proportion import proportion_confint
 
-        gene_dict = result_list[0]
-        observed_dict = result_list[2]
-
         # construct header of the CSV output file
         result_string = "gene\t" \
                         "location\t" \
-                        "p-val\t" \
-                        "raw_count_host_gene\t" \
-                        "observed_input_peaks_host_gene\t" \
-                        "length_host_gene_without_circ_rna\t" \
-                        "length_normalized_count_host_gene\t" \
-                        "host_gene_confidence_interval_0.05\t" \
+                        "p-val_circular\t" \
                         "raw_count_circ_rna\t" \
                         "observed_input_peaks_circ_rna\t" \
                         "length_circ_rna\t" \
                         "length_normalized_count_circ_rna\t" \
                         "circ_rna_confidence_interval_0.05\t" \
+                        "p-val_linear\t" \
+                        "raw_count_host_gene\t" \
+                        "observed_input_peaks_host_gene\t" \
+                        "length_host_gene_without_circ_rna\t" \
+                        "length_normalized_count_host_gene\t" \
+                        "host_gene_confidence_interval_0.05\t" \
                         "distance_normalized_counts\n"
 
         # for all genes we have seen
-        for gene in gene_dict:
+        for gene in self.phase_storage:
             # make sure we found a circular RNA
-            if 0 in gene_dict[gene]:
+            if 0 in self.phase_storage[gene]:
 
                 # get the location key of the linear host RNA
-                for location_key_linear in gene_dict[gene][1]:
+                for location_key_linear in self.phase_storage[gene][1]:
 
                     # for each location key of the circRNA
-                    for location_key_circular in gene_dict[gene][0]:
+                    for location_key_circular in self.phase_storage[gene][0]:
 
                         # get length of the host gene without the circRNA annotation
                         # this is a list: entry 0: circular RNA, entry 1: linear RNA
@@ -430,151 +486,124 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                         # experimentally
 
                         # get the count of simulated peaks > than observed peaks
-                        count_linear = gene_dict[gene][1][location_key_linear]
+                        count_linear = self.phase_storage[gene][1][location_key_linear]
 
                         # get the count of simulated peaks > than observed peaks
-                        count_circular = gene_dict[gene][0][location_key_circular]
+                        count_circular = self.phase_storage[gene][0][location_key_circular]
 
                         # get the length-normalized count for the linear RNA
-                        count_linear_normalized = self.normalize_count(length[1], count_linear - gene_dict[gene][0]
+                        count_linear_normalized = self.normalize_count(length[1], count_linear - self.phase_storage[gene][0]
                             [location_key_circular])
 
                         # get the length-normalized count for the circular RNA
-                        count_circular_normalized = self.normalize_count(length[0], gene_dict[gene][0][location_key_circular])
+                        count_circular_normalized = self.normalize_count(length[0], self.phase_storage[gene][0][location_key_circular])
 
                         # how many experimental peaks did we see?
-                        observed_count_circular = observed_dict[gene][0][location_key_circular]
-                        observed_count_linear = observed_dict[gene][1][location_key_linear]
+                        observed_count_circular = self.observed_counts[0][gene][location_key_circular]
+                        observed_count_linear = self.observed_counts[1][gene][location_key_linear]
 
                         # compute simple pval
-                        p_val = count_linear / num_iterations
+                        p_val_linear = count_linear / self.cli_params.num_iterations
+                        p_val_circular = count_circular / self.cli_params.num_iterations
+
 
                         # compute a 0.05 confidence interval
-                        confidence_interval_circular = proportion_confint(gene_dict[gene][0][location_key_circular],
-                                                                          num_iterations, method="beta")
+                        confidence_interval_circular = proportion_confint(self.phase_storage[gene][0][location_key_circular],
+                                                                          self.cli_params.num_iterations, method="beta")
 
-                        confidence_interval_linear = proportion_confint(gene_dict[gene][1][location_key_linear],
-                                                                        num_iterations, method="beta")
+                        confidence_interval_linear = proportion_confint(self.phase_storage[gene][1][location_key_linear],
+                                                                        self.cli_params.num_iterations, method="beta")
 
                         # check that the host gene length is not 0 and that we are above the user-defined threshold
                         # also:
                         # we only want to see entries where the count is lower for the circ RNA
 
-                        if (length[1] > 0) and p_val <= p_val_threshold \
-                                and observed_count_circular > count_threshold\
+                        if (length[1] > 0) and p_val_linear <= self.cli_params.pval \
+                                and observed_count_circular > self.cli_params.threshold\
                                 and count_circular_normalized < count_linear_normalized:
 
                                 # this distance is a kind of measure how far apart linear and circular RNA are
                                 distance = count_linear_normalized - count_circular_normalized
 
                                 # construct the result line
-                                result_string += ("%s\t%s\t%f\t%d\t%d\t%d\t%f\t%s\t%d\t%d\t%d\t%f\t%s\t%f\n" %
+                                result_string += ("%s\t%s\t%f\t%d\t%d\t%d\t%f\t%s\t%f\t%d\t%d\t%d\t%f\t%s\t%f\n" %
                                                       (gene,
                                                        location_key_circular,
-                                                       p_val,
-                                                       count_linear,
-                                                       observed_count_linear,
-                                                       length[1],
-                                                       count_linear_normalized,
-                                                       confidence_interval_linear,
+                                                       p_val_circular,
                                                        count_circular,
                                                        observed_count_circular,
                                                        length[0],
                                                        count_circular_normalized,
                                                        confidence_interval_circular,
+                                                       p_val_linear,
+                                                       count_linear,
+                                                       observed_count_linear,
+                                                       length[1],
+                                                       count_linear_normalized,
+                                                       confidence_interval_linear,
                                                        distance
                                                        )
                                                       )
         # return the data string
         return result_string
 
-    @staticmethod
-    def run_permutation_test(self, intersection_tuple_list):
-        self.log_entry("Starting permutation test")
+    def run_permutation_test(self, current_iteration):
 
         gene_dict = {}
-        mean_dict = {}
-        observed_dict = {}
 
-        # we stored the observed values in the last column of the nested dicts
-        # we can also use this as "number of iterations done"
-        num_iterations = len(intersection_tuple_list)
+        if current_iteration >= self.cli_params.num_iterations:
+            return gene_dict
+
+        self.log_entry("Permutation test iteration %d" % (current_iteration+1))
 
         # we pre-process the first entry of the list because here we stored the observed counts
         # order of tuples: pos 0: circular rna, pos 1: linear rna
-        observed_counts = (
-            self.process_intersection(intersection_tuple_list[0][0]),
-            self.process_intersection(intersection_tuple_list[0][1])
-        )
 
-        # iterate over actual intersections
-        for iteration in range(1, num_iterations):
+        # iterate through circular and linear intersection
+        for rna_type in range(0, 2):
 
-            # print a line every 100 iterations completed
-            if iteration % 10 == 0:
-                self.log_entry("%d iterations completed" % iteration)
+            processed_counts = self.process_intersection(self.results[current_iteration][rna_type])
 
-            # iterate through circular and linear intersection
-            for rna_type in range(0, 2):
+            for gene, nested_dict in processed_counts.items():
 
-                processed_counts = self.process_intersection(intersection_tuple_list[iteration][rna_type])
+                # we need to get the observed count for this gene before we start
+                observed_value_dict = self.observed_counts[rna_type][gene]
+                # for each location key (for linear that's only one anyway. for circular it may me multiple)
+                for location_key, shuffled_value in nested_dict.items():
 
-                for gene, nested_dict in processed_counts.items():
+                    # let's test if we observed a higher count in this iteration than web observed experimentally
+                    # first make sure the location exists.. should always be true for linear rna but not for
+                    # circular RNAs
+                    if shuffled_value >= observed_value_dict[location_key]:
 
-                    # we need to get the observed count for this gene before we start
-                    observed_value_dict = observed_counts[rna_type][gene]
-                    # for each location key (for linear that's only one anyway. for circular it may me multiple)
-                    for location_key, shuffled_value in nested_dict.items():
+                        # Yes, it's higher, so we update the count of "more than observed" for this gene
+                        if gene not in gene_dict:
+                            # initialize new dict entry
+                            gene_dict[gene] = {}
 
-                        # let's test if we observed a higher count in this iteration than web observed experimentally
-                        # first make sure the location exists.. should always be true for linear rna but not for
-                        # circular RNAs
-                        if shuffled_value >= observed_value_dict[location_key]:
+                        # look if we already have circ/linear rna entries
+                        if rna_type not in gene_dict[gene]:
+                            # first time we see a higher shuffled value
+                            gene_dict[gene][rna_type] = {}
 
-                            # Yes, it's higher, so we update the count of "more than observed" for this gene
-                            if gene not in gene_dict:
-                                # initialize new dict entry
-                                gene_dict[gene] = {}
-                                mean_dict[gene] = {}
-                                observed_dict[gene] = {}
+                        if location_key not in gene_dict[gene][rna_type]:
+                            gene_dict[gene][rna_type][location_key] = True
 
-                            # look if we already have circ/linear rna entries
-                            if rna_type not in gene_dict[gene]:
-                                # first time we see a higher shuffled value
-                                gene_dict[gene][rna_type] = {}
-                                mean_dict[gene][rna_type] = {}
-                                observed_dict[gene][rna_type] = {}
+                    # else:
+                    #     # Yes, it's higher, so we update the count of "more than observed" for this gene
+                    #     if gene not in gene_dict:
+                    #         # initialize new dict entry
+                    #         gene_dict[gene] = {}
+                    #
+                    #     # look if we already have circ/linear rna entries
+                    #     if rna_type not in gene_dict[gene]:
+                    #         # first time we see a higher shuffled value
+                    #         gene_dict[gene][rna_type] = {}
+                    #
+                    #     if location_key not in gene_dict[gene][rna_type]:
+                    #         gene_dict[gene][rna_type][location_key] = False
 
-                            if location_key not in gene_dict[gene][rna_type]:
-                                gene_dict[gene][rna_type][location_key] = 1
-                                mean_dict[gene][rna_type][location_key] = shuffled_value
-                                observed_dict[gene][rna_type][location_key] = observed_value_dict[location_key]
-
-                            else:
-                                # not the first time, just increase
-                                gene_dict[gene][rna_type][location_key] += 1
-                                mean_dict[gene][rna_type][location_key] += shuffled_value
-                        else:
-                            # Yes, it's higher, so we update the count of "more than observed" for this gene
-                            if gene not in gene_dict:
-                                # initialize new dict entry
-                                gene_dict[gene] = {}
-                                mean_dict[gene] = {}
-                                observed_dict[gene] = {}
-
-                            # look if we already have circ/linear rna entries
-                            if rna_type not in gene_dict[gene]:
-                                # first time we see a higher shuffled value
-                                gene_dict[gene][rna_type] = {}
-                                mean_dict[gene][rna_type] = {}
-                                observed_dict[gene][rna_type] = {}
-
-                            if location_key not in gene_dict[gene][rna_type]:
-                                gene_dict[gene][rna_type][location_key] = 0
-                                mean_dict[gene][rna_type][location_key] = shuffled_value
-                                observed_dict[gene][rna_type][location_key] = observed_value_dict[location_key]
-
-        return gene_dict, mean_dict, observed_dict
+        return gene_dict
 
     def random_sample_step(self, iteration, circ_rna_bed, annotation_bed, shuffled_peaks):
         """Logs to log file and prints on screen
@@ -587,8 +616,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         # process results of the intersects
         intersects = [circular_intersect, linear_intersect]
 
-        if iteration % 10 == 0:
-            self.log_entry("Processed %d intersections" % iteration)
+        self.log_entry("Processed intersections for iteration %s" % (iteration+1))
 
         return intersects
 
