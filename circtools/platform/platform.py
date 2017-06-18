@@ -127,6 +127,36 @@ class CircTools(object):
                            default="/tmp/"
                            )
 
+        group.add_argument("-T",
+                           "--threshold",
+                           dest="threshold",
+                           help="p-value cutoff",
+                           type=int,
+                           default=2
+                           )
+
+        group.add_argument("-P",
+                           "--pval",
+                           dest="pval",
+                           help="p-value cutoff",
+                           type=float,
+                           default=0.05
+                           )
+
+        group.add_argument("-H",
+                           "--header",
+                           dest="has_header",
+                           help="Defines if the circRNA input file has a header line [default: no]",
+                           type=bool,
+                           default=False
+                           )
+
+        group.add_argument("-F",
+                           "--output-filename",
+                           dest="output_filename",
+                           help="Defines the output file prefix [default: output]",
+                           default="output"
+                           )
         args = parser.parse_args(sys.argv[2:])
 
         # start the enrichment module

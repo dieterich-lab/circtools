@@ -83,6 +83,7 @@ setup(
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
         'pybedtools>=0.7.8',
+        'statsmodels>=0.8.0'
     ],
 
     # List additional groups of dependencies here (e.g. development
