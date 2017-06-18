@@ -534,7 +534,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                         p_val_linear = count_linear / self.cli_params.num_iterations
                         p_val_circular = count_circular / self.cli_params.num_iterations
 
-
                         # compute a 0.05 confidence interval
                         confidence_interval_circular = proportion_confint(self.phase_storage[gene][0][location_key_circular],
                                                                           self.cli_params.num_iterations, method="beta")
@@ -616,20 +615,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
                         if location_key not in gene_dict[gene][rna_type]:
                             gene_dict[gene][rna_type][location_key] = True
-
-                    # else:
-                    #     # Yes, it's higher, so we update the count of "more than observed" for this gene
-                    #     if gene not in gene_dict:
-                    #         # initialize new dict entry
-                    #         gene_dict[gene] = {}
-                    #
-                    #     # look if we already have circ/linear rna entries
-                    #     if rna_type not in gene_dict[gene]:
-                    #         # first time we see a higher shuffled value
-                    #         gene_dict[gene][rna_type] = {}
-                    #
-                    #     if location_key not in gene_dict[gene][rna_type]:
-                    #         gene_dict[gene][rna_type][location_key] = False
 
         return gene_dict
 
