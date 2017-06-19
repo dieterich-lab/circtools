@@ -115,11 +115,11 @@ setup(
 
     zip_safe=False,
 
-    entry_points={
-        'console_scripts': [
-            'circtools=circtools:main'
-        ],
-    },
+    # entry_points={
+    #     'console_scripts': [
+    #         'circtools=circtools:main'
+    #     ],
+    # },
 
     scripts=[
         'scripts/circtools',
