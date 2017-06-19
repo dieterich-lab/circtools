@@ -534,7 +534,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                                 observed_count_circular = self.observed_counts[0][gene][location_key_circular]
                                 observed_count_linear = self.observed_counts[1][gene][location_key_linear]
 
-                                # compute simple pval
+                                # compute simple p-val
                                 p_val_linear = 0
                                 p_val_circular = 0
 
