@@ -504,12 +504,12 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                         # for each location key of the circRNA
                         for location_key_circular in self.observed_counts[0][gene]:
 
-                            if self.observed_counts[0][gene][location_key_circular] > 0 and gene in self.phase_storage:
+                            if self.observed_counts[0][gene][location_key_circular] > 0:
 
                                 # get the count of simulated peaks > than observed peaks
                                 count_circular = 0
 
-                                if location_key_circular in self.phase_storage[gene][0]:
+                                if gene in self.phase_storage and location_key_circular in self.phase_storage[gene][0]:
                                     count_circular = self.phase_storage[gene][0][location_key_circular]
 
                                 # get length of the host gene without the circRNA annotation
@@ -521,7 +521,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
                                 count_linear = 0
                                 # get the count of simulated peaks > than observed peaks
-                                if location_key_linear in self.phase_storage[gene][1]:
+                                if gene in self.phase_storage and location_key_linear in self.phase_storage[gene][1]:
                                     count_linear = self.phase_storage[gene][1][location_key_linear]
 
                                 # get the length-normalized count for the linear RNA
@@ -558,33 +558,33 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                                 # also:
                                 # we only want to see entries where the count is lower for the circ RNA
 
-                                if (length[1] > 0) and p_val_linear <= self.cli_params.pval \
-                                        and observed_count_circular > self.cli_params.threshold\
-                                        and count_circular_normalized < count_linear_normalized:
+                                # if (length[1] > 0) and p_val_linear <= self.cli_params.pval \
+                                #         and observed_count_circular > self.cli_params.threshold\
+                                #         and count_circular_normalized < count_linear_normalized:
 
-                                        # this distance is a kind of measure how far apart linear and circular RNA are
-                                        distance = count_linear_normalized - count_circular_normalized
+                                # this distance is a kind of measure how far apart linear and circular RNA are
+                                distance = count_linear_normalized - count_circular_normalized
 
-                                        # construct the result line
-                                        result_string += (
-                                            "%s\t%s\t%f\t%d\t%d\t%d\t%f\t%s\t%f\t%d\t%d\t%d\t%f\t%s\t%f\n" %
-                                                        (gene,
-                                                         location_key_circular,
-                                                         p_val_circular,
-                                                         count_circular,
-                                                         observed_count_circular,
-                                                         length[0],
-                                                         count_circular_normalized,
-                                                         confidence_interval_circular,
-                                                         p_val_linear,
-                                                         count_linear,
-                                                         observed_count_linear,
-                                                         length[1],
-                                                         count_linear_normalized,
-                                                         confidence_interval_linear,
-                                                         distance
-                                                         )
-                                        )
+                                # construct the result line
+                                result_string += (
+                                    "%s\t%s\t%f\t%d\t%d\t%d\t%f\t%s\t%f\t%d\t%d\t%d\t%f\t%s\t%f\n" %
+                                                (gene,
+                                                 location_key_circular,
+                                                 p_val_circular,
+                                                 count_circular,
+                                                 observed_count_circular,
+                                                 length[0],
+                                                 count_circular_normalized,
+                                                 confidence_interval_circular,
+                                                 p_val_linear,
+                                                 count_linear,
+                                                 observed_count_linear,
+                                                 length[1],
+                                                 count_linear_normalized,
+                                                 confidence_interval_linear,
+                                                 distance
+                                                 )
+                                )
         # return the data string
         return result_string
 
