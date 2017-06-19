@@ -82,7 +82,7 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        'pybedtools>=0.7.8',
+        'pybedtools>=0.7.10',
         'statsmodels>=0.8.0'
     ],
 
