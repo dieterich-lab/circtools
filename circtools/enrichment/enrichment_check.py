@@ -210,6 +210,8 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         with open(result_file, 'w') as text_file:
             text_file.write(result_table)
 
+        self.clean_up_temp_files()
+
         # ------------------------------------- Function definitions start here ---------------------------------------
 
     def read_circ_rna_file(self, circ_rna_input, annotation_bed, has_header):
@@ -646,6 +648,20 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         self.log_entry("Processed intersections for iteration %s" % (iteration+1))
 
         return intersects
+
+    def clean_up_temp_files(self):
+        """Delete temporary files created by pybedtools
+        """
+        self.log_entry("Cleaning up temporary files")
+
+        import glob
+        for tmp_file in glob.glob(self.cli_params.tmp_directory+"/"+"pybedtools*"):
+            os.remove(tmp_file)
+            print(tmp_file)
+
+        os.rmdir(self.cli_params.tmp_directory)
+
+        self.log_entry("Done")
 
     def module_name(self):
         """"Return a string representing the name of the module."""
