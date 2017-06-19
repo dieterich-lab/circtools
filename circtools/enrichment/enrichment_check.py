@@ -173,8 +173,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
             # how many results did we get back?
             num_results = len(intermediate_result)
 
-            # Todo: iterate over the observed counts to also have circRNAs that are not coming up at all!
-
             # we now have to convert the temporary dicts into out main dict to save memory
             for current_num in range(0, num_results):
 
@@ -526,7 +524,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                                 if location_key_linear in self.phase_storage[gene][1]:
                                     count_linear = self.phase_storage[gene][1][location_key_linear]
 
-
                                 # get the length-normalized count for the linear RNA
                                 count_linear_normalized = self.normalize_count(length[1], count_linear - count_circular)
 
@@ -549,12 +546,15 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
                                 # compute a 0.05 confidence interval
                                 confidence_interval_circular = proportion_confint(count_circular,
-                                                                                  self.cli_params.num_iterations, method="beta")
+                                                                                  self.cli_params.num_iterations,
+                                                                                  method="beta")
 
                                 confidence_interval_linear = proportion_confint(count_linear,
-                                                                                self.cli_params.num_iterations, method="beta")
+                                                                                self.cli_params.num_iterations,
+                                                                                method="beta")
 
-                                # check that the host gene length is not 0 and that we are above the user-defined threshold
+                                # check that the host gene length is not 0
+                                # and that we are above the user-defined threshold
                                 # also:
                                 # we only want to see entries where the count is lower for the circ RNA
 
@@ -566,24 +566,25 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                                         distance = count_linear_normalized - count_circular_normalized
 
                                         # construct the result line
-                                        result_string += ("%s\t%s\t%f\t%d\t%d\t%d\t%f\t%s\t%f\t%d\t%d\t%d\t%f\t%s\t%f\n" %
-                                                              (gene,
-                                                               location_key_circular,
-                                                               p_val_circular,
-                                                               count_circular,
-                                                               observed_count_circular,
-                                                               length[0],
-                                                               count_circular_normalized,
-                                                               confidence_interval_circular,
-                                                               p_val_linear,
-                                                               count_linear,
-                                                               observed_count_linear,
-                                                               length[1],
-                                                               count_linear_normalized,
-                                                               confidence_interval_linear,
-                                                               distance
-                                                               )
-                                                              )
+                                        result_string += (
+                                            "%s\t%s\t%f\t%d\t%d\t%d\t%f\t%s\t%f\t%d\t%d\t%d\t%f\t%s\t%f\n" %
+                                                        (gene,
+                                                         location_key_circular,
+                                                         p_val_circular,
+                                                         count_circular,
+                                                         observed_count_circular,
+                                                         length[0],
+                                                         count_circular_normalized,
+                                                         confidence_interval_circular,
+                                                         p_val_linear,
+                                                         count_linear,
+                                                         observed_count_linear,
+                                                         length[1],
+                                                         count_linear_normalized,
+                                                         confidence_interval_linear,
+                                                         distance
+                                                         )
+                                        )
         # return the data string
         return result_string
 
