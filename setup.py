@@ -8,7 +8,35 @@ https://github.com/pypa/sampleproject
 # Always prefer setuptools over distutils
 from codecs import open
 from os import path
+from subprocess import check_call
+
 from setuptools import setup
+from setuptools.command.develop import develop
+from setuptools.command.install import install
+
+
+class PostDevelopCommand(develop):
+    """Post-installation for development mode."""
+
+    def run(self):
+
+        develop.run(self)
+
+
+class PostInstallCommand(install):
+    """Post-installation for installation mode."""
+
+    def run(self):
+        print("We need to install two other programs of the Dieterich lab circRNA suit:"
+              "DCC and FUCHS. We'll install both of them for you from GitHub.")
+
+        from time import sleep
+        sleep(5)
+        check_call(["sh", "scripts/external_install.sh"])
+
+        install.run(self)
+        # place for post install commands
+
 
 here = path.abspath(path.dirname(__file__))
 
@@ -99,8 +127,7 @@ setup(
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
     package_data={
-        'circtools': ['data/*'],
-        'circtools': ['scripts/*'],
+        'circtools': ['scripts/circtools'],
     },
 
     # Although 'package_data' is the preferred approach, in some case you may
@@ -121,7 +148,16 @@ setup(
     #     ],
     # },
 
+    # this will be our main "executable"
     scripts=[
         'scripts/circtools',
-    ]
+    ],
+
+    # adding support for post install scripts from
+    # https://stackoverflow.com/questions/20288711/post-install-script-with-python-setuptools
+
+    cmdclass={
+        'develop': PostDevelopCommand,
+        'install': PostInstallCommand,
+    },
 )
