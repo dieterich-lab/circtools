@@ -165,10 +165,11 @@ designPrimers <- function(exSeq,
   primers <- decipher2iranges(primers)
   names(primers) <- circSeqs$seqId
   lengthRange <- c(opts$minLength, opts$maxLength)
-  bestPrimers <- lapply(names(primers), function(sjId) {
+  bestPrimers <- lapply(names(primers), function(seqId) {
+    exonId <- circSeqs$upExonId[circSeqs$seqId == seqId]
     sj <- IRanges::IRanges(
-      Biostrings::width(ex$seq[ex$exon_id == circSeqs$upExonId]), width = 2)
-    selectBestPrimers(p=primers[[sjId]], sj, lengthRange)
+      Biostrings::width(ex$seq[ex$exon_id == exonId]), width = 2)
+    selectBestPrimers(p=primers[[seqId]], sj, lengthRange)
   })
   names(bestPrimers) <- names(primers)
   primersGR <- lapply(names(bestPrimers), function(seqId) {
