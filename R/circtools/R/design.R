@@ -83,7 +83,9 @@ getTxOfSJExons <- function(db, exSeq, whichExons=c('any', 'both')){
 getTxSeqs <- function(db, bsg, exSeq) {
   geneIds <- vapply(exSeq, function(x) unique(
     S4Vectors::mcols(x)$gene_id), character(1))
-  ex <- ensembldb::exonsBy(db, filter = AnnotationFilter::GeneIdFilter(geneIds))
+  ex <- ensembldb::exonsBy(
+    db,
+    filter = AnnotationFilter::GeneIdFilter(unique(geneIds)))
   seqs <- GenomicFeatures::extractTranscriptSeqs(bsg, ex)
   seqs
 }
