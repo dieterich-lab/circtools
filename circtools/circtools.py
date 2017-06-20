@@ -38,10 +38,10 @@ class CircTools(object):
             usage="""circtools [-V] <command> [<args>]
             Available commands:
 
-               enrich  circular RNA RBP enrichment scan
-               primer  circular RNA primer design tool
-               dcc     circular RNA detection with DCC
-               fuchs   circular RNA reconstruction with FUCHS
+               enrich       circular RNA RBP enrichment scan
+               primer       circular RNA primer design tool
+               detect       circular RNA detection with DCC
+               reconstruct  circular RNA reconstruction with FUCHS
 
             """)
         parser.add_argument("command", help="Command to run")
@@ -186,6 +186,38 @@ class CircTools(object):
         import primer.primer_r
         primer_instance = primer.primer_r.PrimerDesign(args, program_name, version)
         primer_instance.run_module()
+
+    @staticmethod
+    def detect():
+        parser = argparse.ArgumentParser(
+            description="circular RNA detection")
+        # NOT prefixing the argument with -- means it"s not optional
+        parser.add_argument("-C",
+                            "--params",
+                            dest="cli_params",
+                            help="Defines the input parameters for DCC",
+                            default="--help"
+                            )
+        args = parser.parse_args(sys.argv[2:])
+
+        import os
+        os.system("DCC " + args.cli_params)
+
+    @staticmethod
+    def reconstruct():
+        parser = argparse.ArgumentParser(
+            description="circular RNA reconstruction")
+        # NOT prefixing the argument with -- means it"s not optional
+        parser.add_argument("-C",
+                            "--params",
+                            dest="cli_params",
+                            help="Defines the input parameters for DCC",
+                            default="--help"
+                            )
+        args = parser.parse_args(sys.argv[2:])
+
+        import os
+        os.system("FUCHS " + args.cli_params)
 
 if __name__ == "__main__":
     main()
