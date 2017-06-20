@@ -38,9 +38,11 @@ class CircTools(object):
             usage="""circtools [-V] <command> [<args>]
             Available commands:
 
-               enrich   circular RNA RBP enrichment scan
-               primer   circular RNA primer design tool
-               dummy    to be filled with function
+               enrich  circular RNA RBP enrichment scan
+               primer  circular RNA primer design tool
+               dcc     circular RNA detection with DCC
+               fuchs   circular RNA reconstruction with FUCHS
+
             """)
         parser.add_argument("command", help="Command to run")
 
