@@ -207,7 +207,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         # and print it to a file
         result_file = self.cli_params.output_directory + "/" +\
                       self.cli_params.output_filename + "_" +\
-                      self.cli_params.num_iterations + "_" +\
+                      str(self.cli_params.num_iterations) + "_" +\
                       time_format + ".csv"
 
         with open(result_file, 'w') as text_file:
