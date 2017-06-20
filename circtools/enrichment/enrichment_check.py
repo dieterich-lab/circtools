@@ -167,7 +167,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
             # results of one phase of the computation
             intermediate_result = mp_pool.map(functools.partial(self.run_permutation_test),
-                                              range(phase*iterations_per_phase, (phase+1)*iterations_per_phase)
+                                              range(phase*iterations_per_phase+1, (phase+1)*iterations_per_phase)
                                               )
 
             # how many results did we get back?
@@ -187,16 +187,14 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                     for rna in range(0, 2):
                         if rna in intermediate_result[current_num][gene]:
                             # get the location
-                            for location_key in intermediate_result[current_num][gene][rna]:
+                            for location_key in self.observed_counts[rna][gene]:
+
+                                if location_key not in self.phase_storage[gene][rna]:
+                                    self.phase_storage[gene][rna][location_key] = 0
 
                                 # only if the temporary data says true (= we saw more peaks than observed)
-                                if intermediate_result[current_num][gene][rna][location_key]:
-
-                                    # look if we already have an entry in the main data structure, create one if not
-                                    if location_key not in self.phase_storage[gene][rna]:
-                                        self.phase_storage[gene][rna][location_key] = 1
-                                    else:
-                                        self.phase_storage[gene][rna][location_key] += 1
+                                if location_key in intermediate_result[current_num][gene][rna]:
+                                    self.phase_storage[gene][rna][location_key] += 1
 
             self.log_entry("Cleaning up... just a second")
 
@@ -207,10 +205,15 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         result_table = self.print_results()
 
         # and print it to a file
-        result_file = self.cli_params.output_directory + "/" + self.cli_params.output_filename + "_" + time_format + ".csv"
+        result_file = self.cli_params.output_directory + "/" +\
+                      self.cli_params.output_filename + "_" +\
+                      str(self.cli_params.num_iterations) + "_" +\
+                      time_format + ".csv"
 
         with open(result_file, 'w') as text_file:
             text_file.write(result_table)
+
+        self.clean_up_temp_files()
 
         # ------------------------------------- Function definitions start here ---------------------------------------
 
@@ -496,81 +499,97 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                         "distance_normalized_counts\n"
 
         # for all genes we have seen
-        for gene in self.phase_storage:
+        for gene in self.observed_counts[1]:
             # make sure we found a circular RNA
-            if 0 in self.phase_storage[gene]:
+            if gene in self.observed_counts[0]:
 
                 # get the location key of the linear host RNA
-                for location_key_linear in self.phase_storage[gene][1]:
+                for location_key_linear in self.observed_counts[1][gene]:
 
-                    # for each location key of the circRNA
-                    for location_key_circular in self.phase_storage[gene][0]:
+                        # for each location key of the circRNA
+                        for location_key_circular in self.observed_counts[0][gene]:
 
-                        # get length of the host gene without the circRNA annotation
-                        # this is a list: entry 0: circular RNA, entry 1: linear RNA
-                        length = self.linear_length_wo_circ(location_key_circular, location_key_linear)
+                            if self.observed_counts[0][gene][location_key_circular] > 0:
 
-                        # hint: count means: we saw simulated data that had more peaks in the region than we observed
-                        # experimentally
+                                # get the count of simulated peaks > than observed peaks
+                                count_circular = 0
 
-                        # get the count of simulated peaks > than observed peaks
-                        count_linear = self.phase_storage[gene][1][location_key_linear]
+                                if gene in self.phase_storage and location_key_circular in self.phase_storage[gene][0]:
+                                    count_circular = self.phase_storage[gene][0][location_key_circular]
 
-                        # get the count of simulated peaks > than observed peaks
-                        count_circular = self.phase_storage[gene][0][location_key_circular]
+                                # get length of the host gene without the circRNA annotation
+                                # this is a list: entry 0: circular RNA, entry 1: linear RNA
+                                length = self.linear_length_wo_circ(location_key_circular, location_key_linear)
 
-                        # get the length-normalized count for the linear RNA
-                        count_linear_normalized = self.normalize_count(length[1], count_linear - self.phase_storage[gene][0]
-                            [location_key_circular])
+                                # hint: count means: we saw simulated data that had more peaks
+                                # in the region than we observed experimentally
 
-                        # get the length-normalized count for the circular RNA
-                        count_circular_normalized = self.normalize_count(length[0], self.phase_storage[gene][0][location_key_circular])
+                                count_linear = 0
+                                # get the count of simulated peaks > than observed peaks
+                                if gene in self.phase_storage and location_key_linear in self.phase_storage[gene][1]:
+                                    count_linear = self.phase_storage[gene][1][location_key_linear]
 
-                        # how many experimental peaks did we see?
-                        observed_count_circular = self.observed_counts[0][gene][location_key_circular]
-                        observed_count_linear = self.observed_counts[1][gene][location_key_linear]
+                                # get the length-normalized count for the linear RNA
+                                count_linear_normalized = self.normalize_count(length[1], count_linear - count_circular)
 
-                        # compute simple pval
-                        p_val_linear = count_linear / self.cli_params.num_iterations
-                        p_val_circular = count_circular / self.cli_params.num_iterations
+                                # get the length-normalized count for the circular RNA
+                                count_circular_normalized = self.normalize_count(length[0], count_circular)
 
-                        # compute a 0.05 confidence interval
-                        confidence_interval_circular = proportion_confint(self.phase_storage[gene][0][location_key_circular],
-                                                                          self.cli_params.num_iterations, method="beta")
+                                # how many experimental peaks did we see?
+                                observed_count_circular = self.observed_counts[0][gene][location_key_circular]
+                                observed_count_linear = self.observed_counts[1][gene][location_key_linear]
 
-                        confidence_interval_linear = proportion_confint(self.phase_storage[gene][1][location_key_linear],
-                                                                        self.cli_params.num_iterations, method="beta")
+                                # compute simple p-val
+                                p_val_linear = 0
+                                p_val_circular = 0
 
-                        # check that the host gene length is not 0 and that we are above the user-defined threshold
-                        # also:
-                        # we only want to see entries where the count is lower for the circ RNA
+                                if count_linear > 0:
+                                    p_val_linear = count_linear / self.cli_params.num_iterations
 
-                        if (length[1] > 0) and p_val_linear <= self.cli_params.pval \
-                                and observed_count_circular > self.cli_params.threshold\
-                                and count_circular_normalized < count_linear_normalized:
+                                if count_circular > 0:
+                                    p_val_circular = count_circular / self.cli_params.num_iterations
+
+                                # compute a 0.05 confidence interval
+                                confidence_interval_circular = proportion_confint(count_circular,
+                                                                                  self.cli_params.num_iterations,
+                                                                                  method="beta")
+
+                                confidence_interval_linear = proportion_confint(count_linear,
+                                                                                self.cli_params.num_iterations,
+                                                                                method="beta")
+
+                                # check that the host gene length is not 0
+                                # and that we are above the user-defined threshold
+                                # also:
+                                # we only want to see entries where the count is lower for the circ RNA
+
+                                # if (length[1] > 0) and p_val_linear <= self.cli_params.pval \
+                                #         and observed_count_circular > self.cli_params.threshold\
+                                #         and count_circular_normalized < count_linear_normalized:
 
                                 # this distance is a kind of measure how far apart linear and circular RNA are
                                 distance = count_linear_normalized - count_circular_normalized
 
                                 # construct the result line
-                                result_string += ("%s\t%s\t%f\t%d\t%d\t%d\t%f\t%s\t%f\t%d\t%d\t%d\t%f\t%s\t%f\n" %
-                                                      (gene,
-                                                       location_key_circular,
-                                                       p_val_circular,
-                                                       count_circular,
-                                                       observed_count_circular,
-                                                       length[0],
-                                                       count_circular_normalized,
-                                                       confidence_interval_circular,
-                                                       p_val_linear,
-                                                       count_linear,
-                                                       observed_count_linear,
-                                                       length[1],
-                                                       count_linear_normalized,
-                                                       confidence_interval_linear,
-                                                       distance
-                                                       )
-                                                      )
+                                result_string += (
+                                    "%s\t%s\t%f\t%d\t%d\t%d\t%f\t%s\t%f\t%d\t%d\t%d\t%f\t%s\t%f\n" %
+                                                (gene,
+                                                 location_key_circular,
+                                                 p_val_circular,
+                                                 count_circular,
+                                                 observed_count_circular,
+                                                 length[0],
+                                                 count_circular_normalized,
+                                                 confidence_interval_circular,
+                                                 p_val_linear,
+                                                 count_linear,
+                                                 observed_count_linear,
+                                                 length[1],
+                                                 count_linear_normalized,
+                                                 confidence_interval_linear,
+                                                 distance
+                                                 )
+                                )
         # return the data string
         return result_string
 
@@ -632,6 +651,20 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         self.log_entry("Processed intersections for iteration %s" % (iteration+1))
 
         return intersects
+
+    def clean_up_temp_files(self):
+        """Delete temporary files created by pybedtools
+        """
+        self.log_entry("Cleaning up temporary files")
+
+        import glob
+        for tmp_file in glob.glob(self.cli_params.tmp_directory+"/"+"pybedtools*"):
+            os.remove(tmp_file)
+            print(tmp_file)
+
+        os.rmdir(self.cli_params.tmp_directory)
+
+        self.log_entry("Done")
 
     def module_name(self):
         """"Return a string representing the name of the module."""

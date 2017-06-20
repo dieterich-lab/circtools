@@ -82,7 +82,7 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        'pybedtools>=0.7.8',
+        'pybedtools>=0.7.10',
         'statsmodels>=0.8.0'
     ],
 
@@ -115,11 +115,11 @@ setup(
 
     zip_safe=False,
 
-    entry_points={
-        'console_scripts': [
-            'circtools=circtools:main'
-        ],
-    },
+    # entry_points={
+    #     'console_scripts': [
+    #         'circtools=circtools:main'
+    #     ],
+    # },
 
     scripts=[
         'scripts/circtools',
