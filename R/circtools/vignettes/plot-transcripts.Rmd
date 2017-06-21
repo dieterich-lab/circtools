@@ -195,7 +195,7 @@ sequences for the following primer design.
 To get *in silico* optimized primer sequences, one needs simply to 
 invoke `designPrimers` function on the splice junction exons object:
 ```{r}
-primers <- designPrimers(exSeq = exShortesSeq[1], db = db, bsg = bsg)
+primers <- designPrimers(exSeq = exShortesSeq, db = db, bsg = bsg)
 
 ```
 
@@ -216,10 +216,19 @@ primers$primers$`3:187734869-187737088`
 
 ```{r, fig.height=4, fig.width=6}
 
-plotCirc(circGenes = bcl6EnsId,
+circ <- "3:187734869-187737088"
+plotCirc(sjIds = circ,
+         #circGenes = bcl6EnsId,
          circData = circData,
          counts = counts, 
-         primers = primers$primers$`3:187734869-187737088`, 
+         primers = primers$primers[[circ]],
+         opts = list(normalise = FALSE))
+circ <-"3:187734869-187745727"
+plotCirc(sjIds = circ,
+         #circGenes = bcl6EnsId,
+         circData = circData,
+         counts = counts, 
+         primers = primers$primers[[circ]],
          opts = list(normalise = FALSE))
 ```
 
@@ -233,11 +242,22 @@ It can be turned off in `opts$normalise = FALSE`.
 
 ```{r, fig.height=4, fig.width=6}
 
-plotCirc(circGenes = bcl6EnsId,
+circ <- "3:187734869-187737088"
+plotCirc(sjIds = circ,
+         #circGenes = bcl6EnsId,
          circData = circData,
-         #counts = counts, 
-         primers = primers$primers$`3:187734869-187737088`,
-         countThres = 1)
+         counts = counts, 
+         primers = primers$primers[[circ]],
+         countThres = 1,
+         opts = list(normalise =TRUE))
+circ <- "3:187734869-187745727"
+plotCirc(sjIds = circ,
+         #circGenes = bcl6EnsId,
+         circData = circData,
+         counts = counts, 
+         primers = primers$primers[[circ]],
+         countThres = 1,
+         opts = list(normalise =TRUE))
 ```
 
 ## Session
