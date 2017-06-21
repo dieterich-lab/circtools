@@ -31,7 +31,7 @@ The installation procedure will automatically install two dependencies: [DCC](ht
 Circtools currently offers four modules:
 
  
-```bash
+```
 $ circtools
 usage: circtools [-V] <command> [<args>]
             Available commands:
@@ -59,7 +59,7 @@ The ``primer`` command is used to design and visualize primers required for foll
 The ``enrichment`` module may be used to identify circRNAs enriched for specific RNA binding proteins (RBP) based on DCC-identified circRNAs and processed [eCLIP](http://www.nature.com/nmeth/journal/v13/n6/full/nmeth.3810.html) data. For K526 and HepG2 cell lines plenty of this data is available through the [ENCODE](https://www.encodeproject.org/search/?type=Experiment&assay_title=eCLIP)
  project. 
 
-```bash
+```
 circtools enrich --help
 usage: circtools [-h] -c CIRC_RNA_INPUT -b BED_INPUT -a ANNOTATION -g
                  GENOME_FILE [-o OUTPUT_DIRECTORY] [-i NUM_ITERATIONS]
