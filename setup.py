@@ -8,13 +8,42 @@ https://github.com/pypa/sampleproject
 # Always prefer setuptools over distutils
 from codecs import open
 from os import path
+from subprocess import check_call
+
 from setuptools import setup
+from setuptools.command.develop import develop
+from setuptools.command.install import install
+
+
+class PostDevelopCommand(develop):
+    """Post-installation for development mode."""
+
+    def run(self):
+
+        develop.run(self)
+
+
+class PostInstallCommand(install):
+    """Post-installation for installation mode."""
+
+    def run(self):
+        print("We need to install two other programs of the Dieterich lab circRNA suit: DCC and FUCHS.")
+        print("We'll install both of them for you from GitHub.")
+        print("")
+        print("If you want to cancel the installation press CTRL-C now.")
+        from time import sleep
+        sleep(10)
+        check_call(["sh", "scripts/external_install.sh"])
+
+        install.run(self)
+        # place for post install commands
+
 
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the relevant file
-with open(path.join(here, 'DESCRIPTION.rst'), encoding='utf-8') as f:
-    long_description = f.read()
+# with open(path.join(here, 'DESCRIPTION.rst'), encoding='utf-8') as f:
+#     long_description = f.read()
 
 setup(
     name='circtools',
@@ -25,7 +54,7 @@ setup(
     version='0.0.1',
 
     description='circtools - a circular RNA toolbox',
-    long_description=long_description,
+    # long_description=long_description,
 
     # The project's main homepage.
     url='https://github.com/dieterich-lab/circtools',
@@ -99,8 +128,7 @@ setup(
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
     package_data={
-        'circtools': ['data/*'],
-        'circtools': ['scripts/*'],
+        'circtools': ['scripts/circtools'],
     },
 
     # Although 'package_data' is the preferred approach, in some case you may
@@ -121,7 +149,16 @@ setup(
     #     ],
     # },
 
+    # this will be our main "executable"
     scripts=[
         'scripts/circtools',
-    ]
+    ],
+
+    # adding support for post install scripts from
+    # https://stackoverflow.com/questions/20288711/post-install-script-with-python-setuptools
+
+    cmdclass={
+        'develop': PostDevelopCommand,
+        'install': PostInstallCommand,
+    },
 )
