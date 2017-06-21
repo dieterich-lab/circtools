@@ -1,5 +1,7 @@
 source("https://bioconductor.org/biocLite.R")
 
+options(repos = c(CRAN = "http://cran.rstudio.com"))
+
 pkgs <- c(
   "AnnotationFilter",
   "Rsamtools",
