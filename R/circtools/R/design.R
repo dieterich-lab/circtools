@@ -176,9 +176,12 @@ designPrimers <- function(exSeq,
     i <- which(seqId == circSeqs$seqId)
     upExon   <- ex[which(S4Vectors::mcols(ex)$exon_id == circSeqs$upExonId[i])]
     downExon <- ex[which(S4Vectors::mcols(ex)$exon_id == circSeqs$downExonId[i])]
-    circ2genome(bestPrimers[[seqId]],
+    gr <- circ2genome(bestPrimers[[seqId]],
                 upExon = upExon,
                 downExon = downExon)
+    gr$upExon <- unique(upExon$exon_id)
+    gr$downExon <- unique(downExon$exon_id)
+    gr
   })
   names(primersGR) <- names(bestPrimers)
   GenomicRanges::GRangesList(primersGR)
