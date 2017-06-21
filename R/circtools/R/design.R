@@ -199,6 +199,7 @@ selectBestPrimers <- function(p, sj, lengthRange) {
   })
   p <- split(p, S4Vectors::mcols(p)$type)
   # forward primer on sj
+  if(!is.null(best$forward)){
   rangeForEnd <- IRanges::start(best$forward) + lengthRange - 1
   o <- IRanges::end(p$reverse) >= rangeForEnd[1] &
        IRanges::end(p$reverse) <= rangeForEnd[2]
@@ -207,13 +208,16 @@ selectBestPrimers <- function(p, sj, lengthRange) {
     result$forwardSJ <- c(best$forward,
                           p$reverse[which.max(mcols(p$reverse[o])$efficiency)])
   }
+  }
   # reverse primer on sj
+  if(!is.null(best$reverse)){
   rangeForStart <- IRanges::end(best$reverse) - lengthRange + 1
   o <- IRanges::start(p$forward) >= rangeForStart[1] &
        IRanges::start(p$forward) <= rangeForStart[2]
   if (any(o)) {
     result$reverseSJ <- c(p$forward[which.max(mcols(p$forward[o])$efficiency)],
         best$reverse)
+  }
   }
   bestInd <- which.max(lapply(result, function(x) {
     sum(S4Vectors::mcols(x)$efficiency)
