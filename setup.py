@@ -27,11 +27,12 @@ class PostInstallCommand(install):
     """Post-installation for installation mode."""
 
     def run(self):
-        print("We need to install two other programs of the Dieterich lab circRNA suit:"
-              "DCC and FUCHS. We'll install both of them for you from GitHub.")
-
+        print("We need to install two other programs of the Dieterich lab circRNA suit: DCC and FUCHS.")
+        print("We'll install both of them for you from GitHub.")
+        print("")
+        print("If you want to cancel the installation press CTRL-C now.")
         from time import sleep
-        sleep(5)
+        sleep(10)
         check_call(["sh", "scripts/external_install.sh"])
 
         install.run(self)
