@@ -101,14 +101,15 @@ getTxSeqs <- function(db, bsg, exSeq) {
 #' @return a list with `primers` and `product` items.
 #' @details  
 #' 
-#' The following options are available for the primer design:
-#'   - minLength (0), maxLength (Inf): a min and max product length
+#' `opts` can include parameters for \code{\link[DECIPHER]{designPrimers}} and
+#' a vector lengthRange for further filtering by the product length
+#'  (default = c(0,Inf))
 #' @export
 #'
 designPrimers <- function(exSeq,
                           db,
                           bsg,
-                          opts = list(minLength = 0, maxLength = Inf)) {
+                          opts = list(lengthRange = c(0, Inf))) {
   # TODO choice if intersect with SJ
   seqs <- getCircSeqFromList(exSeq)
   txIntersect <- getTxOfSJExons(db, exSeq, whichExons = 'both')
@@ -128,7 +129,18 @@ designPrimers <- function(exSeq,
 .designForSJ <- function(circSeqs,
                          ex,
                          ts,
-                         opts = list()) {
+                         opts) {
+  designCallArgs <- formals(DECIPHER::DesignPrimers)
+  options <- list(
+      minCoverage = 1,
+      minGroupCoverage = 1,
+      maxSearchSize = 1e4,
+      worstScore = -10,
+      verbose = FALSE
+  )
+  options[names(opts)] <- opts
+  argsNames <- intersect(names(designCallArgs), names(options))
+  designCallArgs[argsNames] <- options[argsNames]
   # add sequences to the db and corresponding tx's
   dbConn <- RSQLite::dbConnect(RSQLite::SQLite(), ":memory:")
   stringSet <- Biostrings::DNAStringSet(circSeqs$circSeq)
@@ -149,27 +161,17 @@ designPrimers <- function(exSeq,
                               verbose = FALSE)
   # TODO: suppress msgs
   primers <- lapply(circSeqs$seqId, function(seqId) {
-    primers <- DECIPHER::DesignPrimers(
-      tiles = tiles,
-      identifier = seqId,
-      minCoverage = 1,
-      minGroupCoverage = 1,
-      #numPrimerSets = 5,
-      maxSearchSize = 1e4,
-      worstScore = -10,
-      #minProductSize = 60,
-      #minEfficiency = .8,
-      verbose = FALSE
-    )
+    designCallArgs$tiles <- tiles
+    designCallArgs$identifier <- seqId
+    primers <- do.call(DECIPHER::DesignPrimers, designCallArgs)
   })
   primers <- decipher2iranges(primers)
   names(primers) <- circSeqs$seqId
-  lengthRange <- c(opts$minLength, opts$maxLength)
   bestPrimers <- lapply(names(primers), function(seqId) {
     exonId <- circSeqs$upExonId[circSeqs$seqId == seqId]
     sj <- IRanges::IRanges(
       Biostrings::width(ex$seq[ex$exon_id == exonId]), width = 2)
-    selectBestPrimers(p=primers[[seqId]], sj, lengthRange)
+    selectBestPrimers(p=primers[[seqId]], sj, opts$lengthRange)
   })
   names(bestPrimers) <- names(primers)
   primersGR <- lapply(names(bestPrimers), function(seqId) {
