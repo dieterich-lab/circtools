@@ -18,8 +18,8 @@
 getSjExons <- function(db, circsGR, filter=list()) {
   exdb <- exons(db, filter = filter)
   circExonsMap <- list(# t because we want it ordered as circs
-    right = t(findOverlaps(exdb, circsGR, type = "start")),
-    left  = t(findOverlaps(exdb, circsGR, type = "end")))
+    left = t(findOverlaps(exdb, circsGR, type = "start")),
+    right = t(findOverlaps(exdb, circsGR, type = "end")))
   sjExonCoords <- lapply(
     names(circExonsMap),
     function(side) {
