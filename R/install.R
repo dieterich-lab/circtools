@@ -23,4 +23,4 @@ install.packages("devtools")
 library(devtools)
 install_github("dieterich-lab/circtools",
              subdir = "R/circtools",
-             ref = "r-dev")
+             ref = "master")
