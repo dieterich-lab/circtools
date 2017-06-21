@@ -1,10 +1,20 @@
 library(circtools)
 
+clArgs <- commandArgs(trailingOnly = TRUE)
+
+parseArgs <- function(args) {
+  
+}
+
 ensPackage <- "EnsDb.Hsapiens.v86"
 circFile <- "circs.tab"
 typeExons <- "all"
 bsgPackage <- "BSgenome.Hsapiens.NCBI.GRCh38"
 reportFile <- "report.html"
+primerFile <- "primers.tsv"
+productFile <- "products.tsv"
+rdsCard <- "rds-"
+sep <- "\t"
 
 # check for installed annotation
 if (!is.null(ensPackage)) {
@@ -89,4 +99,27 @@ exSeqs <- getExonSeqs(circData = circData, bsg = bsg, type = typeExons)
 if (!is.null(reportFile))
   reportCircs(exSeq = exSeqs, file = reportFile)
 
-primers <- designPrimers(exSeq = exSeqs, db = db, bsg = bsg)
+res <- designPrimers(exSeq = exSeqs, db = db, bsg = bsg)
+
+primerList <- unlist(res$primers, recursive = FALSE)
+primerList <- do.call(rbind, lapply(primerList,
+                                    function(x) {
+                                      x <- as.data.frame(x)
+                                      x[order(x$start), ]
+                                    }))
+write.table(
+  primerList,
+  file = primerFile,
+  sep = sep,
+  row.names = FALSE,
+  col.names = TRUE
+)
+write.table(
+  do.call(rbind, res$products),
+  file = productFile,
+  sep = sep,
+  row.names = FALSE,
+  col.names = TRUE
+)
+
+saveRDS(res
