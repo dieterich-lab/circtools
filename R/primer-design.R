@@ -1,5 +1,3 @@
- 
-
 clArgs <- commandArgs(trailingOnly = TRUE)
 
 default <- list(
@@ -10,10 +8,13 @@ default <- list(
   # processing 
   typeExons   = "longest",
   # output
+  # where to write an HTML report with exon sequences
   reportFile  = "report.html",
   primerFile  = "primers.tsv",
   productFile = "products.tsv",
+  # where to save the result of the designPrimers R function as an RDS object
   rdsFile     = "rds-",
+  # separator in input and output files
   sep         = "\t"
 )
 
@@ -122,7 +123,7 @@ if (!is.null(bsgPackage)) {
 }
 
 cat("Quering exon sequences....")
-exSeqs <- getExonSeqs(circData = circData, bsg = bsg, type = typeExons)
+exSeqs <- getExonSeqs(circData = circData, bsg = bsg, type = "shortest")
 if (!is.null(reportFile))
   reportCircs(exSeq = exSeqs, file = reportFile)
 cat("OK!\n")
