@@ -1,20 +1,38 @@
-library(circtools)
+ 
 
 clArgs <- commandArgs(trailingOnly = TRUE)
 
-parseArgs <- function(args) {
-  
+default <- list(
+  # input
+  circFile    = NULL, # "circs.tsv",
+  ensPackage  = NULL, # "EnsDb.Hsapiens.v86",
+  bsgPackage  = NULL, # "BSgenome.Hsapiens.NCBI.GRCh38",
+  # processing 
+  typeExons   = "longest",
+  # output
+  reportFile  = "report.html",
+  primerFile  = "primers.tsv",
+  productFile = "products.tsv",
+  rdsFile     = "rds-",
+  sep         = "\t"
+)
+
+parseArgs <- function(args, default) {
+  args <- matrix(args, ncol = 2, byrow = TRUE)
+  # remove "--"
+  args[, 1] <- substring(args[, 1], 3)
+  extraArgs <- setdiff(args[,1], names(default))
+  if (length(extraArgs) > 0)
+    stop("Wrong arguments: ", paste(extraArgs, collapse = ", "), "!")
+  default[args[,1]] <- args[,2]
+  default
 }
 
-ensPackage <- "EnsDb.Hsapiens.v86"
-circFile <- "circs.tab"
-typeExons <- "all"
-bsgPackage <- "BSgenome.Hsapiens.NCBI.GRCh38"
-reportFile <- "report.html"
-primerFile <- "primers.tsv"
-productFile <- "products.tsv"
-rdsCard <- "rds-"
-sep <- "\t"
+default <- parseArgs(clArgs, default)
+
+invisible(lapply(names(default), function(x) {
+  assign(x, default[[x]], envir = globalenv())
+}))
 
 # check for installed annotation
 if (!is.null(ensPackage)) {
@@ -45,6 +63,7 @@ if (!is.null(ensPackage)) {
     "Please construct an ensembldb object from the gtf file."))
 }
 
+suppressPackageStartupMessages(library(circtools))
 tableToGR <- function(table,
                          columns = list(
                            chr    = 1,
@@ -64,12 +83,19 @@ tableToGR <- function(table,
   gr
 }
 
-circs <- read.table(file = circFile, header =TRUE,sep = " ")
-circData <- CircData(db, tableToGR(circs, list(chr=1, start = 2, end = 3, strand = 5)))
+cat("Reading the circs...")
+circs <- read.table(file = circFile, sep = sep)
+circData <- CircData(db, tableToGR(circs, list(
+  chr = 1,
+  start = 2,
+  end = 3,
+  strand = 4
+)))
+cat("OK!\n")
 
 
 if (!is.null(bsgPackage)) {
-  a <- requireNamespace(ensPackage, quietly = TRUE)
+  a <- requireNamespace(bsgPackage, quietly = TRUE)
   if (!a) {
     cat(
       paste0(
@@ -90,17 +116,22 @@ if (!is.null(bsgPackage)) {
       )
     )
   }
-  bsg <- get(bsgPackage, envir = asNamespace(ensPackage))
+  bsg <- get(bsgPackage, envir = asNamespace(bsgPackage))
 } else {
   # check for fasta
 }
 
+cat("Quering exon sequences....")
 exSeqs <- getExonSeqs(circData = circData, bsg = bsg, type = typeExons)
 if (!is.null(reportFile))
   reportCircs(exSeq = exSeqs, file = reportFile)
+cat("OK!\n")
 
+cat("Primer design...")
 res <- designPrimers(exSeq = exSeqs, db = db, bsg = bsg)
+cat("OK!\n")
 
+cat("writting.....")
 primerList <- unlist(res$primers, recursive = FALSE)
 primerList <- do.call(rbind, lapply(primerList,
                                     function(x) {
@@ -122,4 +153,6 @@ write.table(
   col.names = TRUE
 )
 
-saveRDS(res
+if (!is.null(rdsFile)) 
+  saveRDS(res, rdsFile)
+cat("OK!\n")
