@@ -6,7 +6,7 @@ Description: Visualisation tools for circular RNAs.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-Remotes: bioc::3.5/ensembldb
+#Remotes: bioc::3.5/ensembldb
 Depends: GenomicRanges (>= 1.26.4),  ensembldb
 Imports: methods, graphics, AnnotationFilter, Rsamtools, htmltools, DECIPHER,
   RSQLite, S4Vectors,  IRanges, Biostrings, BSgenome, GenomicFeatures 

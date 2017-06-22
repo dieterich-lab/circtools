@@ -83,7 +83,9 @@ getTxOfSJExons <- function(db, exSeq, whichExons=c('any', 'both')){
 getTxSeqs <- function(db, bsg, exSeq) {
   geneIds <- vapply(exSeq, function(x) unique(
     S4Vectors::mcols(x)$gene_id), character(1))
-  ex <- ensembldb::exonsBy(db, filter = AnnotationFilter::GeneIdFilter(geneIds))
+  ex <- ensembldb::exonsBy(
+    db,
+    filter = AnnotationFilter::GeneIdFilter(unique(geneIds)))
   seqs <- GenomicFeatures::extractTranscriptSeqs(bsg, ex)
   seqs
 }
@@ -99,14 +101,15 @@ getTxSeqs <- function(db, bsg, exSeq) {
 #' @return a list with `primers` and `product` items.
 #' @details  
 #' 
-#' The following options are available for the primer design:
-#'   - minLength (0), maxLength (Inf): a min and max product length
+#' `opts` can include parameters for \code{\link[DECIPHER]{designPrimers}} and
+#' a vector lengthRange for further filtering by the product length
+#'  (default = c(0,Inf))
 #' @export
 #'
 designPrimers <- function(exSeq,
                           db,
                           bsg,
-                          opts = list(minLength = 0, maxLength = Inf)) {
+                          opts = list(lengthRange = c(0, Inf))) {
   # TODO choice if intersect with SJ
   seqs <- getCircSeqFromList(exSeq)
   txIntersect <- getTxOfSJExons(db, exSeq, whichExons = 'both')
@@ -126,7 +129,18 @@ designPrimers <- function(exSeq,
 .designForSJ <- function(circSeqs,
                          ex,
                          ts,
-                         opts = list()) {
+                         opts) {
+  designCallArgs <- formals(DECIPHER::DesignPrimers)
+  options <- list(
+      minCoverage = 1,
+      minGroupCoverage = 1,
+      maxSearchSize = 1e4,
+      worstScore = -10,
+      verbose = FALSE
+  )
+  options[names(opts)] <- opts
+  argsNames <- intersect(names(designCallArgs), names(options))
+  designCallArgs[argsNames] <- options[argsNames]
   # add sequences to the db and corresponding tx's
   dbConn <- RSQLite::dbConnect(RSQLite::SQLite(), ":memory:")
   stringSet <- Biostrings::DNAStringSet(circSeqs$circSeq)
@@ -147,35 +161,29 @@ designPrimers <- function(exSeq,
                               verbose = FALSE)
   # TODO: suppress msgs
   primers <- lapply(circSeqs$seqId, function(seqId) {
-    primers <- DECIPHER::DesignPrimers(
-      tiles = tiles,
-      identifier = seqId,
-      minCoverage = 1,
-      minGroupCoverage = 1,
-      #numPrimerSets = 5,
-      maxSearchSize = 1e4,
-      worstScore = -10,
-      #minProductSize = 60,
-      #minEfficiency = .8,
-      verbose = FALSE
-    )
+    designCallArgs$tiles <- tiles
+    designCallArgs$identifier <- seqId
+    primers <- do.call(DECIPHER::DesignPrimers, designCallArgs)
   })
   primers <- decipher2iranges(primers)
   names(primers) <- circSeqs$seqId
-  lengthRange <- c(opts$minLength, opts$maxLength)
-  bestPrimers <- lapply(names(primers), function(sjId) {
+  bestPrimers <- lapply(names(primers), function(seqId) {
+    exonId <- circSeqs$upExonId[circSeqs$seqId == seqId]
     sj <- IRanges::IRanges(
-      Biostrings::width(ex$seq[ex$exon_id == circSeqs$upExonId]), width = 2)
-    selectBestPrimers(p=primers[[sjId]], sj, lengthRange)
+      Biostrings::width(ex$seq[ex$exon_id == exonId]), width = 2)
+    selectBestPrimers(p=primers[[seqId]], sj, opts$lengthRange)
   })
   names(bestPrimers) <- names(primers)
   primersGR <- lapply(names(bestPrimers), function(seqId) {
     i <- which(seqId == circSeqs$seqId)
     upExon   <- ex[which(S4Vectors::mcols(ex)$exon_id == circSeqs$upExonId[i])]
     downExon <- ex[which(S4Vectors::mcols(ex)$exon_id == circSeqs$downExonId[i])]
-    circ2genome(bestPrimers[[seqId]],
+    gr <- circ2genome(bestPrimers[[seqId]],
                 upExon = upExon,
                 downExon = downExon)
+    gr$upExon <- unique(upExon$exon_id)
+    gr$downExon <- unique(downExon$exon_id)
+    gr
   })
   names(primersGR) <- names(bestPrimers)
   GenomicRanges::GRangesList(primersGR)
@@ -191,6 +199,7 @@ selectBestPrimers <- function(p, sj, lengthRange) {
   })
   p <- split(p, S4Vectors::mcols(p)$type)
   # forward primer on sj
+  if(!is.null(best$forward)){
   rangeForEnd <- IRanges::start(best$forward) + lengthRange - 1
   o <- IRanges::end(p$reverse) >= rangeForEnd[1] &
        IRanges::end(p$reverse) <= rangeForEnd[2]
@@ -199,13 +208,16 @@ selectBestPrimers <- function(p, sj, lengthRange) {
     result$forwardSJ <- c(best$forward,
                           p$reverse[which.max(mcols(p$reverse[o])$efficiency)])
   }
+  }
   # reverse primer on sj
+  if(!is.null(best$reverse)){
   rangeForStart <- IRanges::end(best$reverse) - lengthRange + 1
   o <- IRanges::start(p$forward) >= rangeForStart[1] &
        IRanges::start(p$forward) <= rangeForStart[2]
   if (any(o)) {
     result$reverseSJ <- c(p$forward[which.max(mcols(p$forward[o])$efficiency)],
         best$reverse)
+  }
   }
   bestInd <- which.max(lapply(result, function(x) {
     sum(S4Vectors::mcols(x)$efficiency)
