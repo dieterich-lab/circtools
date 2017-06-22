@@ -1,5 +1,8 @@
+helpString <- "
 # Usage
 # 
+#  --help        prints this help
+#
 #  INPUT:
 #  
 #  --circFile    a tab/comma separated file of splice junction coordinates
@@ -25,9 +28,11 @@
 #  --rdsFile     (default  result.rds)
 #                a filename for the RDS object of the result from  the 
 #                `designPrimers` R function
-#  --sep         (default \t) the separator in input and output files
+#  --sep         (default \\t) the separator in input and output files
 # 
-#
+
+"
+
 
 clArgs <- commandArgs(trailingOnly = TRUE)
 
@@ -50,6 +55,10 @@ default <- list(
 )
 
 parseArgs <- function(args, default) {
+  if (any(args == "--help")) {
+    cat(helpString)
+    quit()
+  }
   args <- matrix(args, ncol = 2, byrow = TRUE)
   # remove "--"
   args[, 1] <- substring(args[, 1], 3)
