@@ -1,3 +1,6 @@
+if (as.numeric(R.Version()$minor) *.1 + as.numeric(R.Version()$major) < 3.4)
+  stop("Please update R to the version 3.4 or later")
+
 source("https://bioconductor.org/biocLite.R")
 
 options(repos = c(CRAN = "http://cran.rstudio.com"))
