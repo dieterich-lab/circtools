@@ -1,3 +1,34 @@
+# Usage
+# 
+#  INPUT:
+#  
+#  --circFile    a tab/comma separated file of splice junction coordinates
+#                with the columns ordered as:
+#                chromosome, start, end, strand
+#  
+#  --ensPackage  an ensembldb package name, e.g. EnsDb.Hsapiens.v86
+#  --bsgPackage  BSGenome package name, e.g. BSgenome.Hsapiens.NCBI.GRCh38
+#
+#  PROCESSING:
+#  
+#  --typeExons   longest|shortest|all exons to use for primer design
+#
+#  OUTPUT:
+#  
+#   
+#  --reportFile  (default report.html) 
+#                a filename for an  HTML report with exon sequences
+#  --primerFile  (default primers.tsv) 
+#                a filename for a
+#  --productFile (default products.tsv)
+#                a filename for an  HTML report with exon sequences
+#  --rdsFile     (default  result.rds)
+#                a filename for the RDS object of the result from  the 
+#                `designPrimers` R function
+#  --sep         (default \t) the separator in input and output files
+# 
+#
+
 clArgs <- commandArgs(trailingOnly = TRUE)
 
 default <- list(
@@ -13,7 +44,7 @@ default <- list(
   primerFile  = "primers.tsv",
   productFile = "products.tsv",
   # where to save the result of the designPrimers R function as an RDS object
-  rdsFile     = "rds-",
+  rdsFile     = "result.rds",
   # separator in input and output files
   sep         = "\t"
 )
