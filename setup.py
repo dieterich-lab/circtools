@@ -7,10 +7,44 @@ https://github.com/pypa/sampleproject
 
 # Always prefer setuptools over distutils
 from os import path
-
 from setuptools.command.develop import develop
 from setuptools.command.install import install
 from setuptools import setup, find_packages
+
+import sys
+
+
+def query_yes_no(question, default="yes"):
+    """Ask a yes/no question via raw_input() and return their answer.
+
+    "question" is a string that is presented to the user.
+    "default" is the presumed answer if the user just hits <Enter>.
+        It must be "yes" (the default), "no" or None (meaning
+        an answer is required of the user).
+
+    The "answer" return value is True for "yes" or False for "no".
+    """
+    valid = {"yes": True, "y": True, "ye": True,
+             "no": False, "n": False}
+    if default is None:
+        prompt = " [y/n] "
+    elif default == "yes":
+        prompt = " [Y/n] "
+    elif default == "no":
+        prompt = " [y/N] "
+    else:
+        raise ValueError("invalid default answer: '%s'" % default)
+
+    while True:
+        sys.stdout.write(question + prompt)
+        choice = input().lower()
+        if default is not None and choice == '':
+            return valid[default]
+        elif choice in valid:
+            return valid[choice]
+        else:
+            sys.stdout.write("Please respond with 'yes' or 'no' "
+                             "(or 'y' or 'n').\n")
 
 
 class PostDevelopCommand(develop):
@@ -25,13 +59,62 @@ class PostInstallCommand(install):
     """Post-installation for installation mode."""
 
     def run(self):
-        print("We need to install two other programs of the Dieterich lab circRNA suit: DCC and FUCHS.")
-        print("We'll install both of them for you from GitHub.")
+
+        import subprocess
+        from time import sleep
+
         print("")
-        print("If you want to cancel the installation press CTRL-C now.")
-        # from time import sleep
+
+        # step 1: install DCC, FUCHS and primer design R module
+        # print("We need to install two other programs of the Dieterich lab circRNA suit: DCC and FUCHS.")
+        # print("We'll install both of them for you from GitHub.")
+        # print("")
+        # print("If you want to cancel the installation press CTRL-C now.")
         # sleep(10)
-        # check_call(["sh", "scripts/external_install.sh"])
+        # import subprocess
+        # subprocess.check_call(["sh", "scripts/external_install.sh"])
+
+        # step 2: update $PATH
+        print("In order for circtools to be globally callable, we would add the installation folder to the $PATH")
+        print("variable. Would you like us to do that?")
+
+        answer = query_yes_no("Update $PATH in .bashrc?")
+        if answer:
+            print("Running update script...")
+            subprocess.check_call(["sh", "scripts/add_to_bashrc.sh"])
+        else:
+            print("Okay. Please update the $PATH variable yourself, otherwise you may not be able to run circtools.")
+        sleep(5)
+
+        print("")
+
+        # step 3: create .Renviron file
+        print("In order for the circtools primer design module to run, we need to install some R modules.")
+        print("Please make sure R >= 3.4.0 is installed.")
+        print("Should we update the R package location in order to install package as user?")
+
+        answer = query_yes_no("Update R_LIB in .Renviron")
+        if answer:
+            print("Running update script...")
+            subprocess.check_call(["sh", "scripts/create_r_environ.sh"])
+        else:
+            print("Okay. If the R library path is not writeable the installation will most probably fail.")
+        sleep(5)
+
+        print("")
+
+        # step 4: install OligoArrayAux
+        print("The circtools primer module also requires the software \"OligoArrayAux\".")
+        print("Should we install the software for you?")
+        print("If you choose yes OligoArrayAux will be installed into $HOME/.local/.")
+
+        answer = query_yes_no("Install OligoArrayAux?")
+        if answer:
+            print("Running installer script...")
+            subprocess.check_call(["sh", "scripts/install_oligo_array_aux.sh"])
+        else:
+            print("Okay. Please install OligoArrayAux yourself. Otherwise the primer module will not be functional.")
+        sleep(5)
 
         install.run(self)
         # place for post install commands
