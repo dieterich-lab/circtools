@@ -175,12 +175,64 @@ class CircTools(object):
         parser = argparse.ArgumentParser(
             description="circular RNA primer design")
         # NOT prefixing the argument with -- means it"s not optional
-        parser.add_argument("param1")
-        parser.add_argument("param2")
-        parser.add_argument("param3")
+
+        group = parser.add_argument_group("Input")
+        group.add_argument("-c",
+                           "--circFile",
+                           dest="circ-file",
+                           help="A tab/comma separated file of splice junction coordinates with the columns ordered as:\
+                            chromosome, start, end, strand",
+                           )
+        group.add_argument("-e",
+                           "--ensPackage",
+                           dest="ensPackage",
+                           help="An ensembldb package name, e.g. EnsDb.Hsapiens.v86",
+                           )
+        group.add_argument("-b",
+                           "--bsgPackage",
+                           dest="ensPackage",
+                           help="BSGenome package name, e.g. BSgenome.Hsapiens.NCBI.GRCh38",
+                           )
+
+        group = parser.add_argument_group("Processing")
+        group.add_argument("-t",
+                           "--typeExons",
+                           dest="typeExons",
+                           help="Longest|shortest|all exons to use for primer design",
+                           )
+
+        group = parser.add_argument_group("Output")
+        group.add_argument("-r",
+                           "--reportFile",
+                           dest="reportFile",
+                           help="A filename for an  HTML report with exon sequences [Default: report.html]",
+                           )
+        group.add_argument("-p",
+                           "--primerFile",
+                           dest="primerFile",
+                           help="A filename for an... [Default: primers.tsv]",  # Todo: help text missing
+                           )
+        group.add_argument("-u",
+                           "--productFile",
+                           dest="productFile",
+                           help="A filename for an  HTML report with exon sequences [Default: products.tsv]",
+                           )
+        group.add_argument("-d",
+                           "--rdsFile",
+                           dest="rdsFile",
+                           help="A filename for the RDS object of the result from the `designPrimers` R function "
+                                "[Default: result.rds]",
+                           )
+        group.add_argument("-s",
+                           "--sep",
+                           dest="sep",
+                           help="The separator in input and output files [Default: \\t]",
+                           )
 
         args = parser.parse_args(sys.argv[2:])
-        # print("Running primer module with param: %s" % args.repository)
+
+        import os
+        os.system("DCC " + args.cli_params)
 
         # start the primer module
         import primer.primer_r
