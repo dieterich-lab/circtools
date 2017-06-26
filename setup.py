@@ -152,6 +152,7 @@ setup(
     # this will be our main "executable"
     scripts=[
         'scripts/circtools',
+        'scripts/circtools_primer',
     ],
 
     # adding support for post install scripts from

@@ -62,13 +62,22 @@ class PrimerDesign(circ_module.circ_template.CircTemplate):
             # ------------------------------------ need to call the correct R script here -----------------------
 
             # need to define path top R wrapper
-            path2script = 'path/to your script/max.R'
+            primer_script = 'circtools_primer'
 
             # Variable number of args in a list
-            args = ['11', '3', '9', '42']
+            args = [
+                    '--circFile', self.cli_params.circFile,
+                    '--ensPackage', self.cli_params.ensPackage,
+                    '--bsgPackage', self.cli_params.bsgPackage,
+                    '--typeExons', self.cli_params.typeExons,
+                    '--reportFile', self.cli_params.reportFile,
+                    '--productFile', self.cli_params.productFile,
+                    '--rdsFile', self.cli_params.rdsFile,
+                    '--sep', self.cli_params.sep
+                    ]
 
             # Build subprocess command
-            cmd = [self.command, path2script] + args
+            cmd = [self.command, primer_script] + args
             #
             # check_output will run the command and store to result
 
