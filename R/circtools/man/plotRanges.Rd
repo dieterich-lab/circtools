@@ -5,7 +5,8 @@
 \title{Plots segments for a list of intervals}
 \usage{
 plotRanges(ids, starts, ends, segmentSize, minWidth = 0,
-  xlim = range(starts, ends), ylim = c(0, 1 + length(levels(ids))), opts)
+  col = "dodgerblue4", xlim = range(starts, ends), ylim = c(0, 1 +
+  length(levels(ids))), opts)
 }
 \arguments{
 \item{ids}{a character vector}
@@ -18,6 +19,8 @@ plotRanges(ids, starts, ends, segmentSize, minWidth = 0,
 for several subplots}
 
 \item{minWidth}{a minimal segment width in inches}
+
+\item{col}{the color of the segments}
 
 \item{xlim}{a range of interval coordinates on the plot. Used for alignment
 of features at multiple plots}

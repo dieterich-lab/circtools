@@ -1,7 +1,7 @@
 Circtools
 ================
 Alexey Uvarovskii
-2017-05-19
+2017-06-21
 
 Introduction
 ------------
@@ -91,12 +91,12 @@ tail(counts)
 ```
 
     ##                 id count
-    ## 6  ENST00000450123   705
-    ## 7  ENST00000470319   800
-    ## 8  ENST00000479110     0
-    ## 9  ENST00000480458     0
+    ## 6  ENST00000450123     0
+    ## 7  ENST00000470319     0
+    ## 8  ENST00000479110   878
+    ## 9  ENST00000480458   910
     ## 10 ENST00000496823     0
-    ## 11 ENST00000621333  1185
+    ## 11 ENST00000621333     0
 
 The workflow entry point
 ------------------------
@@ -153,16 +153,16 @@ exShortesSeq[['3:187734869-187737088']]
     ## GRanges object with 2 ranges and 5 metadata columns:
     ##       seqnames                 ranges strand |         exon_id
     ##          <Rle>              <IRanges>  <Rle> |     <character>
-    ##   [1]        3 [187736090, 187737088]      - | ENSE00001666929
-    ##   [2]        3 [187734869, 187734882]      - | ENSE00002535122
+    ##   [1]        3 [187734869, 187734882]      - | ENSE00002535122
+    ##   [2]        3 [187736090, 187737088]      - | ENSE00001666929
     ##               gene_id                  sjId        side
     ##           <character>           <character> <character>
     ##   [1] ENSG00000113916 3:187734869-187737088        left
     ##   [2] ENSG00000113916 3:187734869-187737088       right
     ##                           seq
     ##                <DNAStringSet>
-    ##   [1] TCTCATTGAC...TGCTCATTTG
-    ##   [2]          AAGCAAGGCATTGG
+    ##   [1]          AAGCAAGGCATTGG
+    ##   [2] TCTCATTGAC...TGCTCATTTG
     ##   -------
     ##   seqinfo: 1 sequence from GRCh38 genome
 
@@ -184,7 +184,7 @@ Design and validate primers
 To get *in silico* optimized primer sequences, one needs simply to invoke `designPrimers` function on the splice junction exons object:
 
 ``` r
-primers <- designPrimers(exSeq = exShortesSeq[1], db = db, bsg = bsg)
+primers <- designPrimers(exSeq = exShortesSeq, db = db, bsg = bsg)
 ```
 
 The result is a list with an item for every splice junction. There are two records: `primers` and `products`. Every item consists of a list of primers for possible circular transcripts: if there several exons, which correspons to the same splice junction, all possible combinations of their pairs will be used for primer design.
@@ -195,13 +195,19 @@ The priducts are
 str(primers$products)
 ```
 
-    ## List of 1
+    ## List of 2
     ##  $ 3:187734869-187737088:'data.frame':   1 obs. of  5 variables:
     ##   ..$ sjId      : chr "3:187734869-187737088"
-    ##   ..$ upExonId  : chr "ENSE00001666929"
-    ##   ..$ downExonId: chr "ENSE00002535122"
-    ##   ..$ circSeq   : chr "TCTCATTGACAGCCCTGCTCCTTGGAGATTGTTTTTGTGGGTAGTCTTGTGTGTGGCATTGGTGGAATGGCTGAATCTAGGAGACGCGGCGTGTCCAGAACTTGCTGGAAA"| __truncated__
+    ##   ..$ upExonId  : chr "ENSE00002535122"
+    ##   ..$ downExonId: chr "ENSE00001666929"
+    ##   ..$ circSeq   : chr "AAGCAAGGCATTGGTCTCATTGACAGCCCTGCTCCTTGGAGATTGTTTTTGTGGGTAGTCTTGTGTGTGGCATTGGTGGAATGGCTGAATCTAGGAGACGCGGCGTGTCCA"| __truncated__
     ##   ..$ seqId     : chr "3:187734869-187737088"
+    ##  $ 3:187734869-187745727:'data.frame':   1 obs. of  5 variables:
+    ##   ..$ sjId      : chr "3:187734869-187745727"
+    ##   ..$ upExonId  : chr "ENSE00002535122"
+    ##   ..$ downExonId: chr "ENSE00001564372"
+    ##   ..$ circSeq   : chr "AAGCAAGGCATTGGATACCATCGTCTTGGGCCCGGGGAGGGAGAGCCACCTTCAGGCCCCTCGAGCCTCGAACCGGAACCTCCAAATCCGAGACGCTCTGCTTATGAGGAC"| __truncated__
+    ##   ..$ seqId     : chr "3:187734869-187745727"
 
 and the primers
 
@@ -211,44 +217,69 @@ primers$primers$`3:187734869-187737088`
 
     ## GRangesList object of length 1:
     ## $3:187734869-187737088 
-    ## GRanges object with 3 ranges and 4 metadata columns:
+    ## GRanges object with 3 ranges and 6 metadata columns:
     ##       seqnames                 ranges strand |                    seq
     ##          <Rle>              <IRanges>  <Rle> |            <character>
-    ##   [1]        3 [187736090, 187736102]      - | GAGTGCTCATTTGAAGCAAGGC
-    ##   [2]        3 [187736998, 187737018]      - |  GCCATTCCACCAATGCCACAC
-    ##   [3]        3 [187734874, 187734882]      - | GAGTGCTCATTTGAAGCAAGGC
-    ##              type efficiency                 seqId
-    ##       <character>  <numeric>           <character>
-    ##   [1]     forward  0.9261266 3:187734869-187737088
-    ##   [2]     reverse  0.9692953 3:187734869-187737088
-    ##   [3]     forward  0.9261266 3:187734869-187737088
+    ##   [1]        3 [187734869, 187734876]      - | GGCATTGGTCTCATTGACAGCC
+    ##   [2]        3 [187737075, 187737088]      - | GGCATTGGTCTCATTGACAGCC
+    ##   [3]        3 [187736974, 187736990]      - |      TCTGGACACGCCGCGTC
+    ##              type efficiency                 seqId          upExon
+    ##       <character>  <numeric>           <character>     <character>
+    ##   [1]     forward  0.9434878 3:187734869-187737088 ENSE00002535122
+    ##   [2]     forward  0.9434878 3:187734869-187737088 ENSE00002535122
+    ##   [3]     reverse  0.9853872 3:187734869-187737088 ENSE00002535122
+    ##              downExon
+    ##           <character>
+    ##   [1] ENSE00001666929
+    ##   [2] ENSE00001666929
+    ##   [3] ENSE00001666929
     ## 
     ## -------
     ## seqinfo: 1 sequence from an unspecified genome; no seqlengths
 
 ``` r
-plotCirc(circGenes = bcl6EnsId,
+circ <- "3:187734869-187737088"
+plotCirc(sjIds = circ,
+         #circGenes = bcl6EnsId,
          circData = circData,
          counts = counts, 
-         primers = primers$primers$`3:187734869-187737088`, 
+         primers = primers$primers[[circ]],
+         opts = list(normalise = FALSE))
+circ <-"3:187734869-187745727"
+plotCirc(sjIds = circ,
+         #circGenes = bcl6EnsId,
+         circData = circData,
+         counts = counts, 
+         primers = primers$primers[[circ]],
          opts = list(normalise = FALSE))
 ```
 
-![](plot-transcripts_files/figure-markdown_github/unnamed-chunk-16-1.png)
+![](plot-transcripts_files/figure-markdown_github/unnamed-chunk-16-1.png)![](plot-transcripts_files/figure-markdown_github/unnamed-chunk-16-2.png)
 
 ### Filter by counts and easy view
 
 Sometimes it is cleaner to keep only expressed transcripts. One can specify a threshold for read count in `countThres` argument. In addition, by default, all the coordinated used for plotting are transformed for easier interpretation of relative position. It can be turned off in `opts$normalise = FALSE`.
 
 ``` r
-plotCirc(circGenes = bcl6EnsId,
+circ <- "3:187734869-187737088"
+plotCirc(sjIds = circ,
+         #circGenes = bcl6EnsId,
          circData = circData,
-         #counts = counts, 
-         primers = primers$primers$`3:187734869-187737088`,
-         countThres = 1)
+         counts = counts, 
+         primers = primers$primers[[circ]],
+         countThres = 1,
+         opts = list(normalise =TRUE))
+circ <- "3:187734869-187745727"
+plotCirc(sjIds = circ,
+         #circGenes = bcl6EnsId,
+         circData = circData,
+         counts = counts, 
+         primers = primers$primers[[circ]],
+         countThres = 1,
+         opts = list(normalise =TRUE))
 ```
 
-![](plot-transcripts_files/figure-markdown_github/unnamed-chunk-17-1.png)
+![](plot-transcripts_files/figure-markdown_github/unnamed-chunk-17-1.png)![](plot-transcripts_files/figure-markdown_github/unnamed-chunk-17-2.png)
 
 Session
 -------
@@ -306,10 +337,10 @@ sessionInfo()
     ## [11] GenomeInfoDbData_0.99.0       stringr_1.2.0                
     ## [13] zlibbioc_1.22.0               ProtGenerics_1.8.0           
     ## [15] memoise_1.1.0                 evaluate_0.10                
-    ## [17] knitr_1.15.1                  biomaRt_2.32.0               
+    ## [17] knitr_1.16                    biomaRt_2.32.0               
     ## [19] httpuv_1.3.3                  BiocInstaller_1.26.0         
-    ## [21] Rcpp_0.12.10                  xtable_1.8-2                 
-    ## [23] backports_1.0.5               DelayedArray_0.2.2           
+    ## [21] Rcpp_0.12.11                  xtable_1.8-2                 
+    ## [23] backports_1.1.0               DelayedArray_0.2.2           
     ## [25] mime_0.5                      Rsamtools_1.28.0             
     ## [27] AnnotationHub_2.8.1           digest_0.6.12                
     ## [29] stringi_1.1.5                 shiny_1.0.3                  

@@ -4,7 +4,7 @@
 \alias{designPrimers}
 \title{Design primers}
 \usage{
-designPrimers(exSeq, db, bsg, opts = list(minLength = 0, maxLength = Inf))
+designPrimers(exSeq, db, bsg, opts = list(lengthRange = c(0, Inf)))
 }
 \arguments{
 \item{exSeq}{a GRanges list with GRanges of exons on the splice junction.
@@ -23,8 +23,7 @@ a list with \code{primers} and \code{product} items.
 Design primers
 }
 \details{
-The following options are available for the primer design:
-\itemize{
-\item minLength (0), maxLength (Inf): a min and max product length
-}
+\code{opts} can include parameters for \code{\link[DECIPHER]{designPrimers}} and
+a vector lengthRange for further filtering by the product length
+(default = c(0,Inf))
 }
