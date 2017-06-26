@@ -36,56 +36,39 @@ class PrimerDesign(circ_module.circ_template.CircTemplate):
         # needed for Rscript decoupling
         import subprocess
 
-        # param1 = self.cli_params.output_directory
+        # import re module
+        import re
 
-        try:
-            # we assume Rscript is in the user's $PATH variable
+        r_location = subprocess.check_output(['which', self.command], universal_newlines=True,
+                                             stderr=subprocess.STDOUT).split('\n')[0]
 
-            # But..let's check that first, you never know
+        r_version = subprocess.check_output([self.command, '--version'], universal_newlines=True,
+                                            stderr=subprocess.STDOUT)
+        # okay, Rscript is really there, we put together the command line now:
 
-            # import re module
-            import re
+        m = re.search('(\d+\.\d+\.\d+)', r_version)
+        r_version = m.group(0)
 
-            r_location = subprocess.check_output(['which', self.command], universal_newlines=True,
-                                                 stderr=subprocess.STDOUT).split('\n')[0]
+        self.log_entry("Using R version %s [%s]" % (r_version, r_location))
 
-            r_version = subprocess.check_output([self.command, '--version'], universal_newlines=True,
-                                                stderr=subprocess.STDOUT)
-            # okay, Rscript is really there, we put together the command line now:
+        # ------------------------------------ need to call the correct R script here -----------------------
 
-            m = re.search('(\d+\.\d+\.\d+)', r_version)
-            r_version = m.group(0)
+        # need to define path top R wrapper
+        primer_script = 'circtools_primer'
 
-            self.log_entry("Using R version %s [%s]" % (r_version, r_location))
+        # Variable number of args in a list
+        args = [
+                '--circFile', self.cli_params.circFile,
+                '--ensPackage', self.cli_params.ensPackage,
+                '--bsgPackage', self.cli_params.bsgPackage,
+                '--typeExons', self.cli_params.typeExons,
+                '--reportFile', self.cli_params.reportFile,
+                '--productFile', self.cli_params.productFile,
+                '--rdsFile', self.cli_params.rdsFile,
+                '--sep', self.cli_params.sep
+                ]
 
-            exit()
-            # ------------------------------------ need to call the correct R script here -----------------------
+        # ------------------------------------ run script and check output -----------------------
 
-            # need to define path top R wrapper
-            primer_script = 'circtools_primer'
-
-            # Variable number of args in a list
-            args = [
-                    '--circFile', self.cli_params.circFile,
-                    '--ensPackage', self.cli_params.ensPackage,
-                    '--bsgPackage', self.cli_params.bsgPackage,
-                    '--typeExons', self.cli_params.typeExons,
-                    '--reportFile', self.cli_params.reportFile,
-                    '--productFile', self.cli_params.productFile,
-                    '--rdsFile', self.cli_params.rdsFile,
-                    '--sep', self.cli_params.sep
-                    ]
-
-            # Build subprocess command
-            cmd = [self.command, primer_script] + args
-            #
-            # check_output will run the command and store to result
-
-            # ------------------------------------ run script and check output -----------------------
-
-            module_output = subprocess.check_output(cmd, universal_newlines=True)
-
-        except subprocess.CalledProcessError:
-            self.log_entry("`Rscript` (a part of the R installation) could not be found in your $PATH.")
-
-
+        import os
+        os.system(primer_script + " " + ' '.join(str(e) for e in args))
