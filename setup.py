@@ -6,13 +6,11 @@ https://github.com/pypa/sampleproject
 """
 
 # Always prefer setuptools over distutils
-from codecs import open
 from os import path
-from subprocess import check_call
 
-from setuptools import setup
 from setuptools.command.develop import develop
 from setuptools.command.install import install
+from setuptools import setup, find_packages
 
 
 class PostDevelopCommand(develop):
@@ -31,9 +29,9 @@ class PostInstallCommand(install):
         print("We'll install both of them for you from GitHub.")
         print("")
         print("If you want to cancel the installation press CTRL-C now.")
-        from time import sleep
-        sleep(10)
-        check_call(["sh", "scripts/external_install.sh"])
+        # from time import sleep
+        # sleep(10)
+        # check_call(["sh", "scripts/external_install.sh"])
 
         install.run(self)
         # place for post install commands
@@ -104,7 +102,7 @@ setup(
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
-    packages=['circtools'],
+    packages=find_packages(),
 
     # List run-time dependencies here.  These will be installed by pip when
     # your project is installed. For an analysis of "install_requires" vs pip's

@@ -17,7 +17,7 @@
 
 import argparse
 import sys
-
+import os.path
 
 # global settings
 version = "0.0.1a"
@@ -165,6 +165,9 @@ class CircTools(object):
                            )
         args = parser.parse_args(sys.argv[2:])
 
+        # make sure we can load the sub module
+        sys.path.append(os.path.join(os.path.dirname(__file__)))
+
         # start the enrichment module
         import enrichment.enrichment_check
         enrich = enrichment.enrichment_check.EnrichmentModule(args, program_name, version)
@@ -231,10 +234,11 @@ class CircTools(object):
 
         args = parser.parse_args(sys.argv[2:])
 
-        import os
-        os.system("DCC " + args.cli_params)
-
         # start the primer module
+
+        # make sure we can load the sub module
+        sys.path.append(os.path.join(os.path.dirname(__file__)))
+
         import primer.primer_r
         primer_instance = primer.primer_r.PrimerDesign(args, program_name, version)
         primer_instance.run_module()
