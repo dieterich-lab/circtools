@@ -5,7 +5,9 @@ This project contains the framework of the circular RNA toolbox ``circtools``.
 This package is written in python3 (3.4). It has a number of external dependencies, mostly standard bioinformatics tools:
 
 * bedtools (>= 2.26.0) [RBP enrichment module]
-* R (>= 3.2) [for primer design module]
+* R (>= 3.4) [for primer design module]
+* [OligoArrayAux](http://unafold.rna.albany.edu/?q=DINAMelt/OligoArrayAux) 
+  (reuired by DECIPHER Bioconductor package for anealing efficiency estimations)
 
 Installation is managed through `python3 setup.py install`. No sudo access is required if the installation is executed with ``--user`` which will install the package in a user-writeable folder. The binaries should be installed to ``/home/$user/.local/bin/`` in case of Debian-based systems.
 
@@ -52,7 +54,7 @@ The ``reconstruct`` command is an interface to [FUCHS](https://github.com/dieter
 
 ### primer
 
-The ``primer`` command is used to design and visualize primers required for follow up wet lab experiments to verify circRNA candidates. The full documentation for the ``primer`` module is located in its own [manual](R/circtools/vignettes/plot-transcripts.Rmd). 
+The ``primer`` command is used to design and visualize primers required for follow up wet lab experiments to verify circRNA candidates. The full documentation for the ``primer`` module is located in its own [manual](R/circtools/vignettes/plot-transcripts.md). 
 
 ### enrich
 

@@ -2,7 +2,7 @@ context("test plotting of isoforms")
 
 
 test_that("function plots anything", {
-  dat <- testData()
+  dat <- circtools:::testData()
   expect_silent(
     plotTranscripts(
       exons = dat$exons,
@@ -15,7 +15,7 @@ test_that("function plots anything", {
 })
 
 test_that("no error if only part is supplied", {
-  dat <- testData()
+  dat <- circtools:::testData()
   expect_silent(
     plotTranscripts(
       exons = dat$exons,

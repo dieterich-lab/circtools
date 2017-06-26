@@ -1,33 +1,31 @@
 
-unifyDiff <- function(x,y, ratio){
+
+unifyDiff <- function(x,y) {
     points <- cbind(x,y)
     o <- order(points)
-    deltas <- diff(points[o])
-    nonZeroDeltas <- deltas[deltas>0]
-    logs <- log(nonZeroDeltas/min(nonZeroDeltas))
-    logs <- logs / max(logs) * log(ratio)
-    # back
-    nonZeroDeltas <- exp(logs)
-    deltas[deltas > 0] <- nonZeroDeltas
-    points[o] <- cumsum(c(1,deltas))
+    res <- rle(points[o]) 
+    res$values <- seq_along(unique(res$values))
+    points[o] <- inverse.rle(res)
     list(points[seq_along(x)],
          points[seq_along(y) + length(x)])
 }
 
-normaliseData <- function(..., ratio=5){
+normaliseData <- function(...){
     dat <- list(...)
-    columns <- c("start_pos", "end_pos")
+    toProcess <- vapply(dat, Negate(is.null), logical(1))
+    columns <- c("start", "end")
     positions <- do.call(rbind,
-        lapply(names(dat), function(x){
-            cbind(id=x,dat[[x]][, columns])
+        lapply(names(dat)[toProcess], function(x){
+          cbind(id = x, dat[[x]][, columns])
         })
     )
     result <- as.data.frame(
         do.call(cbind,
-            unifyDiff(positions$start_pos, positions$end_pos, ratio=ratio))
+                unifyDiff(positions$start, positions$end))
     )
     names(result) <- columns
-    split(result, positions$id)
+    dat[toProcess] <- split(result, positions$id)
+    dat
 }
 
 testData <- function() {
@@ -64,7 +62,7 @@ testData <- function() {
                             ))
   names(res$primers) <- c("id", "start", "end")
   # circ coord
-  res$circs <-  data.frame(id = "circ1",
+  res$circs <-  data.frame(sjId = "circ1",
                            start = e1$start[4],
                            end = e1$end[6])
   #circ primers

@@ -35,7 +35,7 @@ validation experiments. A biologist might be interested to know
 ## A proposed workflow
 
 1. Prepare the input data set:
-    - the gene model: a GTF/GFF file, TxDb or EnsDb objects
+    - the gene model: a GTF/GFF file or EnsDb objects
     - transcripts counts 
     - splice junction coordinates for the circular candidates.
 2. Generate sequences of the exons around the splice junctions.
@@ -57,7 +57,7 @@ the transcripts if they are provided.
 ## Annotation source 
 
 Coordinates and types of genomic features must be known in advance, and
-it can be provided in the form of `GTF/GFF` file or `TxDb`/`EnsDb` objects.
+it can be provided in the form of `GTF/GFF` file or `EnsDb` objects.
 In the frame of the package we encourage one to use the Ensemble annotation
 files or R packages, which can be downloaded from the [Ensembl site](http://www.ensembl.org) or installed via the Bioconductor ecosystem:
 ```{r eval=FALSE}
@@ -89,7 +89,7 @@ createCirc <- function(geneName, db){
   ex1 <- exonsBy(db, filter=TxidFilter(txs$TXNAME[1]))[[1]]
   ex2 <- exonsBy(db, filter=TxidFilter(txs$TXNAME[2]))[[1]]
   circCoords <- c(range(ex1[1:2]), range(ex2[1:2]))
-  mcols(circCoords)$CIRCID <- paste0(seqnames(circCoords), ":",
+  mcols(circCoords)$sjId <- paste0(seqnames(circCoords), ":",
                                      start(circCoords), "-", end(circCoords))
   circCoords
 }
@@ -111,7 +111,7 @@ makeCounts <- function(geneName, db) {
   txNames <- unique(names(ex))
   counts <- data.frame(id = names(ex),
   count = rnbinom(length(txNames), mu = 1000, size = 10))
-  counts$count[sample(length(txNames), size = length(txNames) * .75)] <- 0
+  counts$count[sample(length(txNames), size = length(txNames) * .50)] <- 0
   counts
 }
 
@@ -144,19 +144,8 @@ bcl6EnsId
 ```{r, fig.height=3, fig.width=6}
 plotCirc(circGenes = bcl6EnsId,
          circData = circData,
-         counts = counts)
-```
-
-
-Alternatively, the `plotTranscripts` function can be used for 
-plotting from `data.frame` or `GRanges` objects provided by the user.
-Since this function does not use any annotation information,
-it plots all provided objects:
-
-```{r, fig.height=3, fig.width=6}
-ex <- ensembldb::exonsBy(db,  by = "tx",
-                         filter = list(GenenameFilter(geneName)))
-plotTranscripts(ex, counts = counts)
+         counts = counts, 
+         opts = list(normalise = FALSE))
 ```
 
 ## Report sequences of the splice junction exons
@@ -206,7 +195,8 @@ sequences for the following primer design.
 To get *in silico* optimized primer sequences, one needs simply to 
 invoke `designPrimers` function on the splice junction exons object:
 ```{r}
-primers <- designPrimers(exSeq = exShortesSeq[1], db = db, bsg = bsg)
+primers <- designPrimers(exSeq = exShortesSeq, db = db, bsg = bsg)
+
 ```
 
 The result is a list with an item for every splice junction.
@@ -224,6 +214,51 @@ and the primers
 primers$primers$`3:187734869-187737088`
 ```
 
+```{r, fig.height=4, fig.width=6}
+
+circ <- "3:187734869-187737088"
+plotCirc(sjIds = circ,
+         #circGenes = bcl6EnsId,
+         circData = circData,
+         counts = counts, 
+         primers = primers$primers[[circ]],
+         opts = list(normalise = FALSE))
+circ <-"3:187734869-187745727"
+plotCirc(sjIds = circ,
+         #circGenes = bcl6EnsId,
+         circData = circData,
+         counts = counts, 
+         primers = primers$primers[[circ]],
+         opts = list(normalise = FALSE))
+```
+
+### Filter by counts and easy view
+
+Sometimes it is cleaner to keep only expressed transcripts. 
+One can specify a threshold for read count in `countThres` argument.
+In addition, by default, all the coordinated used for plotting are 
+transformed for easier interpretation of relative position.
+It can be turned off in `opts$normalise = FALSE`.
+
+```{r, fig.height=4, fig.width=6}
+
+circ <- "3:187734869-187737088"
+plotCirc(sjIds = circ,
+         #circGenes = bcl6EnsId,
+         circData = circData,
+         counts = counts, 
+         primers = primers$primers[[circ]],
+         countThres = 1,
+         opts = list(normalise =TRUE))
+circ <- "3:187734869-187745727"
+plotCirc(sjIds = circ,
+         #circGenes = bcl6EnsId,
+         circData = circData,
+         counts = counts, 
+         primers = primers$primers[[circ]],
+         countThres = 1,
+         opts = list(normalise =TRUE))
+```
 
 ## Session
 ```{r}

@@ -1,17 +1,7 @@
 Circtools
 ================
 Alexey Uvarovskii
-2017-04-28
-
--   [Introduction](#introduction)
--   [A proposed workflow](#a-proposed-workflow)
--   [Transcript plot](#transcript-plot)
--   [Annotation source](#annotation-source)
--   [Generate mock data](#generate-mock-data)
--   [The workflow entry point](#the-workflow-entry-point)
--   [Report sequences of the splice junction exons](#report-sequences-of-the-splice-junction-exons)
--   [Design and validate primers](#design-and-validate-primers)
--   [Session](#session)
+2017-06-21
 
 Introduction
 ------------
@@ -28,7 +18,7 @@ A proposed workflow
 -------------------
 
 1.  Prepare the input data set:
-    -   the gene model: a GTF/GFF file, TxDb or EnsDb objects
+    -   the gene model: a GTF/GFF file or EnsDb objects
     -   transcripts counts
     -   splice junction coordinates for the circular candidates.
 
@@ -45,7 +35,7 @@ One would like to know, how the predicted circRNA relate to the linear transcrip
 Annotation source
 -----------------
 
-Coordinates and types of genomic features must be known in advance, and it can be provided in the form of `GTF/GFF` file or `TxDb`/`EnsDb` objects. In the frame of the package we encourage one to use the Ensemble annotation files or R packages, which can be downloaded from the [Ensembl site](http://www.ensembl.org) or installed via the Bioconductor ecosystem:
+Coordinates and types of genomic features must be known in advance, and it can be provided in the form of `GTF/GFF` file or `EnsDb` objects. In the frame of the package we encourage one to use the Ensemble annotation files or R packages, which can be downloaded from the [Ensembl site](http://www.ensembl.org) or installed via the Bioconductor ecosystem:
 
 ``` r
 source("https://bioconductor.org/biocLite.R")
@@ -71,11 +61,22 @@ Here we create a splice junction GRanges:
 ``` r
 geneName <- "BCL6"
 circs <- createCirc(geneName, db)
+```
+
+    ## Warning: 'TxidFilter' is deprecated.
+    ## Use 'TxIdFilter' instead.
+    ## See help("Deprecated")
+
+    ## Warning: 'TxidFilter' is deprecated.
+    ## Use 'TxIdFilter' instead.
+    ## See help("Deprecated")
+
+``` r
 circs
 ```
 
     ## GRanges object with 2 ranges and 1 metadata column:
-    ##       seqnames                 ranges strand |                CIRCID
+    ##       seqnames                 ranges strand |                  sjId
     ##          <Rle>              <IRanges>  <Rle> |           <character>
     ##   [1]        3 [187734869, 187745727]      - | 3:187734869-187745727
     ##   [2]        3 [187734869, 187737088]      - | 3:187734869-187737088
@@ -92,10 +93,10 @@ tail(counts)
     ##                 id count
     ## 6  ENST00000450123     0
     ## 7  ENST00000470319     0
-    ## 8  ENST00000479110     0
-    ## 9  ENST00000480458     0
-    ## 10 ENST00000496823  1237
-    ## 11 ENST00000621333  1066
+    ## 8  ENST00000479110   878
+    ## 9  ENST00000480458   910
+    ## 10 ENST00000496823     0
+    ## 11 ENST00000621333     0
 
 The workflow entry point
 ------------------------
@@ -121,20 +122,11 @@ bcl6EnsId
 ``` r
 plotCirc(circGenes = bcl6EnsId,
          circData = circData,
-         counts = counts)
+         counts = counts, 
+         opts = list(normalise = FALSE))
 ```
 
 ![](plot-transcripts_files/figure-markdown_github/unnamed-chunk-9-1.png)
-
-Alternatively, the `plotTranscripts` function can be used for plotting from `data.frame` or `GRanges` objects provided by the user. Since this function does not use any annotation information, it plots all provided objects:
-
-``` r
-ex <- ensembldb::exonsBy(db,  by = "tx",
-                         filter = list(GenenameFilter(geneName)))
-plotTranscripts(ex, counts = counts)
-```
-
-![](plot-transcripts_files/figure-markdown_github/unnamed-chunk-10-1.png)
 
 Report sequences of the splice junction exons
 ---------------------------------------------
@@ -161,16 +153,16 @@ exShortesSeq[['3:187734869-187737088']]
     ## GRanges object with 2 ranges and 5 metadata columns:
     ##       seqnames                 ranges strand |         exon_id
     ##          <Rle>              <IRanges>  <Rle> |     <character>
-    ##   [1]        3 [187736090, 187737088]      - | ENSE00001666929
-    ##   [2]        3 [187734869, 187734882]      - | ENSE00002535122
-    ##               gene_id                CIRCID        side
+    ##   [1]        3 [187734869, 187734882]      - | ENSE00002535122
+    ##   [2]        3 [187736090, 187737088]      - | ENSE00001666929
+    ##               gene_id                  sjId        side
     ##           <character>           <character> <character>
     ##   [1] ENSG00000113916 3:187734869-187737088        left
     ##   [2] ENSG00000113916 3:187734869-187737088       right
     ##                           seq
     ##                <DNAStringSet>
-    ##   [1] TCTCATTGAC...TGCTCATTTG
-    ##   [2]          AAGCAAGGCATTGG
+    ##   [1]          AAGCAAGGCATTGG
+    ##   [2] TCTCATTGAC...TGCTCATTTG
     ##   -------
     ##   seqinfo: 1 sequence from GRCh38 genome
 
@@ -192,7 +184,7 @@ Design and validate primers
 To get *in silico* optimized primer sequences, one needs simply to invoke `designPrimers` function on the splice junction exons object:
 
 ``` r
-primers <- designPrimers(exSeq = exShortesSeq[1], db = db, bsg = bsg)
+primers <- designPrimers(exSeq = exShortesSeq, db = db, bsg = bsg)
 ```
 
 The result is a list with an item for every splice junction. There are two records: `primers` and `products`. Every item consists of a list of primers for possible circular transcripts: if there several exons, which correspons to the same splice junction, all possible combinations of their pairs will be used for primer design.
@@ -203,13 +195,19 @@ The priducts are
 str(primers$products)
 ```
 
-    ## List of 1
+    ## List of 2
     ##  $ 3:187734869-187737088:'data.frame':   1 obs. of  5 variables:
-    ##   ..$ CIRCID    : chr "3:187734869-187737088"
-    ##   ..$ upExonId  : chr "ENSE00001666929"
-    ##   ..$ downExonId: chr "ENSE00002535122"
-    ##   ..$ circSeq   : chr "AAGCAAGGCATTGGTCTCATTGACAGCCCTGCTCCTTGGAGATTGTTTTTGTGGGTAGTCTTGTGTGTGGCATTGGTGGAATGGCTGAATCTAGGAGACGCGGCGTGTCCAGAACTTGCTGGAAATT"| __truncated__
+    ##   ..$ sjId      : chr "3:187734869-187737088"
+    ##   ..$ upExonId  : chr "ENSE00002535122"
+    ##   ..$ downExonId: chr "ENSE00001666929"
+    ##   ..$ circSeq   : chr "AAGCAAGGCATTGGTCTCATTGACAGCCCTGCTCCTTGGAGATTGTTTTTGTGGGTAGTCTTGTGTGTGGCATTGGTGGAATGGCTGAATCTAGGAGACGCGGCGTGTCCA"| __truncated__
     ##   ..$ seqId     : chr "3:187734869-187737088"
+    ##  $ 3:187734869-187745727:'data.frame':   1 obs. of  5 variables:
+    ##   ..$ sjId      : chr "3:187734869-187745727"
+    ##   ..$ upExonId  : chr "ENSE00002535122"
+    ##   ..$ downExonId: chr "ENSE00001564372"
+    ##   ..$ circSeq   : chr "AAGCAAGGCATTGGATACCATCGTCTTGGGCCCGGGGAGGGAGAGCCACCTTCAGGCCCCTCGAGCCTCGAACCGGAACCTCCAAATCCGAGACGCTCTGCTTATGAGGAC"| __truncated__
+    ##   ..$ seqId     : chr "3:187734869-187745727"
 
 and the primers
 
@@ -217,18 +215,71 @@ and the primers
 primers$primers$`3:187734869-187737088`
 ```
 
-    ## $`3:187734869-187737088`
-    ## GRanges object with 2 ranges and 4 metadata columns:
-    ##       seqnames                 ranges strand |                      seq
-    ##          <Rle>              <IRanges>  <Rle> |              <character>
-    ##   [1]        3 [187737019, 187737084]      - |  AAGGCATTGGTCTCATTGACAGC
-    ##   [2]        3 [187736996, 187737062]      - | CCACACACAAGACTACCCACAAAA
-    ##              type                 seqId productSize
-    ##       <character>           <character>   <numeric>
-    ##   [1]     forward 3:187734869-187737088          66
-    ##   [2]     reverse 3:187734869-187737088          66
-    ##   -------
-    ##   seqinfo: 1 sequence from an unspecified genome; no seqlengths
+    ## GRangesList object of length 1:
+    ## $3:187734869-187737088 
+    ## GRanges object with 3 ranges and 6 metadata columns:
+    ##       seqnames                 ranges strand |                    seq
+    ##          <Rle>              <IRanges>  <Rle> |            <character>
+    ##   [1]        3 [187734869, 187734876]      - | GGCATTGGTCTCATTGACAGCC
+    ##   [2]        3 [187737075, 187737088]      - | GGCATTGGTCTCATTGACAGCC
+    ##   [3]        3 [187736974, 187736990]      - |      TCTGGACACGCCGCGTC
+    ##              type efficiency                 seqId          upExon
+    ##       <character>  <numeric>           <character>     <character>
+    ##   [1]     forward  0.9434878 3:187734869-187737088 ENSE00002535122
+    ##   [2]     forward  0.9434878 3:187734869-187737088 ENSE00002535122
+    ##   [3]     reverse  0.9853872 3:187734869-187737088 ENSE00002535122
+    ##              downExon
+    ##           <character>
+    ##   [1] ENSE00001666929
+    ##   [2] ENSE00001666929
+    ##   [3] ENSE00001666929
+    ## 
+    ## -------
+    ## seqinfo: 1 sequence from an unspecified genome; no seqlengths
+
+``` r
+circ <- "3:187734869-187737088"
+plotCirc(sjIds = circ,
+         #circGenes = bcl6EnsId,
+         circData = circData,
+         counts = counts, 
+         primers = primers$primers[[circ]],
+         opts = list(normalise = FALSE))
+circ <-"3:187734869-187745727"
+plotCirc(sjIds = circ,
+         #circGenes = bcl6EnsId,
+         circData = circData,
+         counts = counts, 
+         primers = primers$primers[[circ]],
+         opts = list(normalise = FALSE))
+```
+
+![](plot-transcripts_files/figure-markdown_github/unnamed-chunk-16-1.png)![](plot-transcripts_files/figure-markdown_github/unnamed-chunk-16-2.png)
+
+### Filter by counts and easy view
+
+Sometimes it is cleaner to keep only expressed transcripts. One can specify a threshold for read count in `countThres` argument. In addition, by default, all the coordinated used for plotting are transformed for easier interpretation of relative position. It can be turned off in `opts$normalise = FALSE`.
+
+``` r
+circ <- "3:187734869-187737088"
+plotCirc(sjIds = circ,
+         #circGenes = bcl6EnsId,
+         circData = circData,
+         counts = counts, 
+         primers = primers$primers[[circ]],
+         countThres = 1,
+         opts = list(normalise =TRUE))
+circ <- "3:187734869-187745727"
+plotCirc(sjIds = circ,
+         #circGenes = bcl6EnsId,
+         circData = circData,
+         counts = counts, 
+         primers = primers$primers[[circ]],
+         countThres = 1,
+         opts = list(normalise =TRUE))
+```
+
+![](plot-transcripts_files/figure-markdown_github/unnamed-chunk-17-1.png)![](plot-transcripts_files/figure-markdown_github/unnamed-chunk-17-2.png)
 
 Session
 -------
@@ -237,9 +288,13 @@ Session
 sessionInfo()
 ```
 
-    ## R version 3.3.3 (2017-03-06)
+    ## R version 3.4.0 (2017-04-21)
     ## Platform: x86_64-pc-linux-gnu (64-bit)
     ## Running under: Ubuntu 16.04.2 LTS
+    ## 
+    ## Matrix products: default
+    ## BLAS: /usr/lib/openblas-base/libblas.so.3
+    ## LAPACK: /usr/lib/libopenblasp-r0.2.18.so
     ## 
     ## locale:
     ##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
@@ -250,44 +305,49 @@ sessionInfo()
     ## [11] LC_MEASUREMENT=de_DE.UTF-8 LC_IDENTIFICATION=C       
     ## 
     ## attached base packages:
-    ## [1] stats4    parallel  stats     graphics  grDevices utils     datasets 
-    ## [8] methods   base     
+    ## [1] stats4    parallel  methods   stats     graphics  grDevices utils    
+    ## [8] datasets  base     
     ## 
     ## other attached packages:
     ##  [1] BSgenome.Hsapiens.NCBI.GRCh38_1.3.1000
-    ##  [2] BSgenome_1.42.0                       
-    ##  [3] rtracklayer_1.34.2                    
-    ##  [4] Biostrings_2.42.1                     
-    ##  [5] XVector_0.14.1                        
+    ##  [2] BSgenome_1.44.0                       
+    ##  [3] rtracklayer_1.36.0                    
+    ##  [4] Biostrings_2.44.0                     
+    ##  [5] XVector_0.16.0                        
     ##  [6] circtools_0.0.0.9000                  
     ##  [7] EnsDb.Hsapiens.v86_2.1.0              
-    ##  [8] ensembldb_1.6.2                       
-    ##  [9] GenomicFeatures_1.26.4                
-    ## [10] AnnotationDbi_1.36.2                  
-    ## [11] Biobase_2.34.0                        
-    ## [12] GenomicRanges_1.26.4                  
-    ## [13] GenomeInfoDb_1.10.3                   
-    ## [14] IRanges_2.8.2                         
-    ## [15] S4Vectors_0.12.2                      
-    ## [16] BiocGenerics_0.20.0                   
+    ##  [8] ensembldb_2.0.1                       
+    ##  [9] AnnotationFilter_1.0.0                
+    ## [10] GenomicFeatures_1.28.0                
+    ## [11] AnnotationDbi_1.38.0                  
+    ## [12] Biobase_2.36.2                        
+    ## [13] GenomicRanges_1.28.1                  
+    ## [14] GenomeInfoDb_1.12.0                   
+    ## [15] IRanges_2.10.1                        
+    ## [16] S4Vectors_0.14.1                      
+    ## [17] BiocGenerics_0.22.0                   
+    ## [18] rmarkdown_1.5                         
     ## 
     ## loaded via a namespace (and not attached):
-    ##  [1] Rcpp_0.12.10                  BiocInstaller_1.24.0         
-    ##  [3] AnnotationHub_2.6.5           bitops_1.0-6                 
-    ##  [5] tools_3.3.3                   zlibbioc_1.20.0              
-    ##  [7] biomaRt_2.30.0                digest_0.6.12                
-    ##  [9] RSQLite_1.1-2                 evaluate_0.10                
-    ## [11] memoise_1.0.0                 lattice_0.20-35              
-    ## [13] Matrix_1.2-8                  shiny_1.0.2                  
-    ## [15] DBI_0.6-1                     yaml_2.1.14                  
-    ## [17] stringr_1.2.0                 httr_1.2.1                   
-    ## [19] knitr_1.15.1                  rprojroot_1.2                
-    ## [21] grid_3.3.3                    R6_2.2.0                     
-    ## [23] XML_3.98-1.6                  BiocParallel_1.8.2           
-    ## [25] rmarkdown_1.4                 DECIPHER_2.2.0               
-    ## [27] magrittr_1.5                  backports_1.0.5              
-    ## [29] Rsamtools_1.26.2              htmltools_0.3.5              
-    ## [31] GenomicAlignments_1.10.1      SummarizedExperiment_1.4.0   
-    ## [33] xtable_1.8-2                  mime_0.5                     
-    ## [35] interactiveDisplayBase_1.12.0 httpuv_1.3.3                 
-    ## [37] stringi_1.1.5                 RCurl_1.95-4.8
+    ##  [1] SummarizedExperiment_1.6.1    lattice_0.20-35              
+    ##  [3] DECIPHER_2.4.0                htmltools_0.3.6              
+    ##  [5] yaml_2.1.14                   interactiveDisplayBase_1.14.0
+    ##  [7] XML_3.98-1.7                  DBI_0.6-1                    
+    ##  [9] BiocParallel_1.10.1           matrixStats_0.52.2           
+    ## [11] GenomeInfoDbData_0.99.0       stringr_1.2.0                
+    ## [13] zlibbioc_1.22.0               ProtGenerics_1.8.0           
+    ## [15] memoise_1.1.0                 evaluate_0.10                
+    ## [17] knitr_1.16                    biomaRt_2.32.0               
+    ## [19] httpuv_1.3.3                  BiocInstaller_1.26.0         
+    ## [21] Rcpp_0.12.11                  xtable_1.8-2                 
+    ## [23] backports_1.1.0               DelayedArray_0.2.2           
+    ## [25] mime_0.5                      Rsamtools_1.28.0             
+    ## [27] AnnotationHub_2.8.1           digest_0.6.12                
+    ## [29] stringi_1.1.5                 shiny_1.0.3                  
+    ## [31] rprojroot_1.2                 grid_3.4.0                   
+    ## [33] tools_3.4.0                   bitops_1.0-6                 
+    ## [35] magrittr_1.5                  RCurl_1.95-4.8               
+    ## [37] lazyeval_0.2.0                RSQLite_1.1-2                
+    ## [39] Matrix_1.2-10                 httr_1.2.1                   
+    ## [41] R6_2.2.1                      GenomicAlignments_1.12.1     
+    ## [43] compiler_3.4.0

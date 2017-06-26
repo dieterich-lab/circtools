@@ -25,9 +25,16 @@
    cols <- cols[!vapply(cols, anyNA, logical(1))]
    htmltools::tags$tr(cols)
   }
-  do.call(Map, c(f=f, colList)) 
+  do.call(Map, c(f = f, colList)) 
 }
 
+#' Define relative positions of exons in transcript coordinates
+#'
+#' @param strand + - *
+#' @param side 'left' or 'right', in relation to the genome coordinates
+#'
+#' @return a character vector with 'downstream' and 'upstream' values
+#' @noRd
 .getStream <- function(strand, side) {
   res <- rep("upstream", length(strand))
   res[ strand == '+' & side == 'left'] <- 'downstream'
@@ -44,7 +51,7 @@ getReportTemplate <- function(x) {
 
 #' Write an HTML report for circular RNA candidates
 #'
-#' @param exSeq an object created by \code{\link{getExSeq}}
+#' @param exSeq an object created by \code{\link{getExonSeqs}}
 #' @param file a report file name
 #'
 #' @export
@@ -53,12 +60,12 @@ reportCircs <- function(exSeq, file) {
   ex <- unlist(exSeq, use.names = FALSE)
   ex <- as.data.frame(ex)
   ex$stream <- .getStream(strand = ex$strand, side = ex$side)
-  o <- order(ex$CIRCID, ex$stream == 'downstream', ex$start, ex$end)
+  o <- order(ex$sjId, ex$stream == 'downstream', ex$start, ex$end)
   ex <- ex[o,]
   template <- system.file("templates", "report-circ.html",
                           package = "circtools")
   cols <- c(
-    'CIRCID' = 'CIRCID',
+    'sjId' = 'sjId',
     'exon_id' = 'exon id',
     'seqnames' = 'chr',
     'start' = 'start',
@@ -73,7 +80,7 @@ reportCircs <- function(exSeq, file) {
     tdCols$seq, 'class', 'upstream', filter = ex$stream == 'upstream') 
   tdCols$seq <- .addColumnAttr(
     tdCols$seq, 'class', 'downstream', filter = ex$stream == 'downstream') 
-  tdCols$CIRCID <- spanCells(tdCols$CIRCID, ex$CIRCID)
+  tdCols$sjId <- spanCells(tdCols$sjId, ex$sjId)
   header <- lapply(cols, htmltools::tags$th)
   names(header) <- NULL
   header <- htmltools::tags$tr(header)
@@ -89,8 +96,11 @@ reportCircs <- function(exSeq, file) {
   htmltools::save_html(res, file)
 }
 
+#' Merge subsequent cells which have the same value
+#' 
 #' @param x a list of tags
 #' @param f a factor to span the cells
+#' @noRd
 spanCells <- function(x, f) {
   r <- rle(f)
   indexesToKeep <- c(1, 1 + cumsum(r$lengths))
