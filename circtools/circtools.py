@@ -185,16 +185,20 @@ class CircTools(object):
                            dest="circFile",
                            help="A tab/comma separated file of splice junction coordinates with the columns ordered as:\
                             chromosome, start, end, strand",
+                           required=True
+
                            )
         group.add_argument("-e",
                            "--ensPackage",
                            dest="ensPackage",
                            help="An ensembldb package name, e.g. EnsDb.Hsapiens.v86",
+                           required=True
                            )
         group.add_argument("-b",
                            "--bsgPackage",
                            dest="bsgPackage",
                            help="BSGenome package name, e.g. BSgenome.Hsapiens.NCBI.GRCh38",
+                           required=True
                            )
 
         group = parser.add_argument_group("Processing")
