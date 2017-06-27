@@ -6,7 +6,7 @@ source("https://bioconductor.org/biocLite.R")
 options(repos = c(CRAN = "http://cran.rstudio.com"))
 
 pkgs <- c(
-  "AnnotationFilter",
+  #"AnnotationFilter",
   "Rsamtools",
   "htmltools",
   "DECIPHER",
@@ -16,6 +16,10 @@ pkgs <- c(
   "BSgenome",
   "GenomicFeatures",
   "ensembldb"
+)
+
+gitpkgs <- c(
+  "AnnotationFilter"
 )
 
 pkgs <- pkgs[!pkgs %in% installed.packages()[,1]]

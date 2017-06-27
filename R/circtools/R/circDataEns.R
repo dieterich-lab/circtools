@@ -42,9 +42,7 @@ getSjExons <- function(db, circsGR, filter=list()) {
 #'
 #' @importFrom GenomicRanges findOverlaps mcols
 #' @importFrom ensembldb genes 
-#' @importFrom AnnotationFilter GRangesFilter
 CircData <- function(db, circCoords) {
-  # why does not work with a list of two filters?
   sjFilter <- AnnotationFilter::GRangesFilter(circCoords, "overlapping")
   sjGenes <- genes(db, filter = sjFilter)
   circsGeneHits <- findOverlaps(circCoords, sjGenes)

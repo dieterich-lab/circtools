@@ -8,7 +8,7 @@ Encoding: UTF-8
 LazyData: true
 #Remotes: bioc::3.5/ensembldb
 Depends: GenomicRanges (>= 1.26.4),  ensembldb
-Imports: methods, graphics, AnnotationFilter, Rsamtools, htmltools, DECIPHER,
+Imports: methods, graphics, Rsamtools, htmltools, DECIPHER,
   RSQLite, S4Vectors,  IRanges, Biostrings, BSgenome, GenomicFeatures 
 Suggests: testthat,
     knitr,
