@@ -5,7 +5,8 @@ This project contains the framework of the circular RNA toolbox ``circtools``.
 This package is written in python3 (3.4). It has a number of external dependencies, mostly standard bioinformatics tools:
 
 * [bedtools (>= 2.26.0)](http://bedtools.readthedocs.io/en/latest/content/installation.html) [RBP enrichment module]
-* R (>= 3.4) [Primer design module]
+* [R (>= 3.4)](https://www.digitalocean.com/community/tutorials/how-to-install-r-on-ubuntu-16-04-2) 
+  [Primer design module] 
 * [OligoArrayAux](http://unafold.rna.albany.edu/?q=DINAMelt/OligoArrayAux) 
   [required by DECIPHER Bioconductor package for annealing efficiency estimations]
 
