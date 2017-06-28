@@ -20,7 +20,7 @@ import sys
 import os.path
 
 # global settings
-version = "0.0.1a"
+version = "0.1.0"
 program_name = "circtools"
 
 # samtools/git like parsing from http://chase-seibert.github.io/blog/2014/03/21/python-multilevel-argparse.html
