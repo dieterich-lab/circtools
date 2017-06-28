@@ -71,7 +71,6 @@ class PostInstallCommand(install):
         print("")
         print("If you want to cancel the installation press CTRL-C now.")
         sleep(10)
-        import subprocess
         subprocess.check_call(["sh", "scripts/external_install.sh"])
 
         # step 2: update $PATH
