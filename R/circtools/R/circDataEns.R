@@ -42,10 +42,12 @@ getSjExons <- function(db, circsGR, filter=list()) {
 #'
 #' @importFrom GenomicRanges findOverlaps mcols
 #' @importFrom ensembldb genes 
-#' @importFrom AnnotationFilter GRangesFilter
 CircData <- function(db, circCoords) {
-  # why does not work with a list of two filters?
-  sjFilter <- AnnotationFilter::GRangesFilter(circCoords, "overlapping")
+  if (requireNamespace("AnnotationFilter", quietly = TRUE)) {
+    sjFilter <- AnnotationFilter::GRangesFilter(circCoords, "overlapping")
+  } else {
+    sjFilter <- ensembldb::GRangesFilter(circCoords, condition="overlapping")
+  }
   sjGenes <- genes(db, filter = sjFilter)
   circsGeneHits <- findOverlaps(circCoords, sjGenes)
   
@@ -123,9 +125,14 @@ plotCirc <- function(sjIds,
   }
   circIndex <- which(mcols(circData$circCoords)$sjId == sjIds)
   circs <- circData$circCoords[circIndex]
+  if (requireNamespace("AnnotationFilter", quietly = TRUE)) {
+    filter <- AnnotationFilter::GeneIdFilter(circGenes)
+  } else {
+    filter <- ensembldb::GeneidFilter(circGenes)
+  }
   ex <- exons(
     circData$db,
-    filter = AnnotationFilter::GeneIdFilter(circGenes),
+    filter = filter, 
     columns = c("gene_id", "tx_id", "tx_name")
   )
   if (!is.null(primers)) {
@@ -172,9 +179,15 @@ getExonSeqs <- function(circData, bsg, faFile,
   type <- match.arg(type)
   if (!missing(faFile) && !missing(bsg))
       stop("Specify only one sequence source: BSgenome or FaFile")
+      
+  if (requireNamespace("AnnotationFilter", quietly = TRUE)) {
+    filter <- AnnotationFilter::GeneIdFilter(circData$sjGeneIds)
+  } else {
+    filter <- ensembldb::GeneidFilter(circData$sjGeneIds)
+  }
   ex <- getSjExons(db = circData$db, 
                    circsGR = circData$circCoords,
-                   filter = AnnotationFilter::GeneIdFilter(circData$sjGeneIds))
+                   filter = filter)
   byCirc <- GenomicRanges::split(ex, GenomicRanges::mcols(ex)$sjId)
   if (type != "all") {
     fun <- switch(

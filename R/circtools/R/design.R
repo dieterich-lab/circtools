@@ -83,9 +83,12 @@ getTxOfSJExons <- function(db, exSeq, whichExons=c('any', 'both')){
 getTxSeqs <- function(db, bsg, exSeq) {
   geneIds <- vapply(exSeq, function(x) unique(
     S4Vectors::mcols(x)$gene_id), character(1))
-  ex <- ensembldb::exonsBy(
-    db,
-    filter = AnnotationFilter::GeneIdFilter(unique(geneIds)))
+  if (requireNamespace("AnnotationFilter", quietly = TRUE)) {
+    filter <- AnnotationFilter::GeneIdFilter(unique(geneIds))
+  } else {
+    filter <- ensembldb::GeneidFilter(unique(geneIds))
+  }
+  ex <- ensembldb::exonsBy(db, filter = filter) 
   seqs <- GenomicFeatures::extractTranscriptSeqs(bsg, ex)
   seqs
 }
@@ -314,12 +317,15 @@ circ2genome <- function(x, upExon, downExon) {
 }
 
 splitPrimer <- function(x, upExonWidth) {
-  if (IRanges::start(x) <= upExonWidth && IRanges::end(x) > upExonWidth) {
-    c(GenomicRanges::restrict(x, end = upExonWidth),
-      GenomicRanges::restrict(x, start = upExonWidth + 1))
-  } else {
-    x
-  }
+  o <- IRanges::start(x) <= upExonWidth & IRanges::end(x) > upExonWidth
+  if (any(o)) {
+    x <- c(
+      x[!o],
+      GenomicRanges::restrict(x[o], end = upExonWidth),
+      GenomicRanges::restrict(x[o], start = upExonWidth + 1)
+    )
+  } 
+  x
 }
 
 # get exons which intersect with the designed primers
@@ -327,9 +333,14 @@ splitPrimer <- function(x, upExonWidth) {
 exons4primers <- function(db, primer) {
   conditions <- c('within', 'overlapping')
   ex <- lapply(conditions, function(cc) {
+    if (requireNamespace("AnnotationFilter", quietly = TRUE)) {
+      filter <- AnnotationFilter::GRangesFilter(primer, condition = cc)
+    } else {
+      filter <- ensembldb::GRangesFilter(primer, condition = cc)
+    }
     ensembldb::exons(
       db,
-      filter = AnnotationFilter::GRangesFilter(primer, condition = cc),
+      filter = filter,
       return.type = 'data.frame',
       columns = 'exon_id'
     )
