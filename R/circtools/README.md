@@ -19,7 +19,10 @@ The implementation leans on Bioconductor packages for working with
 *ENSEMBL* annotation. It is easier if you are going to use `circtools` for
 organisms for which `ensembldb` packages are available,
 for example, `EnsDb.Hsapiens.v86` or `EnsDb.Mmusculus.v79`.
-Otherwise, it is always possible to create your 
+Otherwise, it is always possible to create your own `ensembldb` object.
+
+[How to create my own annotation](https://bioconductor.org/packages/devel/bioc/vignettes/ensembldb/inst/doc/ensembldb.html#1022_from_a_gtf_or_gff_file) is well documented on
+the `ensembldb` Bioconductor page.
 
 ## How to use
 
