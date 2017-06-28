@@ -317,12 +317,15 @@ circ2genome <- function(x, upExon, downExon) {
 }
 
 splitPrimer <- function(x, upExonWidth) {
-  if (IRanges::start(x) <= upExonWidth && IRanges::end(x) > upExonWidth) {
-    c(GenomicRanges::restrict(x, end = upExonWidth),
-      GenomicRanges::restrict(x, start = upExonWidth + 1))
-  } else {
-    x
-  }
+  o <- IRanges::start(x) <= upExonWidth & IRanges::end(x) > upExonWidth
+  if (any(o)) {
+    x <- c(
+      x[!o],
+      GenomicRanges::restrict(x[o], end = upExonWidth),
+      GenomicRanges::restrict(x[o], start = upExonWidth + 1)
+    )
+  } 
+  x
 }
 
 # get exons which intersect with the designed primers
