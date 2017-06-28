@@ -1,14 +1,33 @@
-#if (as.numeric(R.Version()$minor) *.1 + as.numeric(R.Version()$major) < 3.4)
-#  stop("Please update R to the version 3.4 or later")
-
 source("https://bioconductor.org/biocLite.R")
-
 options(repos = c(CRAN = "http://cran.rstudio.com"))
 
+installRSQL <- FALSE
+if (requireNamespace("RSQLite")) {
+  if (packageVersion("RSQLite") > "1.1.15") {
+    answer <- "!"
+    while (!answer %in% c("y", "n")) {
+      cat(
+        paste0(
+          "The current version of circtools can work ",
+          "only with RSQLite version <= 1.1.5\n",
+          "Your version is ", packageVersion("RSQLite"), "\n",
+          "Would you like to install the 1.1.15 one? [y/n]"
+        )
+      )
+      answer <- readline()
+    }
+    if (answer %in% c("n"))
+      quit()
+    if (answer %in% c("y"))
+      installRSQL <- TRUE
+  }
+} 
+
+if (installRSQL)
+  install_github("rstats-db/RSQLite", ref = "v1.1-15")
+
 pkgs <- c(
-  #"AnnotationFilter",
   "Rsamtools",
-  "htmltools",
   "DECIPHER",
   "S4Vectors",
   "IRanges",
@@ -18,18 +37,14 @@ pkgs <- c(
   "ensembldb"
 )
 
-gitpkgs <- c(
-  "AnnotationFilter"
-)
-
 pkgs <- pkgs[!pkgs %in% installed.packages()[,1]]
 if (length(pkgs) > 0)
   biocLite(pkgs)
 
+
 install.packages("devtools")
 library(devtools)
 
-#install_github("rstats-db/RSQLite", ref = "v1.1-15")
 
 install_github("dieterich-lab/circtools",
              subdir = "R/circtools",
