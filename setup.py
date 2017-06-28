@@ -66,13 +66,13 @@ class PostInstallCommand(install):
         print("")
 
         # step 1: install DCC, FUCHS and primer design R module
-        # print("We need to install two other programs of the Dieterich lab circRNA suit: DCC and FUCHS.")
-        # print("We'll install both of them for you from GitHub.")
-        # print("")
-        # print("If you want to cancel the installation press CTRL-C now.")
-        # sleep(10)
-        # import subprocess
-        # subprocess.check_call(["sh", "scripts/external_install.sh"])
+        print("We need to install two other programs of the Dieterich lab circRNA suit: DCC and FUCHS.")
+        print("We'll install both of them for you from GitHub.")
+        print("")
+        print("If you want to cancel the installation press CTRL-C now.")
+        sleep(10)
+        import subprocess
+        subprocess.check_call(["sh", "scripts/external_install.sh"])
 
         # step 2: update $PATH
         print("In order for circtools to be globally callable, we would add the installation folder to the $PATH")
