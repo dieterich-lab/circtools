@@ -11,20 +11,24 @@ if (requireNamespace("RSQLite")) {
           "The current version of circtools can work ",
           "only with RSQLite version <= 1.1.5\n",
           "Your version is ", packageVersion("RSQLite"), "\n",
-          "Would you like to install the 1.1.15 one? [y/n]"
+          "Would you like to install the 1.1.15 one? [y/n]:  "
         )
       )
-      answer <- readline()
+      answer <- readLines(con = "stdin", n = 1)
+      if (answer %in% c("n"))
+        quit()
+      if (answer %in% c("y"))
+        installRSQL <- TRUE
     }
-    if (answer %in% c("n"))
-      quit()
-    if (answer %in% c("y"))
-      installRSQL <- TRUE
   }
 } 
 
+if (!requireNamespace("devtools")) {
+  install.packages("devtools")
+}
+
 if (installRSQL)
-  install_github("rstats-db/RSQLite", ref = "v1.1-15")
+  devtools::install_github("rstats-db/RSQLite", ref = "v1.1-15")
 
 pkgs <- c(
   "Rsamtools",
