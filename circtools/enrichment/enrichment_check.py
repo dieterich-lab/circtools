@@ -37,6 +37,8 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         self.observed_counts = []
         self.results = []
         self.phase_storage = {}
+        self.allowed_includes = ["exon", "CDS", "three_prime_utr", "five_prime_utr", "gene", "transcript"]
+        self.virtual_inclusion_file = None
 
     def run_module(self):
 
@@ -65,6 +67,35 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
             print("Temporary directory %s not writable." % self.cli_params.tmp_directory)
             # exit with -1 error if we can't use it
             exit(-1)
+
+        print(self.cli_params.include_features)
+
+        temp_bed = ""
+
+        # for each of the user supplied include features
+        # (default is ["all"])
+
+        if self.cli_params.include_features != ["all"]:
+
+            for feature_type in self.cli_params.include_features:
+                if feature_type in self.allowed_includes:
+                    temp_bed += self.read_annotation_file(self.cli_params.annotation, entity=feature_type, string=True)
+                else:
+                    self.log_entry("Feature type %s not recognized. Please use one of the following types:" % feature_type)
+                    self.log_entry(self.allowed_includes)
+
+            tmp_inclusion_file = pybedtools.BedTool(temp_bed, from_string=True)
+            self.virtual_inclusion_file = self.cli_params.output_directory + \
+                                   '/' + self.cli_params.output_filename + \
+                                   "_" + \
+                                   os.path.basename(self.cli_params.annotation) + \
+                                   '_genes.bed'
+
+            tmp_inclusion_file.saveas(self.virtual_inclusion_file)
+        else:
+            self.virtual_inclusion_file = "all"
+
+        print(type(self.virtual_inclusion_file))
 
         # set temporary directory for pybedtools
         pybedtools.set_tempdir(self.cli_params.tmp_directory)
@@ -116,9 +147,10 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         # create list of shuffled peaks
         shuffled_peaks = (mp_pool.map(functools.partial(self.shuffle_peaks_through_genome,
-                                                       bed_file=supplied_bed,
-                                                       genome_file=self.cli_params.genome_file),
-                                     range(self.cli_params.num_iterations)))
+                                                        bed_file=supplied_bed,
+                                                        genome_file=self.cli_params.genome_file,
+                                                        include=self.virtual_inclusion_file),
+                                      range(self.cli_params.num_iterations)))
 
         shuffled_peaks.insert(0, supplied_bed)
 
@@ -331,7 +363,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         return chromosome_name
 
-    def read_annotation_file(self, annotation_file, entity="gene"):
+    def read_annotation_file(self, annotation_file, entity="gene", string=False):
         """Reads a GTF file
         Will halt the program if file not accessible
         Returns a BedTool object only containing gene sections
@@ -386,12 +418,14 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                 # count will be increased one more time even if done - so we subtract 1
                 self.log_entry("Processed %s entries" % (entity_count - 1))
 
-            # create a "virtual" BED file
-            virtual_bed_file = pybedtools.BedTool(bed_content, from_string=True)
+            self.log_entry("Done parsing annotation")
 
-        self.log_entry("Done parsing annotation")
-
-        return virtual_bed_file
+            if string:
+                return bed_content
+            else:
+                # create a "virtual" BED file
+                virtual_bed_file = pybedtools.BedTool(bed_content, from_string=True)
+                return virtual_bed_file
 
     def shuffle_peaks_through_genome(self, iteration, bed_file, genome_file, include):
         """Gets a (virtual) BED files and shuffle its contents throughout the supplied genome
@@ -404,6 +438,8 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         if include == "all":
             shuffled_bed = bed_file.shuffle(g=genome_file)
+        else:
+            shuffled_bed = bed_file.shuffle(g=genome_file, incl=include)
 
         return shuffled_bed
 
