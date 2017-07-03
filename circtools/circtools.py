@@ -169,9 +169,10 @@ class CircTools(object):
                            dest="include_features",
                            help="Defines the the features which should be used for shuffling. "
                                 "May be specified multiple times. [default: all - shuffle over the whole genome]",
-                           action="append",  # May be used as list: e.g. -I exon -I UTR
-                           default="all"
+                           # May be used as list: e.g. -I exon -I UTR
+                           action='append',
                            )
+
         args = parser.parse_args(sys.argv[2:])
 
         # make sure we can load the sub module
