@@ -393,7 +393,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         return virtual_bed_file
 
-    def shuffle_peaks_through_genome(self, iteration, bed_file, genome_file):
+    def shuffle_peaks_through_genome(self, iteration, bed_file, genome_file, include):
         """Gets a (virtual) BED files and shuffle its contents throughout the supplied genome
         Will only use supplied annotation for features (in our case only transcript regions)
         """
@@ -401,11 +401,13 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         pybedtools.set_tempdir(self.cli_params.tmp_directory)
 
         self.log_entry("Processing shuffling thread %d" % (iteration+1))
-        shuffled_bed = bed_file.shuffle(g=genome_file)
+
+        if include == "all":
+            shuffled_bed = bed_file.shuffle(g=genome_file)
 
         return shuffled_bed
 
-    def do_intersection(self, query_bed, base_bed, include="all"):
+    def do_intersection(self, query_bed, base_bed):
         """Gets two bed files (supplied peaks and circle coordinates) and does an intersection
         """
         # set temporary directory for pybedtools
@@ -413,8 +415,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         # we employ the c=true parameter to directly get the counts as part of the results
 
-        if include == "all":
-            intersect_return = base_bed.intersect(query_bed, c=True)
+        intersect_return = base_bed.intersect(query_bed, c=True)
 
         return intersect_return
 
