@@ -700,9 +700,12 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         import glob
         for tmp_file in glob.glob(self.cli_params.tmp_directory+"/"+"pybedtools*"):
             os.remove(tmp_file)
-            print(tmp_file)
+            print("Deleting " + tmp_file)
 
-        os.rmdir(self.cli_params.tmp_directory)
+        try:
+            os.rmdir(self.cli_params.tmp_directory)
+        except OSError:
+            pass
 
         self.log_entry("Done")
 
