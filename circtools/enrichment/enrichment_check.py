@@ -95,8 +95,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         else:
             self.virtual_inclusion_file = "all"
 
-        print(type(self.virtual_inclusion_file))
-
         # set temporary directory for pybedtools
         pybedtools.set_tempdir(self.cli_params.tmp_directory)
 
