@@ -405,14 +405,17 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         return shuffled_bed
 
-    def do_intersection(self, query_bed, base_bed):
+    def do_intersection(self, query_bed, base_bed, include="all"):
         """Gets two bed files (supplied peaks and circle coordinates) and does an intersection
         """
         # set temporary directory for pybedtools
         pybedtools.set_tempdir(self.cli_params.tmp_directory)
 
         # we employ the c=true parameter to directly get the counts as part of the results
-        intersect_return = base_bed.intersect(query_bed, c=True)
+
+        if include == "all":
+            intersect_return = base_bed.intersect(query_bed, c=True)
+
         return intersect_return
 
     @staticmethod
