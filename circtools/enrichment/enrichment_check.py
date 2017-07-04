@@ -38,7 +38,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         self.results = []
         self.phase_storage = {}
         self.allowed_includes = ["exon", "CDS", "three_prime_utr", "five_prime_utr", "gene", "transcript"]
-        self.virtual_inclusion_file = None
+        self.virtual_inclusion_file = "all"
 
     def run_module(self):
 
@@ -72,7 +72,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         temp_bed = ""
 
         # (default is ["all"])
-        if self.cli_params.include_features != ["all"]:
+        if self.cli_params.include_features:
 
             # for each of the user supplied include features
             for feature_type in self.cli_params.include_features:
