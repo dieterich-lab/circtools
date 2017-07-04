@@ -68,31 +68,36 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
             # exit with -1 error if we can't use it
             exit(-1)
 
-        print(self.cli_params.include_features)
-
+        # holds the temporary bed file content
         temp_bed = ""
 
-        # for each of the user supplied include features
         # (default is ["all"])
-
         if self.cli_params.include_features != ["all"]:
 
+            # for each of the user supplied include features
             for feature_type in self.cli_params.include_features:
+                # only we if know this type
                 if feature_type in self.allowed_includes:
                     temp_bed += self.read_annotation_file(self.cli_params.annotation, entity=feature_type, string=True)
+                # print error message for the user
                 else:
-                    self.log_entry("Feature type %s not recognized. Please use one of the following types:" % feature_type)
+                    self.log_entry("Feature type %s not recognized. Please use one of the following types:"
+                                   % feature_type)
                     self.log_entry(self.allowed_includes)
 
+            # we create a bed file on disk for all features
             tmp_inclusion_file = pybedtools.BedTool(temp_bed, from_string=True)
+
+            # set the path where to store it
             self.virtual_inclusion_file = self.cli_params.output_directory + \
                                    '/' + self.cli_params.output_filename + \
                                    "_" + \
                                    os.path.basename(self.cli_params.annotation) + \
-                                   '_genes.bed'
-
+                                   '_features.bed'
+            # save temporary bedtools file as "real" file
             tmp_inclusion_file.saveas(self.virtual_inclusion_file)
         else:
+            # fixed keyword to disable inclusion of features
             self.virtual_inclusion_file = "all"
 
         # set temporary directory for pybedtools
