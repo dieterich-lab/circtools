@@ -38,7 +38,8 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         self.results = []
         self.phase_storage = {}
         self.allowed_includes = ["exon", "CDS", "three_prime_utr", "five_prime_utr", "gene", "transcript"]
-        self.virtual_inclusion_file = "all"
+        self.virtual_inclusion_file_path = "all"
+        self.virtual_inclusion_object = None
 
     def run_module(self):
 
@@ -58,13 +59,13 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         # let's first check if the output directory exists
         if not (os.access(self.cli_params.output_directory, os.W_OK)):
-            print("Output directory %s not writable." % self.cli_params.output_directory)
+            self.log_entry("Output directory %s not writable." % self.cli_params.output_directory)
             # exit with -1 error if we can't use it
             exit(-1)
 
         # let's first check if the temporary directory exists
         if not (os.access(self.cli_params.tmp_directory, os.W_OK)):
-            print("Temporary directory %s not writable." % self.cli_params.tmp_directory)
+            self.log_entry("Temporary directory %s not writable." % self.cli_params.tmp_directory)
             # exit with -1 error if we can't use it
             exit(-1)
 
@@ -86,19 +87,23 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                     self.log_entry(self.allowed_includes)
 
             # we create a bed file on disk for all features
-            tmp_inclusion_file = pybedtools.BedTool(temp_bed, from_string=True)
+            self.virtual_inclusion_object = pybedtools.BedTool(temp_bed, from_string=True)
+
+            self.virtual_inclusion_object = self.virtual_inclusion_object.sort().merge(s=True,  # strand specific
+                                                                                       c="5,6",  # copy columns 5 & 6
+                                                                                       o="distinct,distinct")  # group
 
             # set the path where to store it
-            self.virtual_inclusion_file = self.cli_params.output_directory + \
-                                   '/' + self.cli_params.output_filename + \
-                                   "_" + \
-                                   os.path.basename(self.cli_params.annotation) + \
-                                   '_features.bed'
+            self.virtual_inclusion_file_path = self.cli_params.output_directory + \
+                                               '/' + self.cli_params.output_filename + \
+                                               "_" + \
+                                               os.path.basename(self.cli_params.annotation) + \
+                                               '_features.bed'
             # save temporary bedtools file as "real" file
-            tmp_inclusion_file.saveas(self.virtual_inclusion_file)
+            self.virtual_inclusion_object.saveas(self.virtual_inclusion_file_path)
         else:
             # fixed keyword to disable inclusion of features
-            self.virtual_inclusion_file = "all"
+            self.virtual_inclusion_file_path = "all"
 
         # set temporary directory for pybedtools
         pybedtools.set_tempdir(self.cli_params.tmp_directory)
@@ -132,8 +137,11 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                                os.path.basename(self.cli_params.annotation) +\
                                '_genes.bed'
 
-        annotation_bed.saveas(gene_annotation_file)
+        # if we are in "feature" mode we have to get all exons for the linear genes
+        if self.virtual_inclusion_file_path != "all":
+            annotation_bed = self.virtual_inclusion_object.intersect(annotation_bed, s=True, wb=True)
 
+        annotation_bed.saveas(gene_annotation_file)
         # read in circular RNA predictions from DCC
         circ_rna_bed = self.read_circ_rna_file(self.cli_params.circ_rna_input,
                                                annotation_bed,
@@ -146,24 +154,30 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                                  os.path.basename(self.cli_params.circ_rna_input) +\
                                  '_circles.bed'
 
+        # if we are in "feature" mode we have to get all exons for the circRNAs
+        if self.virtual_inclusion_file_path != "all":
+            circ_rna_bed = self.virtual_inclusion_object.intersect(circ_rna_bed, s=True, wb=True)
+
         circ_rna_bed.saveas(circle_annotation_file)
 
         # create list of shuffled peaks
+        self.log_entry("Starting random shuffling of input peaks")
         shuffled_peaks = (mp_pool.map(functools.partial(self.shuffle_peaks_through_genome,
                                                         bed_file=supplied_bed,
                                                         genome_file=self.cli_params.genome_file,
-                                                        include=self.virtual_inclusion_file),
+                                                        include=self.virtual_inclusion_file_path),
                                       range(self.cli_params.num_iterations)))
 
         shuffled_peaks.insert(0, supplied_bed)
 
         # shuffled_peaks.append(supplied_bed)
         # do the intersections
+        self.log_entry("Starting data acquisition from samplings")
         self.results = mp_pool.map(functools.partial(self.random_sample_step,
-                                                circ_rna_bed=circ_rna_bed,
-                                                annotation_bed=annotation_bed,
-                                                shuffled_peaks=shuffled_peaks,
-                                                ), range(self.cli_params.num_iterations+1))
+                                                     circ_rna_bed=circ_rna_bed,
+                                                     annotation_bed=annotation_bed,
+                                                     shuffled_peaks=shuffled_peaks,
+                                                     ), range(self.cli_params.num_iterations + 1))
 
         self.observed_counts = (
             self.process_intersection(self.results[0][0]),
@@ -233,9 +247,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
             self.log_entry("Cleaning up... just a second")
 
-            # clean up here is important to keep memory down
-            # gc.collect()
-
         # generate the result table
         result_table = self.print_results()
 
@@ -290,16 +301,24 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                     bed_entries += 1
                     bed_peak_sizes += (int(columns[2]) - int(columns[1]))
 
+            self.log_entry("Done parsing circular RNA input file:")
+            self.log_entry("=> %s circular RNAs, %s nt average (theoretical unspliced) length" %
+                           (bed_entries, round(bed_peak_sizes / bed_entries)))
+
             # create a "virtual" BED file
             virtual_bed_file = pybedtools.BedTool(bed_content, from_string=True)
-            # Todo: figure out what this code was supposed to do
-            test = annotation_bed.intersect(virtual_bed_file, s=True)
 
-        self.log_entry("Done parsing circular RNA input file:")
-        self.log_entry("=> %s circular RNAs, %s nt average (theoretical unspliced) length" %
-                       (bed_entries, round(bed_peak_sizes / bed_entries)))
+            # if user supplied a feature we are in "feature mode"
+            # this means some different treatment downstream
 
-        return test
+            # But for now "all" means we use gene as feature -> classic mode
+            if self.virtual_inclusion_file_path == "all":
+                return annotation_bed.intersect(virtual_bed_file, s=True)
+
+            # This is the feature mode
+            # we don't intersect with the annotation since we do this in a different step
+            else:
+                return virtual_bed_file
 
     def read_bed_file(self, bed_input):
         """Reads a BED file
@@ -454,9 +473,40 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         # we employ the c=true parameter to directly get the counts as part of the results
 
-        intersect_return = base_bed.intersect(query_bed, c=True)
+        if self.virtual_inclusion_file_path != "all":
+            # we need to do a second intersect to get the amount of peaks that are located within circular RNAs _AND_
+            # also part of a features: e.g. an exon of a circRNA
+
+            intersect_return = base_bed.intersect(query_bed, c=True)
+            intersect_return = self.pre_process_intersection(intersect_return)
+        else:
+            intersect_return = base_bed.intersect(query_bed, c=True)
 
         return intersect_return
+
+    @staticmethod
+    def pre_process_intersection(intersection_input):
+        """Processes intersection output generated by do_intersection() in case of feature-based shuffling
+        Returns a count table for the given intersection
+        """
+        # initialise empty dict
+        return_string = ""
+
+        # holds lines already seen
+        lines_seen = set()
+
+        for line in str(intersection_input).splitlines():
+            bed_feature = line.split('\t')
+
+            # we take only the "2nd" bed file, meaning the rightmost 7 columns
+            new_line = bed_feature[6] + "\t" + bed_feature[7] + "\t" + bed_feature[8] + "\t" + bed_feature[9] + "\t" + \
+                       bed_feature[10] + "\t" + bed_feature[11] + "\t" + bed_feature[12] + "\t"
+
+            if new_line not in lines_seen:  # not a duplicate
+                lines_seen.add(new_line)
+                return_string += new_line+"\n"
+
+        return pybedtools.BedTool(return_string, from_string=True)
 
     @staticmethod
     def process_intersection(intersection_input, normalize=False):
@@ -503,11 +553,16 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
     @staticmethod
     def decode_location_key(key):
         """Decodes a given location key
-        Returns a list of circular RNA length [0] and linear RNA length [1]
+        Returns a dictionary of decoded values
         """
 
         tmp = key.split("_")
-        data = {"chr": tmp[0], "start": int(tmp[1]), "stop": int(tmp[2]), "strand": tmp[2]}
+        data = {"chr": tmp[0],
+                "start": int(tmp[1]),
+                "stop": int(tmp[2]),
+                "strand": tmp[2],
+                "length": (int(tmp[2])-int(tmp[1]))
+                }
         return data
 
     def linear_length_wo_circ(self, key_circ, key_linear):
@@ -721,7 +776,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         import glob
         for tmp_file in glob.glob(self.cli_params.tmp_directory+"/"+"pybedtools*"):
             os.remove(tmp_file)
-            print("Deleting " + tmp_file)
+            self.log_entry("Deleting " + tmp_file)
 
         try:
             os.rmdir(self.cli_params.tmp_directory)
