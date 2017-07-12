@@ -1,8 +1,8 @@
 #!/usr/bin/env Rscript
 
 # set mirrors
-source("https://bioconductor.org/biocLite.R")
-options(repos = c(CRAN = "http://cran.rstudio.com"))
+source("https://bioconductor.statistik.tu-dortmund.de/biocLite.R")
+options(repos = c(CRAN = "https://cran.uni-muenster.de/"))
 
 # we need devtools as requirement for circtest
 pkgs <- c(
