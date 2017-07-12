@@ -18,6 +18,12 @@
 # install primer-design R part
 Rscript R/install.R
 
+# install CircTest
+Rscript install_circtest.R
+
+# install dependencies for alternative exon usage
+Rscript install_depenencies_exon_usage.R
+
 # install DCC
 cd /tmp/
 git clone https://github.com/dieterich-lab/DCC.git
