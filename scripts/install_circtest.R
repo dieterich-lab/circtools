@@ -6,8 +6,8 @@ options(repos = c(CRAN = "https://cran.uni-muenster.de/"))
 
 # we need devtools as requirement for circtest
 pkgs <- c(
-  "devtools"
-
+  "devtools",
+  "gridExtra"
 )
 
 # check if devtools is already installed
