@@ -48,7 +48,7 @@ arg_condition_columns <- unlist(arg_condition_columns)
 
 arg_output_name <- args[5] # string
 arg_max_fdr <- as.numeric(args[6]) # float
-arg_output_size <- args[7] # string
+arg_max_plots <- as.integer(args[7]) # string
 arg_filter_sample <- as.integer(args[8]) # integer
 arg_filter_count <- as.integer(args[9]) # integer
 arg_groups <-   unlist(lapply(strsplit(args[10],","), as.numeric)) # list of strings
@@ -77,8 +77,8 @@ run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indi
 
     pdf(file = paste(filename,".pdf",sep=""), width = 8.27, height = 11.69)  # DIN A4 in inches
 
-    if (nrow(data$summary_table) > 100) {
-        max <- 100
+    if (nrow(data$summary_table) > arg_max_plots) {
+        max <- arg_max_plots
     } else {
         max <- nrow(data$summary_table)
     }
@@ -89,7 +89,7 @@ run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indi
 
         # p[[i]] <- Circ.ratioplot( CircRNACount_filtered, LinearCount_filtered,
         # CircCoordinates_filtered, plotrow=i, size=16, gene_column=4,
-        print(i)
+        message(i)
 
         Circ.ratioplot(CircRNACount_filtered, LinearCount_filtered, CircCoordinates_filtered,
         plotrow = i, size = 16, gene_column = 4, groupindicator1 = indicators,
@@ -145,7 +145,7 @@ print(arg_condition_list)
 print(arg_condition_columns)
 print(arg_output_name)
 print(arg_max_fdr)
-print(arg_output_size)
+print(arg_max_plots)
 print(arg_filter_sample)
 print(arg_filter_count)
 print(arg_groups)
