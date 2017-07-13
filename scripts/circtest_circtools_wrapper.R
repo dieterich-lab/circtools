@@ -35,17 +35,27 @@ args <- commandArgs(trailingOnly = TRUE)
 
 # assign input to script variables
 arg_dcc_data <- args[1] # path is string
+
 arg_replictes <- as.integer(args[2]) # integer
-arg_condition_list <- strsplit(args[3],",")[[1]] # list of strings
-arg_condition_columns <- as.integer(strsplit(args[4],",")[[1]]) # list of integers
+
+arg_condition_list <- strsplit(args[3],":")[[1]] # list of strings
+arg_condition_list <- unlist(strsplit(arg_condition_list,",")) # list of strings
+
+arg_condition_columns <- strsplit(args[4],":")[[1]] # list of integers
+arg_condition_columns <- lapply(strsplit(arg_condition_columns,","), as.numeric) # list of integers
+
+arg_condition_columns <- unlist(arg_condition_columns)
+
 arg_output_name <- args[5] # string
 arg_max_fdr <- as.numeric(args[6]) # float
 arg_output_size <- args[7] # string
 arg_filter_sample <- as.integer(args[8]) # integer
 arg_filter_count <- as.integer(args[9]) # integer
+arg_groups <-   unlist(lapply(strsplit(args[10],","), as.numeric)) # list of strings
 
 
-run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indicators, label, xlsName, pdfName) {
+
+run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indicators, label, filename) {
 
     message("Filtering circRNA counts")
     CircRNACount_filtered <- Circ.filter(circ = CircRNACount, linear = LinearCount,
@@ -59,11 +69,13 @@ run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indi
 
     message("running circTest")
 
+    message(length(LinearCount_filtered))
+
     data = Circ.test(CircRNACount_filtered, LinearCount_filtered, CircCoordinates_filtered, group = groups)
 
     message("plotting")
 
-    pdf(file = pdfName, width = 8.27, height = 11.69)  # DIN A4 in inches
+    pdf(file = paste(filename,".pdf",sep=""), width = 8.27, height = 11.69)  # DIN A4 in inches
 
     if (nrow(data$summary_table) > 100) {
         max <- 100
@@ -93,7 +105,7 @@ run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indi
 
 
     write.table(na.omit(data$summary_table[1 : MAX_LINES,]),
-                file = paste(xlsName, ".csv", sep = "") ,
+                file = paste(filename, ".csv", sep = "") ,
                 quote = FALSE,
                 sep = "\t",
                 eol = "\n",
@@ -112,10 +124,7 @@ run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indi
     addWorksheet(wb, sheetName = "Linear Counts")
     writeDataTable(wb, sheet = 3, x = LinearCount[idx,])
 
-    addWorksheet(wb, sheetName = "CircleSkips")
-    writeDataTable(wb, sheet = 4, x = CircSkip[idx,])
-
-    saveWorkbook(wb, paste(xlsName, ".xlsx", sep = "") , overwrite = TRUE)
+    saveWorkbook(wb, paste(filename, ".xlsx", sep = "") , overwrite = TRUE)
 }
 
 ###########################################################
@@ -139,17 +148,28 @@ print(arg_max_fdr)
 print(arg_output_size)
 print(arg_filter_sample)
 print(arg_filter_count)
+print(arg_groups)
 
 
-# run_CircTest(
-# CircRNACount[, c(1 : 3, 10 : 15)],
-# LinearCount[, c(1 : 3, 10 : 15)],
-# CircCoordinates,
-# c(rep(c(2, 1), 3)),
-# c(rep(c("cond1", "cond2"), 3)),
-# "Run",
-# "./circTest/out",
-# "./circTest/out.pdf"
+run_CircTest(
+CircRNACount[, c(1:3, arg_condition_columns)],
+LinearCount[, c(1:3, arg_condition_columns)],
+CircCoordinates,
+rep(arg_groups, arg_replictes),
+rep(arg_condition_list, arg_replictes),
+"Run",
+arg_output_name
+)
+
+#
+# runCirc(
+# 	CircRNACount[, c(1:3,10:15)],
+# 	LinearCount[, c(1:3,10:15)],
+# 	CircCoordinates,
+# 	c(rep(c(2,1),3)),
+# 	c(rep(c("K562 RNase R-","K562 RNaseR+"),3)),
+# 	"Run",
+# 	"./circTest/circRNA_K562_RNaseR_P_signif_1percFDR",
+# 	"./circTest/circRNA_K562_RNaseR_P_signif_1percFDR.pdf"
 # )
 
-warnings()
