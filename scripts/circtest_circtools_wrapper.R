@@ -18,6 +18,9 @@
 library(CircTest)
 library(gridExtra)
 
+# may not be optimal, but we do not want warning for now
+options(warn=-1)
+
 # fix 'could not find zip' error from openxlsx
 Sys.setenv(R_ZIPCMD = "/usr/bin/zip")
 library(openxlsx)
