@@ -18,6 +18,11 @@
 library(CircTest)
 library(gridExtra)
 
+# pre load libraries so we don't get messages later:
+suppressMessages(library(aod))
+suppressMessages(library(ggplot2))
+suppressMessages(library(plyr))
+
 # may not be optimal, but we do not want warning for now
 options(warn=-1)
 
@@ -50,7 +55,7 @@ arg_condition_columns <- lapply(strsplit(arg_condition_columns,","), as.numeric)
 arg_condition_columns <- unlist(arg_condition_columns)
 
 arg_output_name <- args[5] # string
-arg_max_fdr <- as.numeric(args[6]) # float
+arg_max_fdr <-as.numeric(args[6]) # float
 arg_max_plots <- as.integer(args[7]) # string
 arg_filter_sample <- as.integer(args[8]) # integer
 arg_filter_count <- as.integer(args[9]) # integer
@@ -58,11 +63,11 @@ arg_groups <-   unlist(lapply(strsplit(args[10],","), as.numeric)) # list of str
 
 
 
-run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indicators, label, filename) {
+run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indicators, label, filename, filer.sample, filter.count, percentage, max.plots, replicates) {
 
     message("Filtering circRNA counts")
     CircRNACount_filtered <- Circ.filter(circ = CircRNACount, linear = LinearCount,
-    Nreplicates = 3, filter.sample = 3, filter.count = 5, percentage = 0.01)
+    Nreplicates = replicates, filter.sample = filer.sample, filter.count =  filter.count, percentage = percentage)
 
     message("Filtering circRNA coordinates")
     CircCoordinates_filtered <- CircCoordinates[rownames(CircRNACount_filtered),]
@@ -72,33 +77,29 @@ run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indi
 
     message("running circTest")
 
-    message(length(LinearCount_filtered))
-
     data = Circ.test(CircRNACount_filtered, LinearCount_filtered, CircCoordinates_filtered, group = groups)
 
-    message("plotting")
+    message("Generating plots")
 
-    pdf(file = paste(filename,".pdf",sep=""), width = 8.27, height = 11.69)  # DIN A4 in inches
+    pdf(file = paste(filename,".pdf",sep=""), paper="a4")
 
-    if (nrow(data$summary_table) > arg_max_plots) {
-        max <- arg_max_plots
+    if (nrow(data$summary_table) > max.plots) {
+        max <- max.plots
     } else {
         max <- nrow(data$summary_table)
     }
-
-    # print(head(data$summary_table))
-
+    # p <- list()
     for (i in rownames(data$summary_table[1 : max,])) {
+        # invisible(capture.output(p[[i]] <- Circ.ratioplot( CircRNACount_filtered, LinearCount_filtered,
+        # CircCoordinates_filtered, plotrow=i, size=16, gene_column=4, groupindicator1 = indicators,
+        # x = "", y = "", lab_legend = label)))
 
-        # p[[i]] <- Circ.ratioplot( CircRNACount_filtered, LinearCount_filtered,
-        # CircCoordinates_filtered, plotrow=i, size=16, gene_column=4,
-        message(i)
-
-        Circ.ratioplot(CircRNACount_filtered, LinearCount_filtered, CircCoordinates_filtered,
+        invisible(capture.output(Circ.ratioplot(CircRNACount_filtered, LinearCount_filtered, CircCoordinates_filtered,
         plotrow = i, size = 16, gene_column = 4, groupindicator1 = indicators,
-        x = "", y = "", lab_legend = label)
+        x = "", y = "", lab_legend = label)))
     }
-    # print(p) do.call(grid.arrange,(c(p,ncol=2, nrow=4))) dev.off();
+    # print(p)
+    # do.call(grid.arrange,(c(p,ncol=2, nrow=4)))
 
     dev.off()
 
@@ -142,37 +143,19 @@ LinearCount <- read.delim(paste(arg_dcc_data, "LinearCount", sep="/"), header = 
 message("Loading CircCoordinates")
 CircCoordinates <- read.delim(paste(arg_dcc_data, "CircCoordinates", sep="/"), header = T)
 
-print(arg_dcc_data)
-print(arg_replictes)
-print(arg_condition_list)
-print(arg_condition_columns)
-print(arg_output_name)
-print(arg_max_fdr)
-print(arg_max_plots)
-print(arg_filter_sample)
-print(arg_filter_count)
-print(arg_groups)
-
+# call the main function to run circTest
 
 run_CircTest(
-CircRNACount[, c(1:3, arg_condition_columns)],
-LinearCount[, c(1:3, arg_condition_columns)],
-CircCoordinates,
-rep(arg_groups, arg_replictes),
-rep(arg_condition_list, arg_replictes),
-"Run",
-arg_output_name
+    CircRNACount[, c(1 : 3, arg_condition_columns)],
+    LinearCount[, c(1 : 3, arg_condition_columns)],
+    CircCoordinates,
+    rep(arg_groups, arg_replictes),
+    rep(arg_condition_list, arg_replictes),
+    "Run",
+    arg_output_name,
+    arg_filter_sample,
+    arg_filter_count,
+    arg_max_fdr,
+    arg_max_plots,
+    arg_replictes
 )
-
-#
-# runCirc(
-# 	CircRNACount[, c(1:3,10:15)],
-# 	LinearCount[, c(1:3,10:15)],
-# 	CircCoordinates,
-# 	c(rep(c(2,1),3)),
-# 	c(rep(c("K562 RNase R-","K562 RNaseR+"),3)),
-# 	"Run",
-# 	"./circTest/circRNA_K562_RNaseR_P_signif_1percFDR",
-# 	"./circTest/circRNA_K562_RNaseR_P_signif_1percFDR.pdf"
-# )
-
