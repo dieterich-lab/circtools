@@ -43,17 +43,12 @@ args <- commandArgs(trailingOnly = TRUE)
 
 # assign input to script variables
 arg_dcc_data <- args[1] # path is string
-
 arg_replictes <- as.integer(args[2]) # integer
-
 arg_condition_list <- strsplit(args[3],":")[[1]] # list of strings
 arg_condition_list <- unlist(strsplit(arg_condition_list,",")) # list of strings
-
 arg_condition_columns <- strsplit(args[4],":")[[1]] # list of integers
 arg_condition_columns <- lapply(strsplit(arg_condition_columns,","), as.numeric) # list of integers
-
 arg_condition_columns <- unlist(arg_condition_columns)
-
 arg_output_name <- args[5] # string
 arg_max_fdr <-as.numeric(args[6]) # float
 arg_max_plots <- as.integer(args[7]) # string
@@ -61,9 +56,8 @@ arg_filter_sample <- as.integer(args[8]) # integer
 arg_filter_count <- as.integer(args[9]) # integer
 arg_groups <-   unlist(lapply(strsplit(args[10],","), as.numeric)) # list of strings
 
-
-
-run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indicators, label, filename, filer.sample, filter.count, percentage, max.plots, replicates) {
+run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indicators, label, filename, filer.sample,
+                        filter.count, percentage, max.plots, replicates) {
 
     message("Filtering circRNA counts")
     CircRNACount_filtered <- Circ.filter(circ = CircRNACount, linear = LinearCount,
@@ -83,11 +77,13 @@ run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indi
 
     pdf(file = paste(filename,".pdf",sep=""), paper="a4")
 
+    max <- nrow(data$summary_table)
+
+    # if we havbe too many results, cut them down to the user threshold
     if (nrow(data$summary_table) > max.plots) {
         max <- max.plots
-    } else {
-        max <- nrow(data$summary_table)
     }
+
     # p <- list()
     for (i in rownames(data$summary_table[1 : max,])) {
         # invisible(capture.output(p[[i]] <- Circ.ratioplot( CircRNACount_filtered, LinearCount_filtered,
@@ -107,7 +103,6 @@ run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indi
 
     ## Significant result show in a summary table
 
-
     write.table(na.omit(data$summary_table[1 : MAX_LINES,]),
                 file = paste(filename, ".csv", sep = "") ,
                 quote = FALSE,
@@ -117,6 +112,7 @@ run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indi
                 col.names = FALSE)
 
     wb <- createWorkbook()
+
     addWorksheet(wb, sheetName = "Significant circles")
     writeDataTable(wb, sheet = 1, x = data$summary_table[1 : MAX_LINES,])
 
@@ -146,8 +142,8 @@ CircCoordinates <- read.delim(paste(arg_dcc_data, "CircCoordinates", sep="/"), h
 # call the main function to run circTest
 
 run_CircTest(
-    CircRNACount[, c(1 : 3, arg_condition_columns)],
-    LinearCount[, c(1 : 3, arg_condition_columns)],
+    CircRNACount[, c(1 : 3, arg_condition_columns)], # we always need the first 3 columns
+    LinearCount[, c(1 : 3, arg_condition_columns)], # we always need the first 3 columns
     CircCoordinates,
     rep(arg_groups, arg_replictes),
     rep(arg_condition_list, arg_replictes),
