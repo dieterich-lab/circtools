@@ -62,6 +62,36 @@ class CircTemplate(object):
                 logging.info(message)
                 sys.exit(message)
 
+    @staticmethod
+    def check_int_arguments(input_list):
+        """Checks supplied list of files for existence.
+        Will halt the program if file not accessible
+        """
+        for number in input_list:
+            # check if exists
+            try:
+                int(number)
+                return True
+            except ValueError:
+                message = ("Error: column %s is no valid column index." % str(number))
+                logging.info(message)
+                sys.exit(message)
+
+    @staticmethod
+    def check_float_arguments(input_list):
+        """Checks supplied list of files for existence.
+        Will halt the program if file not accessible
+        """
+        for number in input_list:
+            # check if exists
+            try:
+                float(number)
+                return True
+            except ValueError:
+                message = ("Error: column %s is no valid column index." % str(number))
+                logging.info(message)
+                sys.exit(message)
+
     @abstractmethod
     def module_name(self):
         """"Return a string representing the type of vehicle this is."""
