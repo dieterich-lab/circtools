@@ -20,8 +20,8 @@ import sys
 import os.path
 
 # global settings
-version = "0.1.0"
-program_name = "circtools"
+version = "0.2.0"
+program_name = "circtest"
 
 # samtools/git like parsing from http://chase-seibert.github.io/blog/2014/03/21/python-multilevel-argparse.html
 
@@ -42,6 +42,7 @@ class CircTools(object):
                primer       circular RNA primer design tool
                detect       circular RNA detection with DCC
                reconstruct  circular RNA reconstruction with FUCHS
+               circtest     circular RNA statistical testing
 
             """)
         parser.add_argument("command", help="Command to run")
@@ -272,6 +273,129 @@ class CircTools(object):
 
         import os
         os.system("DCC " + args.cli_params)
+
+    @staticmethod
+    def circtest():
+        parser = argparse.ArgumentParser(
+            description="circular RNA statistical testing - Interface to https://github.com/dieterich-lab/CircTest")
+        # NOT prefixing the argument with -- means it"s not optional
+
+        ######################################################
+
+        group = parser.add_argument_group("Required")
+        group.add_argument("-d",
+                           "--DCC",
+                           dest="DCC_dir",
+                           help="Path to the detect/DCC data directory",
+                           required=True
+                           )
+
+        group.add_argument("-l",
+                           "--condition-list",
+                           dest="condition_list",
+                           help="Comma-separated list of conditions which should be compared"
+                                "E.g. \"RNaseR +\",\"RNaseR -\"",
+                           required=True
+                           )
+
+        group.add_argument("-c",
+                           "--condition-columns",
+                           dest="condition_columns",
+                           help="Comma-separated list of 1-based column numbers in the detect/DCC output"
+                                " which should be compared; e.g. 10,11,12,13,14,15",
+                           required=True
+                           )
+
+        group.add_argument("-g",
+                           "--grouping",
+                           dest="grouping",
+                           help="Comma-separated list describing the relation of the columns specified via -c to the"
+                                " sample names specified via -l; e.g. -g 1,2 and -r 3 would assign sample1 to each "
+                                "even column and sample 2 to each odd column",
+                           required=True
+                           )
+        ######################################################
+
+        group = parser.add_argument_group("Processing options")
+
+        group.add_argument("-r",
+                           "--replicates",
+                           dest="num_replicates",
+                           help="Number of replicates used for the circRNA experiment [Default: 3]",
+                           type=int,
+                           default=3
+                           )
+
+        group.add_argument("-f",
+                           "--max-fdr",
+                           dest="max_fdr",
+                           help="Cut-off value for the FDR [Default: 0.05]",
+                           type=float,
+                           default=0.05
+                           )
+
+        group.add_argument("-s",
+                           "--filter-sample",
+                           dest="filter_sample",
+                           help="Number of samples that need to contain the amount of reads "
+                                "specified via -c [Default: 3]",
+                           type=int,
+                           default=3
+                           )
+
+        group.add_argument("-C",
+                           "--filter-count",
+                           dest="filter_count",
+                           help="Number of samples that need to contain the amount of reads "
+                                "specified via -c [Default: 5]",
+                           type=int,
+                           default=5
+                           )
+
+        ######################################################
+
+        group = parser.add_argument_group("Output options")
+
+        group.add_argument("-o",
+                           "--output-directory",
+                           dest="output_directory",
+                           default="./",
+                           help="The output directory for files created by " + program_name + " [Default: .]",
+                           )
+
+        group.add_argument("-n",
+                           "--output-name",
+                           dest="output_name",
+                           default="circtest",
+                           help="The output name for files created by " + program_name + " [Default: circtest]",
+                           )
+
+        group.add_argument("-p",
+                           "--max-plots",
+                           dest="max_plots",
+                           help="How many of candidates should be plotted as bar chart? [Default: 50]",
+                           type=int,
+                           default=50
+                           )
+
+        group.add_argument("-a",
+                           "--label",
+                           dest="label",
+                           help="How should the samples be labeled? [Default: Sample]",
+                           default="Sample"
+                           )
+        ######################################################
+
+        args = parser.parse_args(sys.argv[2:])
+
+        # start the primer module
+
+        # make sure we can load the sub module
+        sys.path.append(os.path.join(os.path.dirname(__file__)))
+
+        import circtest.circtest
+        circtest_instance = circtest.circtest.CircTest(args, program_name, version)
+        circtest_instance.run_module()
 
     @staticmethod
     def reconstruct():
