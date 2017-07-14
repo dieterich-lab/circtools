@@ -55,6 +55,8 @@ arg_max_plots <- as.integer(args[7]) # string
 arg_filter_sample <- as.integer(args[8]) # integer
 arg_filter_count <- as.integer(args[9]) # integer
 arg_groups <-   unlist(lapply(strsplit(args[10],","), as.numeric)) # list of strings
+arg_output_label <- args[11] # string
+
 
 run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indicators, label, filename, filer.sample,
                         filter.count, percentage, max.plots, replicates) {
@@ -147,7 +149,7 @@ run_CircTest(
     CircCoordinates,
     rep(arg_groups, arg_replictes),
     rep(arg_condition_list, arg_replictes),
-    "Run",
+    arg_output_label,
     arg_output_name,
     arg_filter_sample,
     arg_filter_count,
