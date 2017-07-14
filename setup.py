@@ -233,6 +233,8 @@ setup(
     scripts=[
         'scripts/circtools',
         'scripts/circtools_primer',
+        'scripts/circtools_circtest',
+
     ],
 
     # adding support for post install scripts from
