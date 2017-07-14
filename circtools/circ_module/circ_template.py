@@ -71,7 +71,6 @@ class CircTemplate(object):
             # check if exists
             try:
                 int(number)
-                return True
             except ValueError:
                 message = ("Error: column %s is no valid column index." % str(number))
                 logging.info(message)
@@ -86,7 +85,6 @@ class CircTemplate(object):
             # check if exists
             try:
                 float(number)
-                return True
             except ValueError:
                 message = ("Error: column %s is no valid column index." % str(number))
                 logging.info(message)
