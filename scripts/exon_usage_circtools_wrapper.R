@@ -61,6 +61,7 @@ arg_filter_count <- as.integer(args[9]) # integer
 arg_groups <-   unlist(lapply(strsplit(args[10],","), as.numeric)) # list of strings
 arg_output_label <- args[11] # string
 arg_ballgown_directory <- args[12] # string
+arg_gtf_file <- args[13] # string
 
 
 # read sub directories containing the ballgown runs
