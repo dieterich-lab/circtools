@@ -18,14 +18,14 @@
 ### imports
 message("Loading required packages")
 
-# suppressMessages(library(ballgown))
-# suppressMessages(library(edgeR))
-# suppressMessages(library(biomaRt))
-# suppressMessages(library(ggbio))
-# suppressMessages(library(ggfortify))
-# suppressMessages(library(openxlsx))
-# suppressMessages(library(GenomicRanges))
-# suppressMessages(library(GenomicFeatures))
+suppressMessages(library(ballgown))
+suppressMessages(library(edgeR))
+suppressMessages(library(biomaRt))
+suppressMessages(library(ggbio))
+suppressMessages(library(ggfortify))
+suppressMessages(library(openxlsx))
+suppressMessages(library(GenomicRanges))
+suppressMessages(library(GenomicFeatures))
 
 message("Done loading packages")
 
@@ -49,7 +49,7 @@ args <- commandArgs(trailingOnly = TRUE)
 
 
 arg_dcc_data <- args[1] # path is string
-arg_replictes <- as.integer(args[2]) # integer
+arg_replictes <- unlist(lapply(strsplit(args[2],","), as.numeric)) # list of integers
 arg_condition_list <- strsplit(args[3],",")[[1]] # list of strings
 arg_condition_columns <- lapply(strsplit(args[4],","), as.numeric) # list of integers
 arg_condition_columns <- unlist(arg_condition_columns)
@@ -58,196 +58,160 @@ arg_max_fdr <-as.numeric(args[6]) # float
 arg_max_plots <- as.integer(args[7]) # string
 arg_filter_sample <- as.integer(args[8]) # integer
 arg_filter_count <- as.integer(args[9]) # integer
-arg_groups <-   unlist(lapply(strsplit(args[10],","), as.numeric)) # list of strings
-arg_output_label <- args[11] # string
+arg_groups <- lapply(strsplit(args[10],","), as.numeric) # list of integers
+arg_output_directory <- args[11] # string
 arg_ballgown_directory <- args[12] # string
 arg_gtf_file <- args[13] # string
+arg_circTest_file <- args[14] # string
 
 
-# read sub directories containing the ballgown runs
-ballgownRuns <- list.files(arg_ballgown_directory)
 
+# read sub directories containing the ballgown runs and return list
+ballgownRuns <- as.list(list.files(arg_ballgown_directory, full.names = TRUE))
 
-print(ballgownRuns)
+runAnalysis = function(CircRNACount, LinearCount, CircCoordinates, groups, indicators, label, filename, filer.sample,
+filter.count, percentage, max.plots, replicates, condition_columns, output_dir, arg_gtf_file, circTest_file) {
 
-# set ballgown data input dir
-ballgownData <- "../ballgown_data/"
+    # output directory
+    baseDir <- paste(arg_output_directory, "/", sep="")
 
+    # group mapping
+    group <- unlist(lapply(groups, function(x) {return(indicators[x])}))
 
-q()
-# Read in circRNA predictions by DCC from here
-DCCdataDir <- ".";
+    # sample<>replicate mapping
+    id <- unlist(lapply(seq(1, length(replicates)), function(x) {return((paste(group[x], replicates[x], sep="_R")))}))
 
-runAnalysis = function(sampleName, mockColumns, treatedColumns) {
+    bg.dccDF <- data.frame( id=id, group=group)
 
-  # output directory
-  baseDir <- paste("./ballgown/",sampleName,"/", sep="")
+    bg_dirs_to_work <- unlist(lapply(condition_columns, function(x) {return(ballgownRuns[x])}))
 
-  mock <- unique (grep(paste(mockColumns,collapse="|"), ballgownFile$V1, value=TRUE))
-  treated <- unique (grep(paste(treatedColumns,collapse="|"), ballgownFile$V1, value=TRUE))
+    message("Starting ballgown processing")
 
-  sampleNames<- c(
-                    paste(sampleName,"- 1", sep=""),
-                    paste(sampleName,"- 2", sep=""),
-                    paste(sampleName,"- 3", sep=""),
-                    paste(sampleName,"+ 1", sep=""),
-                    paste(sampleName,"+ 2", sep=""),
-                    paste(sampleName,"+ 3", sep="")
-                  )
+    bg <- ballgown(bg_dirs_to_work, verbose=TRUE)
+    pData(bg)<- bg.dccDF
+    #save(bg, file='bg.rda')
 
-  bg.dccDF <- data.frame( id=sampleNames,
-                          group=c(
-                                     c(
-                                       rep(paste(sampleName,"-", sep=""),3),
-                                       rep(paste(sampleName,"+", sep=""),3)
-                                       )
-                                  )
-                        )
+    # load('bg.rda')
+    # bg
+    message("Preparing necessary data structures")
+    # 'all' -> meas='all', all measurements
 
-  bg <- ballgown(c(treated,mock),verbose=TRUE)
+    whole_exon_table = eexpr(bg, 'all')# eexpr -> exon level
+    whole_intron_table = iexpr(bg, 'all')# iexpr -> intron level
 
-  pData(bg) <- bg.dccDF
-  #save(bg, file='bg.rda')
+    t2g<-indexes(bg)$t2g # transcript / gene table
+    e2t<-indexes(bg)$e2t # exon / transcript table
 
-  # load('bg.rda')
-  bg
-  print("preparing and rearranging some tables")
-  # 'all' -> meas='all', all measurements
+    e2g<-unique(merge(e2t, t2g, by.x=2, by.y=1)[, 2:3])# exon / gene table merging
+    idx<-names(which(table(e2g[, 1])==1))# idx to sort out non-gene exons
+    e2g<-subset(e2g, e2g[, 1]%in% idx)# exon / gene transcript / merging
 
-  whole_exon_table = eexpr(bg, 'all') # eexpr -> exon level
-  whole_intron_table = iexpr(bg, 'all') # iexpr -> intron level
+    # redo everything based on counts
+    # use mrcount -> multi-map-corrected number of reads overlapping the exon/intron
+    nonMMexonCount<-whole_exon_table[, c(1, grep("mrcount", colnames(whole_exon_table)))]
 
-  t2g<-indexes(bg)$t2g # transcript / gene table
-  e2t<-indexes(bg)$e2t # exon / transcript table
+    # only exons > 10 reads throught all mappings
+    idx<-which(apply(nonMMexonCount[, -1], 1, sum)>10)
+    nonMMexonCount<-nonMMexonCount[idx,]
 
-  e2g<-unique(merge(e2t,t2g,by.x=2,by.y=1)[,2:3]) # exon / gene table merging
-  idx<-names(which(table(e2g[,1])==1)) # idx to sort out non-gene exons
-  e2g<-subset(e2g,e2g[,1] %in% idx) # exon / gene transcript / merging
+    # merge exon couns and ( exon / gene / transcript) table
+    e2g.counts<-merge(nonMMexonCount, e2g, by.x=1, by.y=1)
 
-  # redo everything based on counts
-  # use mrcount -> multi-map-corrected number of reads overlapping the exon/intron
-  nonMMexonCount<-whole_exon_table[,c(1,grep("mrcount",colnames(whole_exon_table)))]
+    # extract first and last columns
+    geneBaseTable<-e2g.counts[, c(1, ncol(e2g.counts))]
 
-  # only exons > 10 reads throught all mappings
-  idx<-which(apply(nonMMexonCount[,-1],1,sum)>10)
-  nonMMexonCount<-nonMMexonCount[idx,]
+    # combine tables, add chr, strand, start and stop
+    # we now have a large table with exon to gene mappings and base annotation
+    geneBaseTable<-merge(geneBaseTable, whole_exon_table[, 1:5], by.x=1, by.y=1)
 
-  # merge exon couns and ( exon / gene / transcript) table
-  e2g.counts<-merge(nonMMexonCount,e2g,by.x=1,by.y=1)
+    # add exon number to gene name. e.g.: ENSG00000223972 -> ENSG00000223972.8
+    geneBaseTable[, 1]<-gsub(" ", "", apply(geneBaseTable[, c(2, 1)],
+    1, paste, sep="", collapse="."))
 
-  # extract first and last columns
-  geneBaseTable<-e2g.counts[,c(1,ncol(e2g.counts))]
+    #print(head(geneBaseTable))
+    # bundle together gene names, gene/exon combos in a data frame
+    geneIDs <- data.frame(GeneID=geneBaseTable[, "g_id"],
+    Gene.Exon=geneBaseTable[, "e_id"])
 
-  # combine tables, add chr, strand, start and stop
-  # we now have a large table with exon to gene mappings and base annotation
-  geneBaseTable<-merge(geneBaseTable,whole_exon_table[,1:5],by.x=1,by.y=1)
+    message("Setting treatment and conditions")
 
-  # add exon number to gene name. e.g.: ENSG00000223972 -> ENSG00000223972.8
-  geneBaseTable[,1]<-gsub(" ","",apply(geneBaseTable[,c(2,1)],
-                          1,paste,sep="",collapse="."))
+    treatment <- group
+    condition <- id
+    batch <- unlist(lapply(replicates,function(x){paste("R",x,sep="")}))
 
-                          print(head(geneBaseTable))
+    # remove first and last column
+    e2g.minimal=e2g.counts[,-c(1,ncol(e2g.counts))]
 
-  # bundle together gene names, gene/exon combos in a data frame
-  geneIDs <- data.frame(  GeneID=geneBaseTable[,"g_id"],
-                          Gene.Exon=geneBaseTable[,"e_id"])
+    # indices of exons in e2g.minimal table with > 40 counts throughout all samples
+    idx<-which(apply(e2g.minimal,1,sum)>4*10)
 
-  print("setting treatment and conditions")
+    # select > 40 count exons from exon / gene table
+    e2g.counts<-e2g.counts[idx,];
 
-  # 3 RNase+, 3 RNase-
-  treatment <- c(
-                  rep(paste(sampleName,"-", sep=""),3),
-                  rep(paste(sampleName,"+", sep=""),3)
-                )
+    # select > 40 count exons from the slimmed exon / gene table
+    e2g.minimal=e2g.minimal[idx,]
 
-  # 6 samples
-  condition <- c(
-                    paste(sampleName,"- 1", sep=""),
-                    paste(sampleName,"- 2", sep=""),
-                    paste(sampleName,"- 3", sep=""),
-                    paste(sampleName,"+ 1", sep=""),
-                    paste(sampleName,"+ 2", sep=""),
-                    paste(sampleName,"+ 3", sep="")
-                  )
+    # set appropriate gene names
+    rownames(e2g.minimal)<-geneIDs[idx,2]
 
-  batch <- c("R1","R2","R3","R1","R2","R3")
+    # only keep gene + exon names that also have > 40 count
+    geneIDs=geneIDs[idx,]
 
+    # extract multi-exon genes
+    genesWithMultipleExons=names(which(table(as.character(geneIDs[,1]))>1))
 
-  # remove first and last column
-  e2g.minimal=e2g.counts[,-c(1,ncol(e2g.counts))]
-   # indices of exons in e2g.minimal table with > 40 counts throughout all samples
-  idx<-which(apply(e2g.minimal,1,sum)>4*10)
+    # extract single exon genes
+    genesWithSingleExon=names(which(table(as.character(geneIDs[,1]))==1))
 
-  # select > 40 count exons from exon / gene table
-  e2g.counts<-e2g.counts[idx,];
+    message(paste("Found ",length(genesWithMultipleExons), " multi exon genes", sep = ""))
 
-  # select > 40 count exons from the slimmed exon / gene table
-  e2g.minimal=e2g.minimal[idx,]
+    message(paste("Found ", length(genesWithSingleExon), " single exon genes", sep = ""))
 
-  # set appropriate gene names
-  rownames(e2g.minimal)<-geneIDs[idx,2]
+    # subset the geneID list to only contain multi-exon genes
+    geneIDs=subset(geneIDs,geneIDs[,1] %in% genesWithMultipleExons)
 
-  # only keep gene + exon names that also have > 40 count
-  geneIDs=geneIDs[idx,]
+    # intersect the minimal e2g list with with the geneIDs to get exon (gene)
+    # -> count relation
+    e2g.minimal=e2g.minimal[intersect(rownames(e2g.minimal),geneIDs[,2]),]
 
-  # extract multi-exon genes
-  genesWithMultipleExons=names(which(table(as.character(geneIDs[,1]))>1))
+    # DE analysis with edgeR starts here
+    z <- DGEList(counts=e2g.minimal, genes=geneIDs)
+    z <- calcNormFactors(z)
 
-  # extract single exon genes
-  genesWithSingleExon=names(which(table(as.character(geneIDs[,1]))==1))
+    # build the design for edgeR
+    design <- model.matrix(~ treatment)
 
-  print("multi exon genes:")
-  length(genesWithMultipleExons)
+    print(design)
 
-  print("single exon genes:")
-  length(genesWithSingleExon)
+    message("Starting dispersion estimation")
+    z <- estimateGLMCommonDisp(z,design)
+    z <- estimateGLMTrendedDisp(z,design)
+    z <- estimateGLMTagwiseDisp(z,design)
 
-  # subset the geneID list to only contain multi-exon genes
-  geneIDs=subset(geneIDs,geneIDs[,1] %in% genesWithMultipleExons)
+    message("Fitting model...")
+    fit <- glmFit(z,design)
 
-  # intersect the minimal e2g list with with the geneIDs to get exon (gene)
-  # -> count relation
-  e2g.minimal=e2g.minimal[intersect(rownames(e2g.minimal),geneIDs[,2]),]
-
-  # DE analysis with edgeR starts here
-  z <- DGEList(counts=e2g.minimal, genes=geneIDs)
-  z <- calcNormFactors(z)
-
-  # build the design for edgeR
-  design <- model.matrix(~ batch + treatment)
-
-  print(design)
-
-  print("starting dispersion estimation...")
-  z <- estimateGLMCommonDisp(z,design)
-  z <- estimateGLMTrendedDisp(z,design)
-  z <- estimateGLMTagwiseDisp(z,design)
-
-  print("fitting model...")
-  fit <- glmFit(z,design)
-
-
-  print("testing for differential exon usage...")
-  # Test For Differential Exon Usage
-  # Given a negative binomial generalized log-linear model fit at the exon level,
-  # test for differential exon usage between experimental conditions.
-  diffSplicedGenes<-diffSpliceDGE(  fit,
+    message("Testing for differential exon usage")
+    # Test For Differential Exon Usage
+    # Given a negative binomial generalized log-linear model fit at the exon level,
+    # test for differential exon usage between experimental conditions.
+    diffSplicedGenes<-diffSpliceDGE(  fit,
                                     geneid="GeneID",
                                     exonid="Gene.Exon",
                                     prior.count=0.125,
                                     verbose=TRUE
                                   )
 
-  # Top Table Of Differentially Spliced Genes Or Exons
-  # Top table ranking the most differentially spliced genes or exons
-  topSplicedGenes=topSpliceDGE( diffSplicedGenes,
+    # Top Table Of Differentially Spliced Genes Or Exons
+    # Top table ranking the most differentially spliced genes or exons
+    topSplicedGenes=topSpliceDGE( diffSplicedGenes,
                                 FDR=0.01,
                                 test="Simes",
                                 number=nrow(diffSplicedGenes$gene.geneIDs)
                               )
 
-  # merge information from gene2 table with the DS exons from above
-  splicedExonDF <- merge(
+    # merge information from gene2 table with the DS exons from above
+    splicedExonDF <- merge(
                           geneBaseTable,
                           data.frame(
                                         ID = names(diffSplicedGenes$exon.p.value),
@@ -256,8 +220,8 @@ runAnalysis = function(sampleName, mockColumns, treatedColumns) {
                                       ),
                           by.x=1, by.y=1
                         )
-  # save.image()
-  # load(".RData")
+
+#####################################################
 
   # build new table with selected columns
   splicedExonDFfixed=splicedExonDF[,c("chr","start","end","log2FC","Pval")];
@@ -265,7 +229,7 @@ runAnalysis = function(sampleName, mockColumns, treatedColumns) {
   splicedExonDFfixed[,3]<-splicedExonDFfixed[,3]-1 # fix stop pos (0-based now)
   splicedExonDFfixed[,5]<-log2(splicedExonDFfixed[,5]) # get log2 for Pval column
 
-  print("writing bed files...")
+  message("Writing bed files...")
   ############# Writing BED files ##############
 
   # write BED track header for FC track
@@ -332,7 +296,7 @@ runAnalysis = function(sampleName, mockColumns, treatedColumns) {
 
 
   # disabled, biomart data cached to speed up script
-  print("interfacing biomart... this may take some time...")
+  message("Interfacing biomart (may take some time depending on experiment and network)")
   # create biomart object with HS data set
   mart <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
 
@@ -345,31 +309,29 @@ runAnalysis = function(sampleName, mockColumns, treatedColumns) {
                   verbose = FALSE
                 )
 
-  # print("caching biomart data...")
-  # save(martData, mart, file='biomart.rda')
-
   ## load the cached version of the biomart query
   ## has to be updated when the gene list input changes!
-  # load(file='biomart.rda')
-  print("done with biomart...")
+  message("Done with biomart")
 
 
   # enrich the top spliced gene swith the mart data
   topSplicedGenesMartData=merge(topSplicedGenes, martData, by.x=1, by.y=2)
 
   # read in circ RNA annotation from DCC
-  CircCoordinates <- read.delim(
-                                paste(DCCdataDir,"CircCoordinates",sep="/"),
-                                header=T,
-                                as.is=T
-                               )
+  # CircCoordinates <- read.delim(
+  #                               paste(DCCdataDir,"CircCoordinates",sep="/"),
+  #                               header=T,
+  #                               as.is=T
+  #                              )
   # correct again for to 0-based positions
-  dccDF<-CircCoordinates[,c(1,2,3,4,5,6)]
+  dccDF<-CircCoordinates
   dccDF[,2]<-dccDF[,2]-1
   dccDF[,3]<-dccDF[,3]-1
 
   # write BED file
   colnames(dccDF)<-c("chr","start","end","GeneName","JType","strand")
+
+  message("Writing DCC prediction BED file")
 
   #Print bed file, read counts
   write(paste("track name=\"DCC_predictions\" description=\"Predictions ",
@@ -388,6 +350,8 @@ runAnalysis = function(sampleName, mockColumns, treatedColumns) {
   #genomicRanges <- makeGRangesFromDataFrame(dccDF);
   #do we need to test if enrichment happens inside of BSJ ?!?
 
+  message("Reading and integrating CircTest results")
+
   # pull together circle predictions from DCC
   CircPred <- data.frame(
                           Gene=unique(CircCoordinates[,"Gene"]),
@@ -402,13 +366,16 @@ runAnalysis = function(sampleName, mockColumns, treatedColumns) {
                                 by.y=1,
                                 all.x=T
                               )
-
+  # todo: Add parameter to specifiy id input has a header row
   circTestSummary<- read.delim(
-                            paste(DCCdataDir,"/circTest/circRNA_",
-                            sampleName, "_RNaseR_P_signif_1percFDR.csv",sep=""),
-                            header=T,
+                            circTest_file,
+                            header=F,
                             as.is=T
                           )
+
+  cols.ct <- c("Chr", "Start", "End", "Gene", "JunctionType", "Strand", "Start.End.Region", "OverallRegion", "sig_p")
+  colnames(circTestSummary) <- cols.ct
+
   #write bed file
   # assign circTest summary results to DF
   dccDF<-circTestSummary[,c(1,2,3,6)]
@@ -428,6 +395,8 @@ runAnalysis = function(sampleName, mockColumns, treatedColumns) {
 
   # reorder columns
   colnames(dccDF)<-c("chr","start","end","GeneName","JType","strand")
+
+  message("Writing back splice junction enriched BED file")
 
   # Print BED file, read counts
   write(paste("track name=\"DCC_BSJ_enriched\"",
@@ -450,6 +419,7 @@ runAnalysis = function(sampleName, mockColumns, treatedColumns) {
                               circTestSummary[unique(multiExonOverlap[,1]),],
                               topSplicedGenesMartData,by.x=4,by.y=5
                             )[,-2]
+
   # sort by PValue
   RNAse_RenrichedCircTest <- RNAse_RenrichedCircTest[order(RNAse_RenrichedCircTest[,"sig_p"]),]
 
@@ -463,7 +433,7 @@ runAnalysis = function(sampleName, mockColumns, treatedColumns) {
   topSplicedGenesMartDCC <- topSplicedGenesMartDCC[order(topSplicedGenesMartDCC[,"FDR"]),]
 
   #print out single exon subset in circTest summary
-  circTestSummary[unique(singleExonOverlap[,1]),]
+  # circTestSummary[unique(singleExonOverlap[,1]),]
 
 
   # combine DCC top spliced genes with the BS enriched data frame
@@ -473,6 +443,7 @@ runAnalysis = function(sampleName, mockColumns, treatedColumns) {
                       by.y=1,
                       all.x=T
                       )
+  message("Writing Excel file")
 
   # create an excel workbook
   wb <- createWorkbook()
@@ -495,6 +466,8 @@ runAnalysis = function(sampleName, mockColumns, treatedColumns) {
   # close workbook
   saveWorkbook(wb, paste(baseDir,"diff_exon_enrichment.xlsx",sep="/"), overwrite = TRUE)
 
+  message("Writing additional CSV output")
+
   # write simple csv files
   write.table( mainTable[order(mainTable[,"FDR"]),],
               file=paste(baseDir,"exon_enrichment.csv",sep="/"), sep ="|")
@@ -506,62 +479,58 @@ runAnalysis = function(sampleName, mockColumns, treatedColumns) {
   plotSubset <- mainTable[order(mainTable[,"FDR"]),]
   plotSubset <- subset(plotSubset[,"GeneID"],plotSubset[,"RNaseR_enriched"]==1);
 
-  # select the top10 enriched genes
-  top30Enriched=RNAse_RenrichedCircTest[1:5,"GeneID"]
+  #Todo: add parameter to select how many circles we use here
 
-  txdb <- makeTxDbFromGFF("/home/tjakobi/work/data/GRCh38_85/GRCh38.85.gtf", format="gtf")
+  # select the top10 enriched genes
+  top30Enriched <- RNAse_RenrichedCircTest[1:5,"GeneID"]
+
+  message("Plotting top 30 enriched RNaseR enriched circles")
+
+
+  txdb <- makeTxDbFromGFF(arg_gtf_file, format="gtf")
   g<-genes(txdb)
 
   model <- exonsBy(txdb, by = "tx")
   exons <- exons(txdb)
 
-  # for the top10 enriched genes
+  # for the top30 enriched genes
   for (n in top30Enriched)
   {
     # overlap current enriched gene with exons from txdb
     currentExon <- subsetByOverlaps(exons, g[n])
 
     reducedExon = reduce(currentExon) #reduce could work here
-    exonIDs <-
-      grep(n, names(diffSplicedGenes$exon.p.value), value = T)
+    exonIDs <- grep(n, names(diffSplicedGenes$exon.p.value), value = T)
 
-
-    exonValues <-
-      subset(geneBaseTable, geneBaseTable[, "e_id"] %in% exonIDs)
+    exonValues <- subset(geneBaseTable, geneBaseTable[, "e_id"] %in% exonIDs)
     exonValues <- merge(
       exonValues,
       data.frame(
         exonID = grep(n, names(diffSplicedGenes$exon.p.value), value = T),
-        fc = diffSplicedGenes$coefficients
-        [grep(n, names(diffSplicedGenes$exon.p.value))]
+        fc = diffSplicedGenes$coefficients[grep(n, names(diffSplicedGenes$exon.p.value))]
       ),
       by.x = 1,
       by.y = 1
     )
 
-    values(reducedExon)$RNAseR_foldchange <-
-      rep(NA, length(reducedExon))
+    values(reducedExon)$RNAseR_foldchange <- rep(NA, length(reducedExon))
 
     for (z in 1:nrow(exonValues))
     {
-      targ = which((start(reducedExon) == exonValues[z, "start"]) &
-                     (end(reducedExon) == exonValues[z, "end"]))
-      values(reducedExon)$RNAseR_foldchange[targ] <-
-        exonValues[z, "fc"]
+      targ <- which((start(reducedExon) == exonValues[z, "start"]) & (end(reducedExon) == exonValues[z, "end"]))
+      values(reducedExon)$RNAseR_foldchange[targ] <- exonValues[z, "fc"]
     }
 
-    values(reducedExon)$significant <-
-      rep("FALSE", length(reducedExon))
+    values(reducedExon)$significant <- rep("FALSE", length(reducedExon))
 
-    multiExonOverlap <-
-      as.matrix(findOverlaps(genomicRanges, reducedExon))
+    multiExonOverlap <- as.matrix(findOverlaps(genomicRanges, reducedExon))
 
     if (nrow(multiExonOverlap) > 0)
     {
       values(reducedExon[multiExonOverlap[, 2]])$significant <- "TRUE"
     }
 
-    print(reducedExon)
+    # print(reducedExon)
 
     # lower part with transcript landscape around the selected gene
     plot <- autoplot(
@@ -588,8 +557,8 @@ runAnalysis = function(sampleName, mockColumns, treatedColumns) {
     )
     # an a4 page landscape
     ggsave(
-      width = 11.69,
-      height = 8.27,
+      width = 11.69, # this is A4
+      height = 8.27, # this is A4
       paste(baseDir, n, ".pdf", sep = ""),
       title = paste("Enrichment plot: ", n , sep = "")
     )
@@ -599,9 +568,36 @@ runAnalysis = function(sampleName, mockColumns, treatedColumns) {
 
 ################## SETUP
 
+## load complete data set
+message("Loading CircRNACount")
+CircRNACount <- read.delim(paste(arg_dcc_data, "CircRNACount", sep="/"), header = T)
+
+message("Loading LinearRNACount")
+LinearCount <- read.delim(paste(arg_dcc_data, "LinearCount", sep="/"), header = T)
+
+message("Loading CircCoordinates")
+CircCoordinates <- read.delim(paste(arg_dcc_data, "CircCoordinates", sep="/"), header = T)
+
+# call the main function to run circTest
+
 runAnalysis(
-              sampleName = "sample",
-              treatedColumns = vector,
-              mockColumns = mvector
-            )
+    CircRNACount[, c(1 : 3, arg_condition_columns)], # we always need the first 3 columns
+    LinearCount[, c(1 : 3, arg_condition_columns)], # we always need the first 3 columns
+    CircCoordinates,
+    arg_groups,
+    arg_condition_list,
+    arg_output_label,
+    arg_output_name,
+    arg_filter_sample,
+    arg_filter_count,
+    arg_max_fdr,
+    arg_max_plots,
+    arg_replictes,
+    arg_condition_columns,
+    arg_output_directory,
+    arg_gtf_file,
+    arg_circTest_file
+)
+
+
 warnings()
