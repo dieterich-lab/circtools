@@ -63,14 +63,15 @@ arg_output_directory <- args[11] # string
 arg_ballgown_directory <- args[12] # string
 arg_gtf_file <- args[13] # string
 arg_circTest_file <- args[14] # string
-
+arg_num_top_genes <- as.integer(args[15])
+arg_head_header <- as.logical(args[16])
 
 
 # read sub directories containing the ballgown runs and return list
 ballgownRuns <- as.list(list.files(arg_ballgown_directory, full.names = TRUE))
 
 runAnalysis = function(CircRNACount, LinearCount, CircCoordinates, groups, indicators, label, filename, filer.sample,
-filter.count, percentage, max.plots, replicates, condition_columns, output_dir, arg_gtf_file, circTest_file) {
+filter.count, percentage, max.plots, replicates, condition_columns, output_dir, arg_gtf_file, circTest_file, arg_num_top_genes, arg_head_header) {
 
     # output directory
     baseDir <- paste(arg_output_directory, "/", sep="")
@@ -369,7 +370,7 @@ filter.count, percentage, max.plots, replicates, condition_columns, output_dir, 
   # todo: Add parameter to specifiy id input has a header row
   circTestSummary<- read.delim(
                             circTest_file,
-                            header=F,
+                            header=arg_head_header,
                             as.is=T
                           )
 
@@ -479,12 +480,10 @@ filter.count, percentage, max.plots, replicates, condition_columns, output_dir, 
   plotSubset <- mainTable[order(mainTable[,"FDR"]),]
   plotSubset <- subset(plotSubset[,"GeneID"],plotSubset[,"RNaseR_enriched"]==1);
 
-  #Todo: add parameter to select how many circles we use here
-
   # select the top10 enriched genes
-  top30Enriched <- RNAse_RenrichedCircTest[1:5,"GeneID"]
+  topEnriched <- RNAse_RenrichedCircTest[1:arg_num_top_genes,"GeneID"]
 
-  message("Plotting top 30 enriched RNaseR enriched circles")
+  message("Plotting top enriched RNaseR enriched circles")
 
 
   txdb <- makeTxDbFromGFF(arg_gtf_file, format="gtf")
@@ -493,13 +492,15 @@ filter.count, percentage, max.plots, replicates, condition_columns, output_dir, 
   model <- exonsBy(txdb, by = "tx")
   exons <- exons(txdb)
 
+    sink(file("/dev/null", open = "wt"), type = "message")
+
   # for the top30 enriched genes
-  for (n in top30Enriched)
+  for (n in topEnriched)
   {
     # overlap current enriched gene with exons from txdb
     currentExon <- subsetByOverlaps(exons, g[n])
 
-    reducedExon = reduce(currentExon) #reduce could work here
+    reducedExon <- reduce(currentExon) #reduce could work here
     exonIDs <- grep(n, names(diffSplicedGenes$exon.p.value), value = T)
 
     exonValues <- subset(geneBaseTable, geneBaseTable[, "e_id"] %in% exonIDs)
@@ -596,7 +597,9 @@ runAnalysis(
     arg_condition_columns,
     arg_output_directory,
     arg_gtf_file,
-    arg_circTest_file
+    arg_circTest_file,
+    arg_num_top_genes,
+    arg_head_header
 )
 
 
