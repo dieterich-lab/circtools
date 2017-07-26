@@ -452,19 +452,22 @@ class CircTools(object):
         group.add_argument("-b",
                            "--ballgown-data",
                            dest="ballgown_data",
-                           help="Path to the ballgown data directory"
+                           help="Path to the ballgown data directory",
+                           required=True
                            )
 
         group.add_argument("-G",
                            "--gtf-file",
                            dest="gtf_file",
-                           help="Path to the GTF file containing the employed genome annotation"
+                           help="Path to the GTF file containing the employed genome annotation",
+                           required=True
                            )
 
         group.add_argument("-C",
                            "--circtest-output",
                            dest="circtest_file",
-                           help="Path to the CircTest CSV file containing the CircTest results"
+                           help="Path to the CircTest CSV file containing the CircTest results",
+                           required=True
                            )
 
         ######################################################
