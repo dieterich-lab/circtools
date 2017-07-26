@@ -20,7 +20,7 @@ import sys
 import os.path
 
 # global settings
-version = "0.2.0"
+version = "1.2.0-beta"
 program_name = "circtest"
 
 # samtools/git like parsing from http://chase-seibert.github.io/blog/2014/03/21/python-multilevel-argparse.html
@@ -35,18 +35,19 @@ class CircTools(object):
     def __init__(self):
         parser = argparse.ArgumentParser(
             description="circtools: a modular, python-based framework for circRNA-related tools that unifies "
-                        "several functionalities in single command line driven software.",
+                        "several functions in single command line driven software.",
             usage="""circtools [-V] <command> [<args>]
+            
             Available commands:
 
-               enrich       circular RNA RBP enrichment scan
-               primer       circular RNA primer design tool
-               detect       circular RNA detection with DCC
-               reconstruct  circular RNA reconstruction with FUCHS
-               circtest     circular RNA statistical testing
-               exon         circular RNA alternative exon analysis
-               
+               enrich:       circular RNA RBP enrichment scan
+               primer:       circular RNA primer design tool
+               detect:       circular RNA detection with DCC
+               reconstruct:  circular RNA reconstruction with FUCHS
+               circtest:     circular RNA statistical testing
+               exon:         circular RNA alternative exon analysis
             """)
+        parser.add_argument("command", help="Command to run")
 
         parser.add_argument("-V",
                             "--version",
