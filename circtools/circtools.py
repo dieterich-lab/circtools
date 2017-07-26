@@ -43,6 +43,8 @@ class CircTools(object):
                detect       circular RNA detection with DCC
                reconstruct  circular RNA reconstruction with FUCHS
                circtest     circular RNA statistical testing
+               exon         circular RNA alternative exon analysis
+               
 
             """)
         parser.add_argument("command", help="Command to run")
@@ -398,7 +400,7 @@ class CircTools(object):
         circtest_instance.run_module()
 
     @staticmethod
-    def exons():
+    def exon():
         parser = argparse.ArgumentParser(
             description="circular RNA exon usage analysis")
         # NOT prefixing the argument with -- means it"s not optional
@@ -469,7 +471,7 @@ class CircTools(object):
 
         group = parser.add_argument_group("Additional options")
 
-        group.add_argument("-h",
+        group.add_argument("-H",
                            "--has-header",
                            dest="has_header",
                            help="Do the CircTest result files have a header? [Default: No]",
