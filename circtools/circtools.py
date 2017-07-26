@@ -398,6 +398,126 @@ class CircTools(object):
         circtest_instance.run_module()
 
     @staticmethod
+    def exons():
+        parser = argparse.ArgumentParser(
+            description="circular RNA exon usage analysis")
+        # NOT prefixing the argument with -- means it"s not optional
+
+        ######################################################
+
+        group = parser.add_argument_group("Required")
+        group.add_argument("-d",
+                           "--DCC",
+                           dest="DCC_dir",
+                           help="Path to the detect/DCC data directory",
+                           required=True
+                           )
+
+        group.add_argument("-l",
+                           "--condition-list",
+                           dest="condition_list",
+                           help="Comma-separated list of conditions which should be compared"
+                                "E.g. \"RNaseR +\",\"RNaseR -\"",
+                           required=True
+                           )
+
+        group.add_argument("-c",
+                           "--condition-columns",
+                           dest="condition_columns",
+                           help="Comma-separated list of 1-based column numbers in the detect/DCC output"
+                                " which should be compared; e.g. 10,11,12,13,14,15",
+                           required=True
+                           )
+
+        group.add_argument("-g",
+                           "--grouping",
+                           dest="grouping",
+                           help="Comma-separated list describing the relation of the columns specified via -c to the"
+                                " sample names specified via -l; e.g. -g 1,2 and -r 3 would assign sample1 to each "
+                                "even column and sample 2 to each odd column",
+                           required=True
+                           )
+
+        group.add_argument("-r",
+                           "--replicates",
+                           dest="replicates",
+                           help="Comma-separated list describing the relation of the samples specified via -g to the"
+                                " sample names specified via -l; e.g. -g 1,2 and -r 3 would assign sample1 to each "
+                                "even column and sample 2 to each odd column",
+                           required=True
+                           )
+
+        group.add_argument("-b",
+                           "--ballgown-data",
+                           dest="ballgown_data",
+                           help="Path to the ballgown data directory"
+                           )
+
+        group.add_argument("-G",
+                           "--gtf-file",
+                           dest="gtf_file",
+                           help="Path to the GTF file containing the employed genome annotation"
+                           )
+
+        group.add_argument("-C",
+                           "--circtest-output",
+                           dest="circtest_file",
+                           help="Path to the CircTest CSV file containing the CircTest results"
+                           )
+
+        ######################################################
+
+        group = parser.add_argument_group("Additional options")
+
+        group.add_argument("-h",
+                           "--has-header",
+                           dest="has_header",
+                           help="Do the CircTest result files have a header? [Default: No]",
+                           type=bool,
+                           default=False
+                           )
+
+        ######################################################
+
+        group = parser.add_argument_group("Output options")
+
+        group.add_argument("-o",
+                           "--output-directory",
+                           dest="output_directory",
+                           default="./",
+                           help="The output directory for files created by " + program_name + " [Default: .]",
+                           )
+
+        group.add_argument("-n",
+                           "--output-name",
+                           dest="output_name",
+                           default="exon_analysis_",
+                           help="The output name (prefix) for files created by " + program_name +
+                                " [Default: exon_analysis]",
+                           )
+
+        group.add_argument("-p",
+                           "--max-plots",
+                           dest="max_plots",
+                           help="How many of candidates should be plotted as bar chart? [Default: 50]",
+                           type=int,
+                           default=10
+                           )
+
+        ######################################################
+
+        args = parser.parse_args(sys.argv[2:])
+
+        # start the primer module
+
+        # make sure we can load the sub module
+        sys.path.append(os.path.join(os.path.dirname(__file__)))
+
+        import exon_usage.exon_usage
+        exon_instance = exon_usage.exon_usage.ExonUsage(args, program_name, version)
+        exon_instance.run_module()
+
+    @staticmethod
     def reconstruct():
         parser = argparse.ArgumentParser(
             description="circular RNA reconstruction")
