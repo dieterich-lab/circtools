@@ -34,7 +34,8 @@ class CircTools(object):
 
     def __init__(self):
         parser = argparse.ArgumentParser(
-            description="Looks like samtools",
+            description="circtools: a modular, python-based framework for circRNA-related tools that unifies "
+                        "several functionalities in single command line driven software.",
             usage="""circtools [-V] <command> [<args>]
             Available commands:
 
@@ -45,9 +46,7 @@ class CircTools(object):
                circtest     circular RNA statistical testing
                exon         circular RNA alternative exon analysis
                
-
             """)
-        parser.add_argument("command", help="Command to run")
 
         parser.add_argument("-V",
                             "--version",
