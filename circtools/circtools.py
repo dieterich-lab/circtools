@@ -504,7 +504,7 @@ class CircTools(object):
         group.add_argument("-p",
                            "--max-plots",
                            dest="max_plots",
-                           help="How many of candidates should be plotted as bar chart? [Default: 50]",
+                           help="How many of candidates should be plotted as bar chart? [Default: 10]",
                            type=int,
                            default=10
                            )
