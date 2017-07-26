@@ -49,10 +49,9 @@ args <- commandArgs(trailingOnly = TRUE)
 
 arg_dcc_data <- args[1] # path is string
 arg_replicates <- unlist(lapply(strsplit(args[2],","), as.numeric)) # list of integers
-arg_condition_list <- strsplit(args[2],",")[[1]] # list of strings
-arg_condition_columns <- lapply(strsplit(args[3],","), as.numeric) # list of integers
+arg_condition_list <- strsplit(args[3],",")[[1]] # list of strings
+arg_condition_columns <- lapply(strsplit(args[4],","), as.numeric) # list of integers
 arg_condition_columns <- unlist(arg_condition_columns)
-arg_output_name <- args[4] # string
 arg_groups <- lapply(strsplit(args[5],","), as.numeric) # list of integers
 arg_output_directory <- args[6] # string
 arg_ballgown_directory <- args[7] # string
