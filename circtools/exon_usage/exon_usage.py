@@ -63,6 +63,16 @@ class ExonUsage(circ_module.circ_template.CircTemplate):
                                 self.cli_params.DCC_dir+"CircCoordinates"
                                 ])
 
+        # check Ballgown directory
+        if self.cli_params.ballgown_data and not (os.path.exists(self.cli_params.ballgown_data)):
+            self.log_entry("Ballgown data directory %s does not exist (or is not accessible)."
+                           % self.cli_params.ballgown_data)
+            # exit with -1 error if we can't use it
+            exit(-1)
+
+        # check circtest and GTF files (only existence, not the content)
+        self.check_input_files([self.cli_params.gtf_file,  self.cli_params.circtest_file])
+
         # check sample names
         if len(self.cli_params.condition_list.split(",")) < 2:
             self.log_entry("Error: Length of parameter list specified via -c is < 2.")
@@ -91,18 +101,7 @@ class ExonUsage(circ_module.circ_template.CircTemplate):
 
         # check numeric arguments
 
-        self.check_int_arguments([
-                                self.cli_params.num_replicates,
-                                self.cli_params.filter_sample,
-                                self.cli_params.filter_count,
-                                self.cli_params.max_plots,
-                                ])
-
-        self.check_float_arguments([self.cli_params.max_fdr])
-
-        if self.cli_params.max_fdr > 1 or self.cli_params.max_fdr < 0:
-            self.log_entry("Error: FDR specified via -f has to be in the range >0 and <1.")
-            exit(-1)
+        self.check_int_arguments([self.cli_params.max_plots])
 
         # needed for Rscript decoupling
         import subprocess
@@ -125,7 +124,7 @@ class ExonUsage(circ_module.circ_template.CircTemplate):
         # ------------------------------------ need to call the correct R script here -----------------------
 
         # need to define path top R wrapper
-        primer_script = 'circtools_circtest'
+        primer_script = 'circtools'
 
         # Variable number of args in a list
         args = [
@@ -134,10 +133,7 @@ class ExonUsage(circ_module.circ_template.CircTemplate):
                 self.cli_params.condition_list,
                 self.cli_params.condition_columns,
                 self.cli_params.output_directory+"/"+self.cli_params.output_name,
-                self.cli_params.max_fdr,
                 self.cli_params.max_plots,
-                self.cli_params.filter_sample,
-                self.cli_params.filter_count,
                 self.cli_params.grouping,
                 self.cli_params.label
                 ]
