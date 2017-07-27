@@ -124,21 +124,24 @@ class ExonUsage(circ_module.circ_template.CircTemplate):
         # ------------------------------------ need to call the correct R script here -----------------------
 
         # need to define path top R wrapper
-        primer_script = 'circtools'
+        exon_script = 'circtools_exon'
 
         # Variable number of args in a list
         args = [
                 self.cli_params.DCC_dir,
-                self.cli_params.num_replicates,
+                self.cli_params.replicates,
                 self.cli_params.condition_list,
                 self.cli_params.condition_columns,
-                self.cli_params.output_directory+"/"+self.cli_params.output_name,
-                self.cli_params.max_plots,
                 self.cli_params.grouping,
-                self.cli_params.label
+                self.cli_params.output_directory+"/"+self.cli_params.output_prefix,
+                self.cli_params.ballgown_data,
+                self.cli_params.gtf_file,
+                self.cli_params.circtest_file,
+                self.cli_params.max_plots,
+                self.cli_params.has_header
                 ]
 
         # ------------------------------------ run script and check output -----------------------
 
         import os
-        os.system(primer_script + " " + ' '.join(str(e) for e in args))
+        os.system(exon_script + " " + ' '.join(str(e) for e in args))
