@@ -494,11 +494,11 @@ class CircTools(object):
                            )
 
         group.add_argument("-n",
-                           "--output-name",
+                           "--output-prefix",
                            dest="output_name",
                            default="exon_analysis_",
                            help="The output name (prefix) for files created by " + program_name +
-                                " [Default: exon_analysis]",
+                                " [Default: exon_analysis]"
                            )
 
         group.add_argument("-p",
