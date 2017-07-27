@@ -5,14 +5,14 @@ This project contains the framework of the circular RNA toolbox ``circtools``.
 This package is written in python3 (3.4). It has a number of external dependencies, mostly standard bioinformatics tools:
 
 * [bedtools (>= 2.26.0)](http://bedtools.readthedocs.io/en/latest/content/installation.html) [RBP enrichment module, installed automatically]
-* [R (>= 3.3)](https://www.digitalocean.com/community/tutorials/how-to-install-r-on-ubuntu-16-04-2) 
-  [Primer design module] 
-* [OligoArrayAux](http://unafold.rna.albany.edu/?q=DINAMelt/OligoArrayAux) 
+* [R (>= 3.3)](https://www.digitalocean.com/community/tutorials/how-to-install-r-on-ubuntu-16-04-2)
+  [Primer design module]
+* [OligoArrayAux](http://unafold.rna.albany.edu/?q=DINAMelt/OligoArrayAux)
   [required by DECIPHER Bioconductor package for annealing efficiency estimations, installed automatically]
 
 Installation is managed through `python3 setup.py install`. No sudo access is required if the installation is executed with ``--user`` which will install the package in a user-writeable folder. The binaries should be installed to ``/home/$user/.local/bin/`` in case of Debian-based systems.
 
-``Circtools`` was developed and tested on Debian and Ubuntu. 
+``Circtools`` was developed and tested on Debian Jessie.
 
 The installation requires running python on the command line:
 
@@ -22,13 +22,12 @@ cd circtools
 python3 setup.py install --verbose --user
 ```
 
-The installation procedure will automatically install two dependencies: [DCC](https://github.com/dieterich-lab/DCC) and [FUCHS](https://github.com/dieterich-lab/FUCHS). The primer-design module requires a working installation of [R](https://cran.r-project.org/) with [BioConductor](https://www.bioconductor.org/install/) 
+The installation procedure will automatically install two dependencies: [DCC](https://github.com/dieterich-lab/DCC) and [FUCHS](https://github.com/dieterich-lab/FUCHS). The primer-design module as well as the exon analysis and circRNA testing module require a working installation of [R](https://cran.r-project.org/) with [BioConductor](https://www.bioconductor.org/install/). All R packages required are automatically installed during the setup.
 
 # Usage
 
 Circtools currently offers four modules:
 
- 
 ```
 $ circtools
 usage: circtools [-V] <command> [<args>]
@@ -38,24 +37,26 @@ usage: circtools [-V] <command> [<args>]
                primer       circular RNA primer design tool
                detect       circular RNA detection with DCC
                reconstruct  circular RNA reconstruction with FUCHS
+               circtest     circular RNA statistical testing
+               exon         circular RNA alternative exon analysis
 ```
 
 ### detect
 
 The ``detect`` command is an interface to [DCC](https://github.com/dieterich-lab/DCC), also developed at the Dieterich lab. Please see the corresponding [manual](https://github.com/dieterich-lab/DCC) on the GitHub project for instructions how to run DCC.
- 
+
 ### reconstruct
 
 The ``reconstruct`` command is an interface to [FUCHS](https://github.com/dieterich-lab/FUCHS). FUCHS is employing DCC-generated data to reconstruct circRNA structures. Please see the corresponding [manual](https://github.com/dieterich-lab/FUCHS) on the GitHub project for instructions how to run FUCHS.
 
 ### primer
 
-The ``primer`` command is used to design and visualize primers required for follow up wet lab experiments to verify circRNA candidates. The full documentation for the ``primer`` module is located in its own [manual](R/circtools/vignettes/plot-transcripts.md). 
+The ``primer`` command is used to design and visualize primers required for follow up wet lab experiments to verify circRNA candidates. The full documentation for the ``primer`` module is located in its own [manual](R/circtools/vignettes/plot-transcripts.md).
 
 ### enrich
 
 The ``enrichment`` module may be used to identify circRNAs enriched for specific RNA binding proteins (RBP) based on DCC-identified circRNAs and processed [eCLIP](http://www.nature.com/nmeth/journal/v13/n6/full/nmeth.3810.html) data. For K526 and HepG2 cell lines plenty of this data is available through the [ENCODE](https://www.encodeproject.org/search/?type=Experiment&assay_title=eCLIP)
- project. 
+ project.
 
 ```
 circtools enrich --help
@@ -102,5 +103,123 @@ Additional options:
                         Defines the output file prefix [default: output]
 
 ```
+### circtest
+
+We require some tutorial text here.
+
+```
+circtools circtest --help
+usage: circtools [-h] -d DCC_DIR -l CONDITION_LIST -c CONDITION_COLUMNS -g
+                 GROUPING [-r NUM_REPLICATES] [-f MAX_FDR] [-s FILTER_SAMPLE]
+                 [-C FILTER_COUNT] [-o OUTPUT_DIRECTORY] [-n OUTPUT_NAME]
+                 [-p MAX_PLOTS] [-a LABEL]
+
+circular RNA statistical testing - Interface to https://github.com/dieterich-
+lab/CircTest
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+Required:
+  -d DCC_DIR, --DCC DCC_DIR
+                        Path to the detect/DCC data directory
+  -l CONDITION_LIST, --condition-list CONDITION_LIST
+                        Comma-separated list of conditions which should be
+                        comparedE.g. "RNaseR +","RNaseR -"
+  -c CONDITION_COLUMNS, --condition-columns CONDITION_COLUMNS
+                        Comma-separated list of 1-based column numbers in the
+                        detect/DCC output which should be compared; e.g.
+                        10,11,12,13,14,15
+  -g GROUPING, --grouping GROUPING
+                        Comma-separated list describing the relation of the
+                        columns specified via -c to the sample names specified
+                        via -l; e.g. -g 1,2 and -r 3 would assign sample1 to
+                        each even column and sample 2 to each odd column
+
+Processing options:
+  -r NUM_REPLICATES, --replicates NUM_REPLICATES
+                        Number of replicates used for the circRNA experiment
+                        [Default: 3]
+  -f MAX_FDR, --max-fdr MAX_FDR
+                        Cut-off value for the FDR [Default: 0.05]
+  -s FILTER_SAMPLE, --filter-sample FILTER_SAMPLE
+                        Number of samples that need to contain the amount of
+                        reads specified via -c [Default: 3]
+  -C FILTER_COUNT, --filter-count FILTER_COUNT
+                        Number of samples that need to contain the amount of
+                        reads specified via -c [Default: 5]
+
+Output options:
+  -o OUTPUT_DIRECTORY, --output-directory OUTPUT_DIRECTORY
+                        The output directory for files created by circtest
+                        [Default: .]
+  -n OUTPUT_NAME, --output-name OUTPUT_NAME
+                        The output name for files created by circtest
+                        [Default: circtest]
+  -p MAX_PLOTS, --max-plots MAX_PLOTS
+                        How many of candidates should be plotted as bar chart?
+                        [Default: 50]
+  -a LABEL, --label LABEL
+                        How should the samples be labeled? [Default: Sample]
+```
 
 
+
+### exon
+
+We require some tutorial text here, too.
+
+```
+circtools exon --help
+usage: circtools [-h] -d DCC_DIR -l CONDITION_LIST -c CONDITION_COLUMNS -g
+                 GROUPING -r REPLICATES -b BALLGOWN_DATA -G GTF_FILE -C
+                 CIRCTEST_FILE [-H HAS_HEADER] [-o OUTPUT_DIRECTORY]
+                 [-n OUTPUT_PREFIX]
+
+circular RNA exon usage analysis
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+Required:
+  -d DCC_DIR, --DCC DCC_DIR
+                        Path to the detect/DCC data directory
+  -l CONDITION_LIST, --condition-list CONDITION_LIST
+                        Comma-separated list of conditions which should be
+                        comparedE.g. "RNaseR +","RNaseR -"
+  -c CONDITION_COLUMNS, --condition-columns CONDITION_COLUMNS
+                        Comma-separated list of 1-based column numbers in the
+                        detect/DCC output which should be compared; e.g.
+                        10,11,12,13,14,15
+  -g GROUPING, --grouping GROUPING
+                        Comma-separated list describing the relation of the
+                        columns specified via -c to the sample names specified
+                        via -l; e.g. -g 1,2 and -r 3 would assign sample1 to
+                        each even column and sample 2 to each odd column
+  -r REPLICATES, --replicates REPLICATES
+                        Comma-separated list describing the relation of the
+                        samples specified via -g to the sample names specified
+                        via -l; e.g. -g 1,2 and -r 3 would assign sample1 to
+                        each even column and sample 2 to each odd column
+  -b BALLGOWN_DATA, --ballgown-data BALLGOWN_DATA
+                        Path to the ballgown data directory
+  -G GTF_FILE, --gtf-file GTF_FILE
+                        Path to the GTF file containing the employed genome
+                        annotation
+  -C CIRCTEST_FILE, --circtest-output CIRCTEST_FILE
+                        Path to the CircTest CSV file containing the CircTest
+                        results
+
+Additional options:
+  -H HAS_HEADER, --has-header HAS_HEADER
+                        Do the CircTest result files have a header? [Default:
+                        No]
+
+Output options:
+  -o OUTPUT_DIRECTORY, --output-directory OUTPUT_DIRECTORY
+                        The output directory for files created by circtest
+                        [Default: .]
+  -n OUTPUT_PREFIX, --output-prefix OUTPUT_PREFIX
+                        The output name (prefix) for files created by circtest
+                        [Default: exon_analysis]
+```
