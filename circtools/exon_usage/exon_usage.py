@@ -39,15 +39,15 @@ class ExonUsage(circ_module.circ_template.CircTemplate):
 
         import os
 
-        # let's first check if the temporary directory exists
-        if not os.path.exists(self.cli_params.output_directory):
-            os.makedirs(self.cli_params.output_directory)
-
         # let's first check if the output directory exists
         if not (os.access(self.cli_params.output_directory, os.W_OK)):
             self.log_entry("Output directory %s not writable." % self.cli_params.output_directory)
             # exit with -1 error if we can't use it
             exit(-1)
+
+        # let's first check if the temporary directory exists
+        if not os.path.exists(self.cli_params.output_directory):
+            os.makedirs(self.cli_params.output_directory)
 
         # check DCC directory
         if not (os.path.exists(self.cli_params.DCC_dir)):
