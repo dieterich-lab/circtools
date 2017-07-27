@@ -495,19 +495,19 @@ class CircTools(object):
 
         group.add_argument("-n",
                            "--output-prefix",
-                           dest="output_name",
+                           dest="output_prefix",
                            default="exon_analysis_",
                            help="The output name (prefix) for files created by " + program_name +
                                 " [Default: exon_analysis]"
                            )
 
-        group.add_argument("-p",
-                           "--max-plots",
-                           dest="max_plots",
-                           help="How many of candidates should be plotted as bar chart? [Default: 10]",
-                           type=int,
-                           default=10
-                           )
+        # group.add_argument("-p",
+        #                    "--max-plots",
+        #                    dest="max_plots",
+        #                    help="How many of candidates should be plotted as bar chart? [Default: 10]",
+        #                    type=int,
+        #                    default=10
+        #                    )
 
         ######################################################
 

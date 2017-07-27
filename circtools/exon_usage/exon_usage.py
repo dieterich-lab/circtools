@@ -101,7 +101,7 @@ class ExonUsage(circ_module.circ_template.CircTemplate):
 
         # check numeric arguments
 
-        self.check_int_arguments([self.cli_params.max_plots])
+        # self.check_int_arguments([self.cli_params.max_plots])
 
         # needed for Rscript decoupling
         import subprocess
@@ -137,7 +137,6 @@ class ExonUsage(circ_module.circ_template.CircTemplate):
                 self.cli_params.ballgown_data,
                 self.cli_params.gtf_file,
                 self.cli_params.circtest_file,
-                self.cli_params.max_plots,
                 self.cli_params.has_header
                 ]
 

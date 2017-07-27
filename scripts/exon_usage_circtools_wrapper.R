@@ -57,8 +57,8 @@ arg_output_directory <- args[6] # string
 arg_ballgown_directory <- args[7] # string
 arg_gtf_file <- args[8] # string
 arg_circTest_file <- args[9] # string
-arg_num_top_genes <- as.integer(args[10])
-arg_head_header <- as.logical(args[11])
+# arg_num_top_genes <- as.integer(args[10])
+arg_head_header <- as.logical(args[10])
 
 ## load complete data set
 message("Loading CircRNACount")
@@ -464,112 +464,114 @@ write.table( mainTable[order(mainTable[,"FDR"]),],
 write.table( RNAse_RenrichedCircTest,
           file=paste(baseDir,"bsj_enrichment.csv",sep=""), sep ="|")
 
-## Plotting section
+message("Exon analysis finished")
 
-plotSubset <- mainTable[order(mainTable[,"FDR"]),]
-plotSubset <- subset(plotSubset[,"GeneID"],plotSubset[,"RNaseR_enriched"]==1);
+## Plotting section
+#
+# plotSubset <- mainTable[order(mainTable[,"FDR"]),]
+# plotSubset <- subset(plotSubset[,"GeneID"],plotSubset[,"RNaseR_enriched"]==1);
 
 # select the top10 enriched genes
-topEnriched <- RNAse_RenrichedCircTest[1:arg_num_top_genes,"GeneID"]
+# topEnriched <- RNAse_RenrichedCircTest[1:arg_num_top_genes,"GeneID"]
+#
+# message("Plotting top enriched RNaseR enriched circles")
+#
+#
+# txdb <- makeTxDbFromGFF(arg_gtf_file, format="gtf")
+# g<-genes(txdb)
+#
+# model <- exonsBy(txdb, by = "tx")
+# exons <- exons(txdb)
 
-message("Plotting top enriched RNaseR enriched circles")
-
-
-txdb <- makeTxDbFromGFF(arg_gtf_file, format="gtf")
-g<-genes(txdb)
-
-model <- exonsBy(txdb, by = "tx")
-exons <- exons(txdb)
-
-message("Generating PDF plots")
-sink(file("/dev/null", open = "wt"), type = c("output", "message"))
-
-# for the top30 enriched genes
-for (current_gene in topEnriched)
-{
-# overlap current enriched gene with exons from txdb
-currentExon <- subsetByOverlaps(exons, g[current_gene])
-
-reducedExon <- reduce(currentExon) #reduce could work here
-print(reducedExon)
-exonIDs <- grep(current_gene, names(diffSplicedGenes$exon.p.value), value = T)
-
-exonValues <- subset(geneBaseTable, geneBaseTable[, "e_id"] %in% exonIDs)
-exonValues <- merge(
-  exonValues,
-  data.frame(
-    exonID = grep(current_gene, names(diffSplicedGenes$exon.p.value), value = T),
-    fc = diffSplicedGenes$coefficients[grep(current_gene, names(diffSplicedGenes$exon.p.value))]
-  ),
-  by.x = 1,
-  by.y = 1
-)
-
-values(reducedExon)$RNAseR_foldchange <- rep(NA, length(reducedExon))
-
-for (z in 1:nrow(exonValues))
-{
-  targ <- which((start(reducedExon) == exonValues[z, "start"]) & (end(reducedExon) == exonValues[z, "end"]))
-  values(reducedExon)$RNAseR_foldchange[targ] <- exonValues[z, "fc"]
-
-  if (!isTRUE(targ > 0)) {
-    for (start_tmp in -10:10){
-      for (stop_tmp in -10:10){
-          targ <- which((start(reducedExon) == exonValues[z, "start"]+start_tmp) & (end(reducedExon) == exonValues[z, "end"]+stop_tmp))
-            if (isTRUE(targ > 0)) {
-              values(reducedExon)$RNAseR_foldchange[targ] <- exonValues[z, "fc"]
-            }
-        }
-      }
-    }
-  }
-
-values(reducedExon)$significant <- rep("FALSE", length(reducedExon))
-
-multiExonOverlap <- as.matrix(findOverlaps(genomicRanges, reducedExon))
-
-if (nrow(multiExonOverlap) > 0)
-{
-  values(reducedExon[multiExonOverlap[, 2]])$significant <- "TRUE"
-}
-
-# lower part with transcript landscape around the selected gene
-plot <- autoplot(
-  txdb,
-  g[current_gene],
-  main = current_gene,
-  label = FALSE,
-  legend = FALSE,
-  xlab = "Position in genome",
-  ylab = "Transcripts",
-  axis.text.x = "axis x",
-  axis.text.y = "axis y",
-  base_size = 20,
-   label.size = 3
-)+ theme(legend.position = "none")
-
-plotRangesLinkedToData(
-  reducedExon,
-  main = current_gene,
-  stat.y = c("RNAseR_foldchange"),
-  stat.ylab = "RNaseR fold change",
-  annotation = list(plot),
-  sig = "significant",
-  sig.col = c("#d7191c", "#2c7bb6"),
-  width.ratio = 0.6,
-  theme.stat = theme_bw(),
-  theme.align = theme_bw(),
-  linetype = 6
-)
-
-# an a4 page landscape
-ggsave(
-  width = 10,
-  height = 8,
-  paste(baseDir, current_gene, ".pdf", sep = ""),
-  title = paste("Enrichment plot: ", current_gene , sep = "")
-)
-}
-sink(file=NULL)
-
-message("Finished plotting, exiting")
+# message("Generating PDF plots")
+# sink(file("/dev/null", open = "wt"), type = c("output", "message"))
+#
+# # for the top30 enriched genes
+# for (current_gene in topEnriched)
+# {
+# # overlap current enriched gene with exons from txdb
+# currentExon <- subsetByOverlaps(exons, g[current_gene])
+#
+# reducedExon <- reduce(currentExon) #reduce could work here
+# print(reducedExon)
+# exonIDs <- grep(current_gene, names(diffSplicedGenes$exon.p.value), value = T)
+#
+# exonValues <- subset(geneBaseTable, geneBaseTable[, "e_id"] %in% exonIDs)
+# exonValues <- merge(
+#   exonValues,
+#   data.frame(
+#     exonID = grep(current_gene, names(diffSplicedGenes$exon.p.value), value = T),
+#     fc = diffSplicedGenes$coefficients[grep(current_gene, names(diffSplicedGenes$exon.p.value))]
+#   ),
+#   by.x = 1,
+#   by.y = 1
+# )
+#
+# values(reducedExon)$RNAseR_foldchange <- rep(NA, length(reducedExon))
+#
+# for (z in 1:nrow(exonValues))
+# {
+#   targ <- which((start(reducedExon) == exonValues[z, "start"]) & (end(reducedExon) == exonValues[z, "end"]))
+#   values(reducedExon)$RNAseR_foldchange[targ] <- exonValues[z, "fc"]
+#
+#   if (!isTRUE(targ > 0)) {
+#     for (start_tmp in -10:10){
+#       for (stop_tmp in -10:10){
+#           targ <- which((start(reducedExon) == exonValues[z, "start"]+start_tmp) & (end(reducedExon) == exonValues[z, "end"]+stop_tmp))
+#             if (isTRUE(targ > 0)) {
+#               values(reducedExon)$RNAseR_foldchange[targ] <- exonValues[z, "fc"]
+#             }
+#         }
+#       }
+#     }
+#   }
+#
+# values(reducedExon)$significant <- rep("FALSE", length(reducedExon))
+#
+# multiExonOverlap <- as.matrix(findOverlaps(genomicRanges, reducedExon))
+#
+# if (nrow(multiExonOverlap) > 0)
+# {
+#   values(reducedExon[multiExonOverlap[, 2]])$significant <- "TRUE"
+# }
+#
+# # lower part with transcript landscape around the selected gene
+# plot <- autoplot(
+#   txdb,
+#   g[current_gene],
+#   main = current_gene,
+#   label = FALSE,
+#   legend = FALSE,
+#   xlab = "Position in genome",
+#   ylab = "Transcripts",
+#   axis.text.x = "axis x",
+#   axis.text.y = "axis y",
+#   base_size = 20,
+#    label.size = 3
+# )+ theme(legend.position = "none")
+#
+# plotRangesLinkedToData(
+#   reducedExon,
+#   main = current_gene,
+#   stat.y = c("RNAseR_foldchange"),
+#   stat.ylab = "RNaseR fold change",
+#   annotation = list(plot),
+#   sig = "significant",
+#   sig.col = c("#d7191c", "#2c7bb6"),
+#   width.ratio = 0.6,
+#   theme.stat = theme_bw(),
+#   theme.align = theme_bw(),
+#   linetype = 6
+# )
+#
+# # an a4 page landscape
+# ggsave(
+#   width = 10,
+#   height = 8,
+#   paste(baseDir, current_gene, ".pdf", sep = ""),
+#   title = paste("Enrichment plot: ", current_gene , sep = "")
+# )
+# }
+# sink(file=NULL)
+#
+# message("Finished plotting, exiting")
