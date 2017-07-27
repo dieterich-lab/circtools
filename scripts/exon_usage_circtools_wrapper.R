@@ -77,7 +77,7 @@ LinearCount <- LinearCount[, c(1 : 3, arg_condition_columns)] # we always need t
 ballgownRuns <- as.list(list.files(arg_ballgown_directory, full.names = TRUE))
 
 # output directory
-baseDir <- paste(arg_output_directory, "/", sep="")
+baseDir <- arg_output_directory
 
 # group mapping
 group <- unlist(lapply(arg_groups, function(x) {return(arg_condition_list[x])}))
@@ -234,12 +234,12 @@ message("Writing bed files...")
 write(  paste("track type=bedGraph name=\"edgeR_exon_foldChange\"",
        "description=\"Exon fold change over all total RNA data sets\"",
        "visibility=full color=200,100,0 altColor=0,100,200 priority=20",
-       sep=""),file=paste(baseDir,"exon_fc_track.bedgraph", sep="/"));
+       sep=""),file=paste(baseDir,"exon_fc_track.bedgraph", sep=""));
 
 # write actual content (FCs)
 write.table(
           splicedExonDFfixed[,1:4],
-          file=paste(baseDir,"exon_fc_track.bedgraph",sep="/"),
+          file=paste(baseDir,"exon_fc_track.bedgraph",sep=""),
           quote=F,
           sep="\t",
           append=T,
@@ -253,11 +253,11 @@ write.table(
 write(paste("track type=bedGraph name=\"edgeR_exon_Pvalue\"",
          "description=\"Pvalue over all data sets\"",
          "visibility=full color=200,100,0 altColor=0,100,200 priority=20",
-         sep=""), file=paste(baseDir,"exon_pval_track.bedgraph", sep="/"));
+         sep=""), file=paste(baseDir,"exon_pval_track.bedgraph", sep=""));
 
 # write actual content (PValues)
 write.table(  splicedExonDFfixed[,c(1:3,5)],
-            file=paste(baseDir,"exon_pval_track.bedgraph",sep="/"),
+            file=paste(baseDir,"exon_pval_track.bedgraph",sep=""),
             quote=F,
             sep="\t",
             append=T,
@@ -326,10 +326,10 @@ message("Writing DCC prediction BED file")
 #Print bed file, read counts
 write(paste("track name=\"DCC_predictions\" description=\"Predictions ",
           "over all data sets\" color=\"red\"", sep=""),
-           file=paste(baseDir,"dcc_predictions_track.bed",sep="/"));
+           file=paste(baseDir,"dcc_predictions_track.bed",sep=""));
 
 write.table(  dccDF,
-            file=paste(baseDir,"dcc_predictions_track.bed",sep="/"),
+            file=paste(baseDir,"dcc_predictions_track.bed",sep=""),
             quote=F,
             sep="\t",
             append=T,
@@ -392,10 +392,10 @@ message("Writing back splice junction enriched BED file")
 write(paste("track name=\"DCC_BSJ_enriched\"",
           "description=\"Back-Splice junction enriched over all data ",
           "sets 1% FDR\" color=\"green\"", sep=""),
-           file=paste(baseDir,"dcc_bsj_enriched_track.bed",sep="/"));
+           file=paste(baseDir,"dcc_bsj_enriched_track.bed",sep=""));
 
 write.table(  dccDF,
-            file=paste(baseDir,"dcc_bsj_enriched_track.bed",sep="/"),
+            file=paste(baseDir,"dcc_bsj_enriched_track.bed",sep=""),
             quote=F,
             sep="\t",
             append=T,
@@ -454,15 +454,15 @@ writeDataTable( wb,
               )
 
 # close workbook
-saveWorkbook(wb, paste(baseDir,"diff_exon_enrichment.xlsx",sep="/"), overwrite = TRUE)
+saveWorkbook(wb, paste(baseDir,"diff_exon_enrichment.xlsx",sep=""), overwrite = TRUE)
 
 message("Writing additional CSV output")
 
 # write simple csv files
 write.table( mainTable[order(mainTable[,"FDR"]),],
-          file=paste(baseDir,"exon_enrichment.csv",sep="/"), sep ="|")
+          file=paste(baseDir,"exon_enrichment.csv",sep=""), sep ="|")
 write.table( RNAse_RenrichedCircTest,
-          file=paste(baseDir,"bsj_enrichment.csv",sep="/"), sep ="|")
+          file=paste(baseDir,"bsj_enrichment.csv",sep=""), sep ="|")
 
 ## Plotting section
 
@@ -482,7 +482,7 @@ model <- exonsBy(txdb, by = "tx")
 exons <- exons(txdb)
 
 message("Generating PDF plots")
-sink(file("/dev/null", open = "wt"), type = "message")
+sink(file("/dev/null", open = "wt"), type = c("output", "message"))
 
 # for the top30 enriched genes
 for (current_gene in topEnriched)
@@ -506,7 +506,6 @@ exonValues <- merge(
 )
 
 values(reducedExon)$RNAseR_foldchange <- rep(NA, length(reducedExon))
-print(reducedExon)
 
 for (z in 1:nrow(exonValues))
 {
@@ -527,8 +526,6 @@ for (z in 1:nrow(exonValues))
 
 values(reducedExon)$significant <- rep("FALSE", length(reducedExon))
 
-print(reducedExon)
-print(exonValues)
 multiExonOverlap <- as.matrix(findOverlaps(genomicRanges, reducedExon))
 
 if (nrow(multiExonOverlap) > 0)
@@ -573,8 +570,6 @@ ggsave(
   title = paste("Enrichment plot: ", current_gene , sep = "")
 )
 }
-
+sink(file=NULL)
 
 message("Finished plotting, exiting")
-
-warnings()
