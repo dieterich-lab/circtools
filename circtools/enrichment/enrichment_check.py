@@ -37,7 +37,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         self.observed_counts = []
         self.results = []
         self.phase_storage = {}
-        self.allowed_includes = ["exon", "CDS", "three_prime_utr", "five_prime_utr", "gene", "transcript"]
         self.virtual_inclusion_file_path = "all"
         self.virtual_inclusion_object = None
 
@@ -77,14 +76,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
             # for each of the user supplied include features
             for feature_type in self.cli_params.include_features:
-                # only we if know this type
-                if feature_type in self.allowed_includes:
-                    temp_bed += self.read_annotation_file(self.cli_params.annotation, entity=feature_type, string=True)
-                # print error message for the user
-                else:
-                    self.log_entry("Feature type %s not recognized. Please use one of the following types:"
-                                   % feature_type)
-                    self.log_entry(self.allowed_includes)
+                temp_bed += self.read_annotation_file(self.cli_params.annotation, entity=feature_type, string=True)
 
             # we create a bed file on disk for all features
             self.virtual_inclusion_object = pybedtools.BedTool(temp_bed, from_string=True)
@@ -438,9 +430,13 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                 sys.stdout.write("\n")
 
                 # count will be increased one more time even if done - so we subtract 1
-                self.log_entry("Processed %s entries" % (entity_count - 1))
+                self.log_entry("Found %s entries of type %s" % (entity_count - 1, entity))
 
             self.log_entry("Done parsing annotation")
+
+            if not bed_content:
+                self.log_entry("No features of type %s found in annotation file, exiting." % entity)
+                exit(-1)
 
             if string:
                 return bed_content
