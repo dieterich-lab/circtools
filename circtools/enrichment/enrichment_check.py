@@ -426,9 +426,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
                     entity_count += 1
 
-                # "escape the \r from counting output"
-                sys.stdout.write("\n")
-
                 # count will be increased one more time even if done - so we subtract 1
                 self.log_entry("Found %s entries of type %s" % (entity_count - 1, entity))
 
