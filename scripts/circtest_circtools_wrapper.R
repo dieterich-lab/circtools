@@ -45,8 +45,6 @@ args <- commandArgs(trailingOnly = TRUE)
 arg_dcc_data <- args[1] # path is string
 arg_replictes <- as.integer(args[2]) # integer
 arg_condition_list <- strsplit(args[3],",")[[1]] # list of strings
-# arg_condition_list <- unlist(strsplit(arg_condition_list,",")) # list of strings
-# arg_condition_columns <- strsplit(args[4],":")[[1]] # list of integers
 arg_condition_columns <- lapply(strsplit(args[4],","), as.numeric) # list of integers
 arg_condition_columns <- unlist(arg_condition_columns)
 arg_output_name <- args[5] # string
@@ -87,7 +85,9 @@ run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indi
     }
 
     # p <- list()
-    for (i in rownames(data$summary_table[1 : max,])) {
+    #for (i in rownames(data$summary_table[1 : max,])) {
+    for (i in seq(1,100)) {
+
         # invisible(capture.output(p[[i]] <- Circ.ratioplot( CircRNACount_filtered, LinearCount_filtered,
         # CircCoordinates_filtered, plotrow=i, size=16, gene_column=4, groupindicator1 = indicators,
         # x = "", y = "", lab_legend = label)))
