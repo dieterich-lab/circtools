@@ -411,6 +411,10 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                     if not (columns[2] == entity):
                         continue
 
+                    # we do not want any 0-length intervals -> bedtools segfault
+                    if (int(columns[4]) - int(columns[3]) == 0):
+                         continue
+
                     # columns 8 is the long annotation string from GTF
                     gene_name = self.extract_gene_name_from_gtf(columns[8])
 
