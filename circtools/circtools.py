@@ -46,6 +46,7 @@ class CircTools(object):
                reconstruct:  circular RNA reconstruction with FUCHS
                circtest:     circular RNA statistical testing
                exon:         circular RNA alternative exon analysis
+               quickcheck:   circular RNA sequencing library quick checks               
             """)
         parser.add_argument("command", help="Command to run")
 
@@ -388,6 +389,65 @@ class CircTools(object):
                            )
         ######################################################
 
+    @staticmethod
+    def quickcheck():
+        parser = argparse.ArgumentParser(
+            description="circular RNA sequencing library quality assessment")
+        # NOT prefixing the argument with -- means it"s not optional
+
+        ######################################################
+
+        group = parser.add_argument_group("Required")
+        group.add_argument("-d",
+                           "--DCC",
+                           dest="DCC_dir",
+                           help="Path to the detect/DCC data directory",
+                           required=True
+                           )
+
+        group.add_argument("-s",
+                           "--star",
+                           dest="star_dir",
+                           help="Path to the base STAR data directory containing sub-folders with per-sample mappings",
+                           required=True
+                           )
+
+        group.add_argument("-l",
+                           "--condition-list",
+                           dest="condition_list",
+                           help="Comma-separated list of conditions which should be compared"
+                                "E.g. \"RNaseR +\",\"RNaseR -\"",
+                           required=True
+                           )
+
+        group.add_argument("-g",
+                           "--grouping",
+                           dest="grouping",
+                           help="Comma-separated list describing the relation of the columns specified via -c to the"
+                                " sample names specified via -l; e.g. -g 1,2 and -r 3 would assign sample1 to each "
+                                "even column and sample 2 to each odd column",
+                           required=True
+                           )
+
+        ######################################################
+
+        group = parser.add_argument_group("Output options")
+
+        group.add_argument("-o",
+                           "--output-directory",
+                           dest="output_directory",
+                           default="./",
+                           help="The output directory for files created by " + program_name + " [Default: ./]",
+                           )
+
+        group.add_argument("-n",
+                           "--output-name",
+                           dest="output_name",
+                           default="circtest",
+                           help="The output name for files created by " + program_name + " [Default: quickcheck_]",
+                           )
+        ######################################################
+
         args = parser.parse_args(sys.argv[2:])
 
         # start the primer module
@@ -395,9 +455,9 @@ class CircTools(object):
         # make sure we can load the sub module
         sys.path.append(os.path.join(os.path.dirname(__file__)))
 
-        import circtest.circtest
-        circtest_instance = circtest.circtest.CircTest(args, program_name, version)
-        circtest_instance.run_module()
+        import quickcheck.quickcheck
+        quickcheck_instance = quickcheck.quickcheck.QuickCheck(args, program_name, version)
+        quickcheck_instance.run_module()
 
     @staticmethod
     def exon():
