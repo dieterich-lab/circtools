@@ -127,6 +127,8 @@ par(pin = c(9, 6))
             type="n"
     )
 
+    grid(lwd = 1, lty=2)
+
     text(   x = circ_counts_summed,
             y = linear_counts_summed,
             names(circ_counts_summed),
@@ -156,6 +158,8 @@ par(pin = c(9, 6))
             type="n"
     )
 
+    grid(lwd = 1, lty=2)
+
     text(   x = uniquely_mapped_reads,
             y = number_of_circles,
             names(uniquely_mapped_reads),
@@ -171,6 +175,8 @@ par(pin = c(9, 6))
 # "page" three: Number of circular RNAs per million mapped reads
 
     ref = order(number_of_circles / (uniquely_mapped_reads / 1000000))
+
+    grid(lwd = 1, lty=2)
 
     barplot(    sort(number_of_circles / (uniquely_mapped_reads / 1000000)),
                 las = 2,
