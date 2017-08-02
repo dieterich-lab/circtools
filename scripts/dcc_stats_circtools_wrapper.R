@@ -46,10 +46,6 @@ arg_output_directory <- args[3] # string
 arg_condition_list <- strsplit(args[4], ",")[[1]] # list of strings
 arg_grouping <- unlist(lapply(strsplit(args[5], ","), as.numeric)) # list of strings
 
-
-# group mapping
-# grouping <- unlist(lapply(arg_groups, function(x) {return(arg_condition_list[x])}))
-
 group_length <- length(arg_condition_list)
 
 ## load complete data set
@@ -188,5 +184,8 @@ par(pin = c(9, 6))
     legend("topleft", arg_condition_list, fill = colors)
 
 invisible(capture.output(dev.off()))
+
+# get rif of Rplots.pdf file
+invisible(capture.output(file.remove(list.files(pattern = "Rplots.pdf"))))
 
 message("Done")
