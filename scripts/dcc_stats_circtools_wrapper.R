@@ -17,15 +17,15 @@
 
 # utiliy functions
 
-getStats <- function(STARfolder)
+getUniqueMappings <- function(STARfolder)
 {
     # Read STAR log file
-    logFile <- paste(STARfolder, "Log.final.out", sep = "/");
+    logFile <- paste(STARfolder, "Log.final.out", sep = "/")
 
-    #check if file exists
-    log <- read.delim(logFile, as.is = T, sep = "|");
-    log <- as.numeric(gsub("\t", "", log[7, 2]))
-    return(log);
+    # extract unique mappings
+    unique_mapped <- read.delim(logFile, as.is = T, sep = "|")
+    unique_mapped <- as.numeric(gsub("\t", "", unique_mapped[7, 2]))
+    return(unique_mapped)
 }
 
 # may not be optimal, but we do not want warning for now
@@ -38,63 +38,117 @@ options(echo = FALSE)
 args <- commandArgs(trailingOnly = TRUE)
 
 arg_dcc_data <- args[1] # path is string
+arg_star_folder <- args[2] # path is string
+arg_output_directory <- args[3] # string
+
+
 arg_replictes <- as.integer(args[2]) # integer
 arg_condition_list <- strsplit(args[3], ",")[[1]] # list of strings
 arg_condition_columns <- lapply(strsplit(args[4], ","), as.numeric) # list of integers
 arg_condition_columns <- unlist(arg_condition_columns)
 arg_groups <- unlist(lapply(strsplit(args[5], ","), as.numeric)) # list of strings
-arg_output_directory <- args[6] # string
-arg_star_folder <- args[7] # path is string
 
-q()
 
 ## load complete data set
 message("Loading CircRNACount")
-CircRNACount <- read.delim(paste(arg_dcc_data, "CircRNACount", sep="/"), header = T)
+CircRNACount <- read.delim(paste(arg_dcc_data, "CircRNACount", sep="/"), check.names=FALSE, header = T)
 
 message("Loading LinearRNACount")
-LinearCount <- read.delim(paste(arg_dcc_data, "LinearCount", sep="/"), header = T)
+LinearCount <- read.delim(paste(arg_dcc_data, "LinearCount", sep="/"), check.names=FALSE, header = T)
 
+message("Parsing data")
+# remove DCC artifacts from columns names
+names(LinearCount)<-gsub("_STARmappingChimeric.out.junction","",names(LinearCount))
+names(CircRNACount)<-gsub("_STARmappingChimeric.out.junction","",names(CircRNACount))
 
+# summing up counts per column (i.e. library)
 circ_counts_summed <- apply(CircRNACount[, - c(1 : 3)], 2, sum)
 linear_counts_summed <- apply(LinearCount[, - c(1 : 3)], 2, sum)
 
+# get unique mapping reads
+## which star runs are in the DCC output?
+star_columns <- colnames(CircRNACount[, - c(1 : 3)])
 
-todo <- scan("/Volumes/new_home/manuscripts//Define_Circles_Step1/workflow/DCC_new/star_folder.txt", character())
-todoNam <- scan("/Volumes/new_home/manuscripts//Define_Circles_Step1/workflow/DCC_new/star_name.txt", character())
+# get paths for those directories
+star_runs <- list.files(arg_star_folder, full.names = TRUE)
 
-UniqueMappers <- numeric();
+# only use the folders ending with _STARmapping (Dieterich lab default)
+star_runs <- star_runs[endsWith(star_runs,"_STARmapping")]
 
-for (k in todo)
+# only use the folders of full mappings (not the per-mate ones)
+star_runs <- star_runs[-grep(c("mate"), star_runs)]
+
+# new empty list
+uniquely_mapped_reads <- numeric();
+
+for (run in star_runs)
 {
-    UniqueMappers <- c(UniqueMappers, getStats(k));
+    uniquely_mapped_reads <- c(uniquely_mapped_reads, getUniqueMappings(run));
 }
 
-names(UniqueMappers) <- names(circ_counts_summed)
+# set names for unique reads
+names(uniquely_mapped_reads) <- names(circ_counts_summed)
 
-#tissue.group<-factor(rep(c("liver","heart","cerebellum","hippocampus"),6));
-#age.group<-factor(c(rep("young",12),rep("old",12)));
+message("plotting data")
 
-pdf(paste(arg_output_directory, "Step1_circSeq_junction_read_counts.pdf", sep = "/"));
-plot(x = circ_counts_summed, y = linear_counts_summed, log = "xy", xlab = "CircReadCount", ylab = "LinearReadCount", col = rep(c("blue", "red"), 9))
-text(x = circ_counts_summed, y = linear_counts_summed, names(circ_counts_summed), col = "black", cex = 0.5, pos = 1, srt = 45)
-#plot(x=eins,y=zwei,log="xy",xlab="CircReadCount",ylab="LinRead",col=tissue.group,pch=as.numeric(age.group))
-#legend("bottomleft", c("liver","heart","cerebellum","hippocampus"),fill=tissue.group)
-legend("bottomright", c("RNASe+", "RNASe-"), fill = c("red", "blue"))
-dev.off();
+# we use PDF and standard A4 page size
+pdf(paste(arg_output_directory, ".pdf", sep = "") , paper="a4", title="circtools library analysis")
+
+# "page" one: circular RNA read count plottet against linear read count
+
+    plot(   x = circ_counts_summed,
+            y = linear_counts_summed,
+            log = "xy",
+            xlab = "CircReadCount",
+            ylab = "LinearReadCount",
+            col = rep(c("blue", "red"), 10),
+            main = "Circular vs. linear read counts throughout selected libraries"
+    )
+
+    text(   x = circ_counts_summed,
+            y = linear_counts_summed,
+            names(circ_counts_summed),
+            col = "black",
+            cex = 0.8,
+            pos = 1,
+            srt = 45
+    )
+
+    legend("bottomright", c("RNASe+", "RNASe-"), fill = c("red", "blue"))
+
+# "page" two: Number of mapped reads vs. number of detected circles per library
+
+    # set number of circles
+    number_of_circles <- apply(CircRNACount[, - c(1 : 3)], 2, function(x){length(which(x > 1))})
+
+    # reset names
+    names(uniquely_mapped_reads) <- names(number_of_circles)
+
+    plot(   x = uniquely_mapped_reads,
+            y = number_of_circles,
+            log = "xy",
+            ylab = "Number of detected circles",
+            xlab = "Number of mapped reads",
+            col = rep(c("blue", "red"), 9),
+            main = "Number of mapped reads vs. number of detected circles per library"
+    )
+
+    text(   x = uniquely_mapped_reads,
+            y = number_of_circles,
+            names(uniquely_mapped_reads),
+            cex = 0.5,
+            col = "black",
+            srt = 45
+    )
+
+    legend("topright", c("RNASe+", "RNASe-"), fill = c("red", "blue"))
 
 
-
-NoOfCircles <- apply(CircRNACount[, - c(1 : 3)], 2, function(x){length(which(x > 1))})
-names(UniqueMappers) <- names(NoOfCircles)
-
-pdf(paste(arg_output_directory, "Step1_circles_per_unique_mapped_reads.pdf", sep = "/"));
-plot(x = UniqueMappers, y = NoOfCircles, log = "xy", ylab = "Number of detected circles", xlab = "Number of mapped reads", col = rep(c("blue", "red"), 9));
-text(x = UniqueMappers, y = NoOfCircles, names(UniqueMappers), cex = 0.5, col = "black", srt = 45);
-legend("topright", c("RNASe+", "RNASe-"), fill = c("red", "blue"))
-
-ref = order(NoOfCircles / (UniqueMappers / 1000000))
-barplot(sort(NoOfCircles / (UniqueMappers / 1000000)), las = 2, col = rep(c("blue", "red"), 9)[ref], main = "Circles_per_million_unique_mapper")
+# "page" two: Number of mapped reads vs. number of detected circles per library
+ref = order(number_of_circles / (uniquely_mapped_reads / 1000000))
+barplot(sort(number_of_circles / (uniquely_mapped_reads / 1000000)), las = 2, col = rep(c("blue", "red"), 9)[ref], main = "Circles_per_million_unique_mapper")
 legend("topleft", c("RNASe+", "RNASe-"), fill = c("red", "blue"))
 
 dev.off();
+
+message("Done")
