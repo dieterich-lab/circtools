@@ -396,6 +396,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
             sys.exit(message)
         else:
             with file_handle:
+                entity_list = []
                 line_iterator = iter(file_handle)
                 bed_content = ""
                 entity_count = 1
@@ -406,6 +407,9 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
                     # split up the annotation line
                     columns = line.split('\t')
+
+                    if columns[2] not in entity_list:
+                        entity_list.append(columns[2])
 
                     # we only want the coordinates of the gene entries
                     if not (columns[2] == entity):
@@ -433,7 +437,9 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
             self.log_entry("Done parsing annotation")
 
             if not bed_content:
-                self.log_entry("No features of type %s found in annotation file, exiting." % entity)
+                self.log_entry("No features of type \"%s\" found in annotation file." % entity)
+                self.log_entry("Available entities found in the annotation file:\n%s" % entity_list)
+                self.log_entry("Exiting now.")
                 exit(-1)
 
             if string:
