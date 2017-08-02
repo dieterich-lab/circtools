@@ -31,6 +31,9 @@ getUniqueMappings <- function(STARfolder)
 # may not be optimal, but we do not want warning for now
 options(warn = - 1)
 
+# setting default R colors
+defined_colors <- palette("default")
+
 # quiet mode
 options(echo = FALSE)
 
@@ -40,14 +43,14 @@ args <- commandArgs(trailingOnly = TRUE)
 arg_dcc_data <- args[1] # path is string
 arg_star_folder <- args[2] # path is string
 arg_output_directory <- args[3] # string
+arg_condition_list <- strsplit(args[4], ",")[[1]] # list of strings
+arg_grouping <- unlist(lapply(strsplit(args[5], ","), as.numeric)) # list of strings
 
 
-arg_replictes <- as.integer(args[2]) # integer
-arg_condition_list <- strsplit(args[3], ",")[[1]] # list of strings
-arg_condition_columns <- lapply(strsplit(args[4], ","), as.numeric) # list of integers
-arg_condition_columns <- unlist(arg_condition_columns)
-arg_groups <- unlist(lapply(strsplit(args[5], ","), as.numeric)) # list of strings
+# group mapping
+# grouping <- unlist(lapply(arg_groups, function(x) {return(arg_condition_list[x])}))
 
+group_length <- length(arg_condition_list)
 
 ## load complete data set
 message("Loading CircRNACount")
@@ -64,6 +67,23 @@ names(CircRNACount)<-gsub("_STARmappingChimeric.out.junction","",names(CircRNACo
 # summing up counts per column (i.e. library)
 circ_counts_summed <- apply(CircRNACount[, - c(1 : 3)], 2, sum)
 linear_counts_summed <- apply(LinearCount[, - c(1 : 3)], 2, sum)
+
+num_samples <- ncol(LinearCount[, - c(1 : 3)])
+
+message(paste("Found ", num_samples, " data columns in provided DCC data", sep=""))
+
+message(paste(group_length, " different groups provided", sep=""))
+
+# setting colors
+if (group_length < num_samples){
+    message("Assuming (1,2),(1,2),(1,2),... sample grouping")
+    dummy_list <- rep(arg_grouping,num_samples/length(grouping))
+    colors <- unlist(lapply(seq(1, num_samples), function(x) {return(defined_colors[dummy_list[x]])}))
+} else {
+    message("Setting sample groups manually")
+    colors <- unlist(lapply(seq(1, num_samples), function(x) {return(defined_colors[arg_grouping[x]])}))
+}
+
 
 # get unique mapping reads
 ## which star runs are in the DCC output?
@@ -92,29 +112,31 @@ names(uniquely_mapped_reads) <- names(circ_counts_summed)
 message("plotting data")
 
 # we use PDF and standard A4 page size
-pdf(paste(arg_output_directory, ".pdf", sep = "") , paper="a4", title="circtools library analysis")
+pdf(paste(arg_output_directory, ".pdf", sep = "") , height= 8.2, width=11.69 , title="circtools library analysis")
+
+par(pin = c(9, 6))
 
 # "page" one: circular RNA read count plottet against linear read count
 
     plot(   x = circ_counts_summed,
             y = linear_counts_summed,
             log = "xy",
-            xlab = "CircReadCount",
-            ylab = "LinearReadCount",
-            col = rep(c("blue", "red"), 10),
-            main = "Circular vs. linear read counts throughout selected libraries"
+            xlab = "Circular RNA read count (log scale)",
+            ylab = "Linear RNA read count (log scale)",
+            main = "Circular vs. linear read counts throughout selected libraries",
+            type="n"
     )
 
     text(   x = circ_counts_summed,
             y = linear_counts_summed,
             names(circ_counts_summed),
-            col = "black",
-            cex = 0.8,
+            col = colors,
+            cex = 1,
             pos = 1,
-            srt = 45
+            srt = 0
     )
 
-    legend("bottomright", c("RNASe+", "RNASe-"), fill = c("red", "blue"))
+    legend("bottomright", arg_condition_list, fill = colors)
 
 # "page" two: Number of mapped reads vs. number of detected circles per library
 
@@ -129,25 +151,35 @@ pdf(paste(arg_output_directory, ".pdf", sep = "") , paper="a4", title="circtools
             log = "xy",
             ylab = "Number of detected circles",
             xlab = "Number of mapped reads",
-            col = rep(c("blue", "red"), 9),
-            main = "Number of mapped reads vs. number of detected circles per library"
+            col = colors,
+            main = "Number of mapped reads vs. number of detected circles per library",
+            type="n"
     )
 
     text(   x = uniquely_mapped_reads,
             y = number_of_circles,
             names(uniquely_mapped_reads),
-            cex = 0.5,
-            col = "black",
-            srt = 45
+            col = colors,
+            cex = 1,
+            pos = 1,
+            srt = 0
     )
 
-    legend("topright", c("RNASe+", "RNASe-"), fill = c("red", "blue"))
+    legend("topright", arg_condition_list, fill = colors)
 
 
-# "page" two: Number of mapped reads vs. number of detected circles per library
-ref = order(number_of_circles / (uniquely_mapped_reads / 1000000))
-barplot(sort(number_of_circles / (uniquely_mapped_reads / 1000000)), las = 2, col = rep(c("blue", "red"), 9)[ref], main = "Circles_per_million_unique_mapper")
-legend("topleft", c("RNASe+", "RNASe-"), fill = c("red", "blue"))
+# "page" three: Number of circular RNAs per million mapped reads
+
+    ref = order(number_of_circles / (uniquely_mapped_reads / 1000000))
+
+    barplot(    sort(number_of_circles / (uniquely_mapped_reads / 1000000)),
+                las = 2,
+                col = colors[ref],
+                ylab = "Number of detected circles",
+                main = "Detected circular RNAs per million unique mapped reads"
+            )
+
+    legend("topleft", arg_condition_list, fill = colors)
 
 dev.off();
 
