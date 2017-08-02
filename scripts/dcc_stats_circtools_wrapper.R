@@ -187,6 +187,6 @@ par(pin = c(9, 6))
 
     legend("topleft", arg_condition_list, fill = colors)
 
-dev.off();
+invisible(capture.output(dev.off()))
 
 message("Done")
