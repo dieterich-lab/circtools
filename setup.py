@@ -238,7 +238,8 @@ setup(
         'scripts/circtools',
         'scripts/circtools_primer',
         'scripts/circtools_circtest',
-        'scripts/circtools_exon'
+        'scripts/circtools_exon',
+        'scripts/circtools_quickcheck'
     ],
 
     # adding support for post install scripts from
