@@ -76,15 +76,16 @@ message(paste("Found ", num_samples, " data columns in provided DCC data", sep="
 message(paste(group_length, " different groups provided", sep=""))
 
 # setting colors
-if (group_length < num_samples){
+if (length(arg_grouping) < num_samples){
     message("Assuming (1,2),(1,2),(1,2),... sample grouping")
     dummy_list <- rep(arg_grouping,(num_samples/group_length))
     colors <- unlist(lapply(seq(1, num_samples), function(x) {return(arg_condition_list[dummy_list[x]])}))
 } else {
     message("Setting sample groups manually")
-    colors <- unlist(lapply(seq(1, num_samples), function(x) {return(defined_colors[arg_grouping[x]])}))
+    colors <- unlist(lapply(seq(1, num_samples), function(x) {return(arg_condition_list[arg_grouping[x]])}))
 }
 
+print(colors)
 
 # get unique mapping reads
 ## which star runs are in the DCC output?
