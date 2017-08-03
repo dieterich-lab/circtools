@@ -15,6 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# packages (silent load)
+
+suppressMessages(library(ggplot2))
+suppressMessages(library(ggrepel)) # beautifies text labels
+
 # utiliy functions
 
 getUniqueMappings <- function(STARfolder)
@@ -73,8 +78,8 @@ message(paste(group_length, " different groups provided", sep=""))
 # setting colors
 if (group_length < num_samples){
     message("Assuming (1,2),(1,2),(1,2),... sample grouping")
-    dummy_list <- rep(arg_grouping,num_samples/length(grouping))
-    colors <- unlist(lapply(seq(1, num_samples), function(x) {return(defined_colors[dummy_list[x]])}))
+    dummy_list <- rep(arg_grouping,(num_samples/group_length))
+    colors <- unlist(lapply(seq(1, num_samples), function(x) {return(arg_condition_list[dummy_list[x]])}))
 } else {
     message("Setting sample groups manually")
     colors <- unlist(lapply(seq(1, num_samples), function(x) {return(defined_colors[arg_grouping[x]])}))
@@ -110,33 +115,43 @@ message("plotting data")
 # we use PDF and standard A4 page size
 pdf(paste(arg_output_directory, ".pdf", sep = "") , height= 8.2, width=11.69 , title="circtools library analysis")
 
-par(pin = c(9, 6))
+    ######################### page one
 
-# "page" one: circular RNA read count plottet against linear read count
+    # create data frame for ggplot2
+    raw_counts <- data.frame(circ_counts_summed, linear_counts_summed, colors)
+    colnames(raw_counts) <- c("circ","lin","group")
 
-    plot(   x = circ_counts_summed,
-            y = linear_counts_summed,
-            log = "xy",
-            xlab = "Circular RNA read count (log scale)",
-            ylab = "Linear RNA read count (log scale)",
-            main = "Circular vs. linear read counts throughout selected libraries",
-            type="n"
-    )
+    page_one <- ggplot( raw_counts, aes(x=circ, y=lin, color=as.factor(group), label=rownames(raw_counts))) +
+                        geom_point() +
+                        geom_label_repel(   data=raw_counts,
+                                            aes(x=circ, y=lin,
+                                            color=factor(group),
+                                            label=rownames(raw_counts)),
+                                            box.padding = unit(0.55, "lines"),
+                                            point.padding = unit(0.5, "lines")
+                                        ) +
+                        labs(   title = "Circular vs. linear read counts throughout selected libraries",
+                                subtitle = "plotting non-normalized raw read counts from STAR") +
+                        labs(x = "Circular RNA read count (log scale)") +
+                        labs(y = "Linear RNA read count (log scale)") +
+                        labs(colour = "Group") +
+                        labs(caption = paste(   "based on data from ",
+                                                length(star_runs),
+                                                " mapped libraries\ncreated: ",
+                                                date(),
+                                                "",
+                                                sep="")) +
+                        theme(  plot.title = element_text(lineheight=0.8,
+                                face=quote(bold)),
+                                legend.justification = c(1, 1),
+                                legend.position = c(0.95, 0.95)
+                        ) +
+                        scale_x_log10() +
+                        scale_y_log10() +
+                        annotation_logticks(sides = "trbl")
+    print(page_one)
 
-    grid(lwd = 1, lty=2)
-
-    text(   x = circ_counts_summed,
-            y = linear_counts_summed,
-            names(circ_counts_summed),
-            col = colors,
-            cex = 1,
-            pos = 1,
-            srt = 0
-    )
-
-    legend("bottomright", arg_condition_list, fill = colors)
-
-# "page" two: Number of mapped reads vs. number of detected circles per library
+    ######################### page two
 
     # set number of circles
     number_of_circles <- apply(CircRNACount[, - c(1 : 3)], 2, function(x){length(which(x > 1))})
@@ -144,44 +159,76 @@ par(pin = c(9, 6))
     # reset names
     names(uniquely_mapped_reads) <- names(number_of_circles)
 
-    plot(   x = uniquely_mapped_reads,
-            y = number_of_circles,
-            log = "xy",
-            ylab = "Number of detected circles (log scale)",
-            xlab = "Number of mapped reads (log scale)",
-            col = colors,
-            main = "Number of mapped reads vs. number of detected circles per library",
-            type="n"
-    )
+    # create data frame for ggplot2
+    circle_counts <- data.frame(uniquely_mapped_reads, number_of_circles, colors)
+    colnames(circle_counts) <- c("unique","circles","group")
 
-    grid(lwd = 1, lty=2)
+    page_two <- ggplot( circle_counts, aes(x=unique, y=circles, color=as.factor(group), label=rownames(raw_counts))) +
+                        geom_point() +
+                        geom_label_repel(   data=circle_counts,
+                                            aes(x=unique, y=circles,
+                                            color=factor(group),
+                                            label=rownames(raw_counts)),
+                                            box.padding = unit(0.55, "lines"),
+                                            point.padding = unit(0.5, "lines")
+                                        ) +
+                        labs(   title = "Number of mapped reads vs. number of detected circles per library",
+                                subtitle = "plotting uniquely mapped reads from STAR and circRNA predictions from DCC") +
+                        labs(x = "Number of mapped reads (log scale)") +
+                        labs(y = "Number of detected circles (log scale)") +
+                        labs(colour = "Group") +
+                        labs(caption = paste(   "based on data from ",
+                                                length(star_runs),
+                                                " mapped libraries\ncreated: ",
+                                                date(),
+                                                "",
+                                                sep="")) +
+                        theme(  plot.title = element_text(lineheight=0.8,
+                                face=quote(bold)),
+                                legend.justification = c(1, 1),
+                                legend.position = c(0.95, 0.95)
+                        ) +
+                        scale_x_log10() +
+                        scale_y_log10() +
+                        annotation_logticks(sides = "trbl")
+    print(page_two)
 
-    text(   x = uniquely_mapped_reads,
-            y = number_of_circles,
-            names(uniquely_mapped_reads),
-            col = colors,
-            cex = 1,
-            pos = 1,
-            srt = 0
-    )
-
-    legend("topright", arg_condition_list, fill = colors)
-
-
-# "page" three: Number of circular RNAs per million mapped reads
+    ######################### page three
 
     ref = order(number_of_circles / (uniquely_mapped_reads / 1000000))
 
-    grid(lwd = 1, lty=2)
+    # create data frame for ggplot2
+    circle_ratio <- data.frame(rownames(raw_counts), sort(number_of_circles / (uniquely_mapped_reads / 1000000)), colors[ref])
+    colnames(circle_ratio) <- c("name","num","group")
 
-    barplot(    sort(number_of_circles / (uniquely_mapped_reads / 1000000)),
-                las = 2,
-                col = colors[ref],
-                ylab = "Number of detected circles",
-                main = "Detected circular RNAs per million unique mapped reads"
-            )
+    page_three <- ggplot(data=circle_ratio, aes(x=name, y=num, fill=as.factor(group), label=rownames(raw_counts))) +
+                        geom_bar(stat="identity", colour="black") +
 
-    legend("topleft", arg_condition_list, fill = colors)
+                        labs(   title = "Detected circular RNAs per million unique mapped reads",
+                                subtitle = "plotting circRNA predictions from DCC and uniquely mapped reads from STAR") +
+                        labs(y = "Number of detected circular RNAs") +
+                        labs(x = "") +
+                        labs(fill = "Group") +
+                        labs(caption = paste(   "based on data from ",
+                                                length(star_runs),
+                                                " mapped libraries\ncreated: ",
+                                                date(),
+                                                "",
+                                                sep="")) +
+                        theme(  plot.title = element_text(lineheight=0.8,
+                                face=quote(bold)),
+                                legend.justification = c(1, 1),
+                                legend.position = c(0.10, 0.98),
+                                axis.text.x = element_text(angle = 90, hjust = 1, size=14)
+
+                        ) +
+                        geom_label_repel(   data=circle_ratio,
+                                            aes(x=name, y=num,
+                                            label=as.integer(num)),
+                                            box.padding = unit(0.0, "lines"),
+                                            point.padding = unit(0.0, "lines")
+                                        )
+    print(page_three)
 
 invisible(capture.output(dev.off()))
 
