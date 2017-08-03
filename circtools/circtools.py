@@ -444,7 +444,7 @@ class CircTools(object):
                            "--output-name",
                            dest="output_name",
                            default="quickcheck",
-                           help="The output name for files created by " + program_name + " [Default: quickcheck_]",
+                           help="The output name for files created by " + program_name + " [Default: quickcheck]",
                            )
         ######################################################
 
