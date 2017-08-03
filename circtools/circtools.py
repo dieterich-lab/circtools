@@ -443,7 +443,7 @@ class CircTools(object):
         group.add_argument("-n",
                            "--output-name",
                            dest="output_name",
-                           default="circtest",
+                           default="quickcheck",
                            help="The output name for files created by " + program_name + " [Default: quickcheck_]",
                            )
         ######################################################
