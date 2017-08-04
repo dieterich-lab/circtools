@@ -85,8 +85,6 @@ if (length(arg_grouping) < num_samples){
     colors <- unlist(lapply(seq(1, num_samples), function(x) {return(arg_condition_list[arg_grouping[x]])}))
 }
 
-print(colors)
-
 # get unique mapping reads
 ## which star runs are in the DCC output?
 star_columns <- colnames(CircRNACount[, - c(1 : 3)])
@@ -144,8 +142,10 @@ pdf(paste(arg_output_directory, ".pdf", sep = "") , height= 8.2, width=11.69 , t
                                                 sep="")) +
                         theme(  plot.title = element_text(lineheight=0.8,
                                 face=quote(bold)),
-                                legend.justification = c(1, 1),
-                                legend.position = c(0.95, 0.95)
+                                # legend.justification = c(1, 1),
+                                # legend.position = c(0.95, 0.95)
+                                legend.justification = "top"
+
                         ) +
                         scale_x_log10() +
                         scale_y_log10() +
@@ -186,8 +186,9 @@ pdf(paste(arg_output_directory, ".pdf", sep = "") , height= 8.2, width=11.69 , t
                                                 sep="")) +
                         theme(  plot.title = element_text(lineheight=0.8,
                                 face=quote(bold)),
-                                legend.justification = c(1, 1),
-                                legend.position = c(0.95, 0.95)
+                                # legend.justification = c(1, 1),
+                                # legend.position = c(0.95, 0.95)
+                                legend.justification = "top"
                         ) +
                         scale_x_log10() +
                         scale_y_log10() +
@@ -199,7 +200,7 @@ pdf(paste(arg_output_directory, ".pdf", sep = "") , height= 8.2, width=11.69 , t
     ref = order(number_of_circles / (uniquely_mapped_reads / 1000000))
 
     # create data frame for ggplot2
-    circle_ratio <- data.frame(rownames(raw_counts), sort(number_of_circles / (uniquely_mapped_reads / 1000000)), colors[ref])
+    circle_ratio <- data.frame(rownames(raw_counts), as.integer(sort(number_of_circles / (uniquely_mapped_reads / 1000000))), colors[ref])
     colnames(circle_ratio) <- c("name","num","group")
 
     page_three <- ggplot(data=circle_ratio, aes(x=name, y=num, fill=as.factor(group), label=rownames(raw_counts))) +
@@ -219,13 +220,13 @@ pdf(paste(arg_output_directory, ".pdf", sep = "") , height= 8.2, width=11.69 , t
                         theme(  plot.title = element_text(lineheight=0.8,
                                 face=quote(bold)),
                                 legend.justification = c(1, 1),
-                                legend.position = c(0.10, 0.98),
+                                legend.position = c(0.25, 0.98),
                                 axis.text.x = element_text(angle = 90, hjust = 1, size=14)
 
                         ) +
                         geom_label_repel(   data=circle_ratio,
                                             aes(x=name, y=num,
-                                            label=as.integer(num)),
+                                            label=num),
                                             box.padding = unit(0.0, "lines"),
                                             point.padding = unit(0.0, "lines")
                                         )
