@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+install.packages("/home/tjakobi/repos/dieterichlab/CircTest/", repos = NULL, type="source")
+
 library(CircTest)
 library(gridExtra)
 
@@ -54,14 +56,15 @@ arg_filter_sample <- as.integer(args[8]) # integer
 arg_filter_count <- as.integer(args[9]) # integer
 arg_groups <-   unlist(lapply(strsplit(args[10],","), as.numeric)) # list of strings
 arg_output_label <- args[11] # string
+arg_percent_filter <-as.numeric(args[12]) # float
 
 
 run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indicators, label, filename, filer.sample,
-                        filter.count, percentage, max.plots, replicates) {
+                        filter.count, max_fdr, max.plots, replicates, percent_filter) {
 
     message("Filtering circRNA counts")
     CircRNACount_filtered <- Circ.filter(circ = CircRNACount, linear = LinearCount,
-    Nreplicates = replicates, filter.sample = filer.sample, filter.count =  filter.count, percentage = percentage)
+    Nreplicates = replicates, filter.sample = filer.sample, filter.count =  filter.count, percentage = percent_filter)
 
     message("Filtering circRNA coordinates")
     CircCoordinates_filtered <- CircCoordinates[rownames(CircRNACount_filtered),]
@@ -71,7 +74,7 @@ run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indi
 
     message("running circTest")
 
-    data = Circ.test(CircRNACount_filtered, LinearCount_filtered, CircCoordinates_filtered, group = groups)
+    data = Circ.test(CircRNACount_filtered, LinearCount_filtered, CircCoordinates_filtered, group = groups, alpha=max_fdr)
 
     message("Generating plots")
 
@@ -85,8 +88,7 @@ run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indi
     }
 
     # p <- list()
-    #for (i in rownames(data$summary_table[1 : max,])) {
-    for (i in seq(1,100)) {
+    for (i in rownames(data$summary_table[1 : max,])) {
 
         # invisible(capture.output(p[[i]] <- Circ.ratioplot( CircRNACount_filtered, LinearCount_filtered,
         # CircCoordinates_filtered, plotrow=i, size=16, gene_column=4, groupindicator1 = indicators,
@@ -155,5 +157,6 @@ run_CircTest(
     arg_filter_count,
     arg_max_fdr,
     arg_max_plots,
-    arg_replictes
+    arg_replictes,
+    arg_percent_filter
 )
