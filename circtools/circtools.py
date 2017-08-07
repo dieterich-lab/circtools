@@ -389,6 +389,17 @@ class CircTools(object):
                            )
         ######################################################
 
+        args = parser.parse_args(sys.argv[2:])
+
+        # start the primer module
+
+        # make sure we can load the sub module
+        sys.path.append(os.path.join(os.path.dirname(__file__)))
+
+        import circtest.circtest
+        circtest_instance = circtest.circtest.CircTest(args, program_name, version)
+        circtest_instance.run_module()
+
     @staticmethod
     def quickcheck():
         parser = argparse.ArgumentParser(
