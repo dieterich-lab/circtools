@@ -18,7 +18,6 @@
 install.packages("/home/tjakobi/repos/dieterichlab/CircTest/", repos = NULL, type="source")
 
 library(CircTest)
-library(gridExtra)
 
 # pre load libraries so we don't get messages later:
 suppressMessages(library(aod))
@@ -78,7 +77,7 @@ run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indi
 
     message("Generating plots")
 
-    pdf(file = paste(filename,".pdf",sep=""), paper="a4")
+    pdf(file = paste(filename,".pdf",sep=""), width= 8.2, height=11.69, title="circtools circtest analysis")
 
     max <- nrow(data$summary_table)
 
@@ -87,7 +86,6 @@ run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indi
         max <- max.plots
     }
 
-    # p <- list()
     for (i in rownames(data$summary_table[1 : max,])) {
 
         # invisible(capture.output(p[[i]] <- Circ.ratioplot( CircRNACount_filtered, LinearCount_filtered,
@@ -98,9 +96,6 @@ run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indi
         plotrow = i, size = 16, gene_column = 4, groupindicator1 = indicators,
         x = "", y = "", lab_legend = label)))
     }
-    # print(p)
-    # do.call(grid.arrange,(c(p,ncol=2, nrow=4)))
-
     dev.off()
 
     message("creating Excel sheets")
