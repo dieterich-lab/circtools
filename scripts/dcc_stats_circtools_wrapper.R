@@ -207,6 +207,7 @@ pdf(paste(arg_output_directory, ".pdf", sep = "") , height= 8.2, width=11.69 , t
                         labs(   title = "Detected circular RNAs per million unique mapped reads",
                                 subtitle = "plotting circRNA predictions from DCC and uniquely mapped reads from STAR") +
                         labs(y = "Number of detected circular RNAs") +
+                        labs(x = "Sequencing library") +
                         labs(fill = "Group") +
                         labs(caption = paste(   "based on data from ",
                                                 length(star_runs),
