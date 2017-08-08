@@ -98,10 +98,14 @@ class CircTest(circ_module.circ_template.CircTemplate):
                                 self.cli_params.max_plots,
                                 ])
 
-        self.check_float_arguments([self.cli_params.max_fdr])
+        self.check_float_arguments([self.cli_params.max_fdr, self.cli_params.percentage])
 
         if self.cli_params.max_fdr > 1 or self.cli_params.max_fdr < 0:
             self.log_entry("Error: FDR specified via -f has to be in the range >0 and <1.")
+            exit(-1)
+
+        if self.cli_params.percentage > 1 or self.cli_params.percentage < 0:
+            self.log_entry("Error: Percentage specified via -p has to be in the range >0 and <1.")
             exit(-1)
 
         # needed for Rscript decoupling
@@ -139,7 +143,8 @@ class CircTest(circ_module.circ_template.CircTemplate):
                 self.cli_params.filter_sample,
                 self.cli_params.filter_count,
                 self.cli_params.grouping,
-                self.cli_params.label
+                self.cli_params.label,
+                self.cli_params.percentage
                 ]
 
         # ------------------------------------ run script and check output -----------------------
