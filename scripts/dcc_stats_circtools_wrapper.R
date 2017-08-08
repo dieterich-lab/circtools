@@ -36,9 +36,6 @@ getUniqueMappings <- function(STARfolder)
 # may not be optimal, but we do not want warning for now
 options(warn = - 1)
 
-# setting default R colors
-defined_colors <- palette("default")
-
 # quiet mode
 options(echo = FALSE)
 
@@ -200,16 +197,16 @@ pdf(paste(arg_output_directory, ".pdf", sep = "") , height= 8.2, width=11.69 , t
     ref = order(number_of_circles / (uniquely_mapped_reads / 1000000))
 
     # create data frame for ggplot2
-    circle_ratio <- data.frame(rownames(raw_counts), as.integer(sort(number_of_circles / (uniquely_mapped_reads / 1000000))), colors[ref])
+    circle_ratio <- data.frame(rownames(raw_counts), as.integer((number_of_circles / (uniquely_mapped_reads / 1000000))), colors[ref])
     colnames(circle_ratio) <- c("name","num","group")
+    circle_ratio <- circle_ratio[with(circle_ratio, order(num)), ]
 
-    page_three <- ggplot(data=circle_ratio, aes(x=name, y=num, fill=as.factor(group), label=rownames(raw_counts))) +
+    page_three <- ggplot(data=circle_ratio, aes(x=reorder(name, num), y=num, fill=as.factor(group))) +
                         geom_bar(stat="identity", colour="black") +
 
                         labs(   title = "Detected circular RNAs per million unique mapped reads",
                                 subtitle = "plotting circRNA predictions from DCC and uniquely mapped reads from STAR") +
                         labs(y = "Number of detected circular RNAs") +
-                        labs(x = "") +
                         labs(fill = "Group") +
                         labs(caption = paste(   "based on data from ",
                                                 length(star_runs),
