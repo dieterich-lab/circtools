@@ -337,6 +337,15 @@ class CircTools(object):
                            default=0.05
                            )
 
+        group.add_argument("-p",
+                           "--percentage",
+                           dest="percentage",
+                           help=" The minimum percentage of circRNAs account for the total "
+                                "transcripts in at least one group. [Default: 0.01]",
+                           type=float,
+                           default=0.01
+                           )
+
         group.add_argument("-s",
                            "--filter-sample",
                            dest="filter_sample",
@@ -373,7 +382,7 @@ class CircTools(object):
                            help="The output name for files created by " + program_name + " [Default: circtest]",
                            )
 
-        group.add_argument("-p",
+        group.add_argument("-m",
                            "--max-plots",
                            dest="max_plots",
                            help="How many of candidates should be plotted as bar chart? [Default: 50]",
