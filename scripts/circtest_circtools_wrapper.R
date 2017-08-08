@@ -15,8 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-install.packages("/home/tjakobi/repos/dieterichlab/CircTest/", repos = NULL, type="source")
-
 library(CircTest)
 
 # pre load libraries so we don't get messages later:
