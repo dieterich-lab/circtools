@@ -55,7 +55,6 @@ arg_groups <-   unlist(lapply(strsplit(args[10],","), as.numeric)) # list of str
 arg_output_label <- args[11] # string
 arg_percent_filter <-as.numeric(args[12]) # float
 
-
 run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indicators, label, filename, filer.sample,
                         filter.count, max_fdr, max.plots, replicates, percent_filter) {
 
@@ -136,14 +135,19 @@ LinearCount <- read.delim(paste(arg_dcc_data, "LinearCount", sep="/"), header = 
 message("Loading CircCoordinates")
 CircCoordinates <- read.delim(paste(arg_dcc_data, "CircCoordinates", sep="/"), header = T)
 
-# call the main function to run circTest
+group_length <- length(arg_condition_list)
 
+message(paste(group_length, " different groups provided", sep=""))
+
+final_grouping <- unlist(lapply(seq(1, length(arg_condition_columns)), function(x) {return(arg_condition_list[arg_groups[x]])}))
+
+# call the main function to run circTest
 run_CircTest(
     CircRNACount[, c(1 : 3, arg_condition_columns)], # we always need the first 3 columns
     LinearCount[, c(1 : 3, arg_condition_columns)], # we always need the first 3 columns
     CircCoordinates,
-    rep(arg_groups, arg_replictes),
-    rep(arg_condition_list, arg_replictes),
+    arg_groups,
+    final_grouping,
     arg_output_label,
     arg_output_name,
     arg_filter_sample,
