@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# install.packages("/home/tjakobi/repos/dieterichlab/CircTest/", repos = NULL, type="source")
+
 library(CircTest)
 
 # pre load libraries so we don't get messages later:
@@ -54,9 +56,10 @@ arg_filter_count <- as.integer(args[9]) # integer
 arg_groups <-   unlist(lapply(strsplit(args[10],","), as.numeric)) # list of strings
 arg_output_label <- args[11] # string
 arg_percent_filter <-as.numeric(args[12]) # float
+arg_only_negative <-as.logical(args[13]) # float
 
 run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indicators, label, filename, filer.sample,
-                        filter.count, max_fdr, max.plots, replicates, percent_filter) {
+                        filter.count, max_fdr, max.plots, replicates, percent_filter, only_negative_direction) {
 
     message("Filtering circRNA counts")
     CircRNACount_filtered <- Circ.filter(circ = CircRNACount, linear = LinearCount,
@@ -83,15 +86,20 @@ run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indi
         max <- max.plots
     }
 
-    for (i in rownames(data$summary_table[1 : max,])) {
-
-        # invisible(capture.output(p[[i]] <- Circ.ratioplot( CircRNACount_filtered, LinearCount_filtered,
-        # CircCoordinates_filtered, plotrow=i, size=16, gene_column=4, groupindicator1 = indicators,
-        # x = "", y = "", lab_legend = label)))
-
-        invisible(capture.output(Circ.ratioplot(CircRNACount_filtered, LinearCount_filtered, CircCoordinates_filtered,
-        plotrow = i, size = 16, gene_column = 4, groupindicator1 = indicators,
-        x = "", y = "", lab_legend = label)))
+    if (only_negative_direction){
+        for (i in rownames(data$summary_table)){
+            if(data$summary_table[i,]$direction < 0){
+                invisible(capture.output(Circ.ratioplot(CircRNACount_filtered, LinearCount_filtered, CircCoordinates_filtered,
+                plotrow = i, size = 16, gene_column = 4, groupindicator1 = indicators,
+                x = "", y = "", lab_legend = label)))
+            }
+        }
+    } else {
+        for (i in rownames(data$summary_table[1 : max,])){
+            invisible(capture.output(Circ.ratioplot(CircRNACount_filtered, LinearCount_filtered, CircCoordinates_filtered,
+            plotrow = i, size = 16, gene_column = 4, groupindicator1 = indicators,
+            x = "", y = "", lab_legend = label)))
+        }
     }
     dev.off()
 
@@ -155,5 +163,6 @@ run_CircTest(
     arg_max_fdr,
     arg_max_plots,
     arg_replictes,
-    arg_percent_filter
+    arg_percent_filter,
+    arg_only_negative
 )
