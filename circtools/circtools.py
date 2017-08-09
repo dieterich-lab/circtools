@@ -403,6 +403,12 @@ class CircTools(object):
                            help="Only print entries with negative direction indicator [Default: False]",
                            default=False
                            )
+        group.add_argument("-H",
+                           "--add-header",
+                           dest="add_header",
+                           help="Add header to CSV output [Default: False]",
+                           default=False
+                           )
         ######################################################
 
         args = parser.parse_args(sys.argv[2:])

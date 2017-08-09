@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# install.packages("/home/tjakobi/repos/dieterichlab/CircTest/", repos = NULL, type="source")
+install.packages("/home/tjakobi/repos/dieterichlab/CircTest/", repos = NULL, type="source")
 
 library(CircTest)
 
@@ -57,9 +57,10 @@ arg_groups <-   unlist(lapply(strsplit(args[10],","), as.numeric)) # list of str
 arg_output_label <- args[11] # string
 arg_percent_filter <-as.numeric(args[12]) # float
 arg_only_negative <-as.logical(args[13]) # float
+arg_add_header <-as.logical(args[14]) # float
 
 run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indicators, label, filename, filer.sample,
-                        filter.count, max_fdr, max.plots, replicates, percent_filter, only_negative_direction) {
+                        filter.count, max_fdr, max.plots, replicates, percent_filter, only_negative_direction, header) {
 
     message("Filtering circRNA counts")
     CircRNACount_filtered <- Circ.filter(circ = CircRNACount, linear = LinearCount,
@@ -113,7 +114,7 @@ run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indi
                 sep = "\t",
                 eol = "\n",
                 row.names = FALSE,
-                col.names = FALSE)
+                col.names = header)
 
     wb <- createWorkbook()
 
@@ -164,5 +165,6 @@ run_CircTest(
     arg_max_plots,
     arg_replictes,
     arg_percent_filter,
-    arg_only_negative
+    arg_only_negative,
+    arg_add_header
 )

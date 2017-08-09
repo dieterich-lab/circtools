@@ -145,7 +145,8 @@ class CircTest(circ_module.circ_template.CircTemplate):
                 self.cli_params.grouping,
                 self.cli_params.label,
                 self.cli_params.percentage,
-                self.cli_params.only_negative
+                self.cli_params.only_negative,
+                self.cli_params.add_header
                 ]
 
         # ------------------------------------ run script and check output -----------------------
