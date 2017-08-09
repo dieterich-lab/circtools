@@ -396,6 +396,13 @@ class CircTools(object):
                            help="How should the samples be labeled? [Default: Sample]",
                            default="Sample"
                            )
+
+        group.add_argument("-O",
+                           "--only-negative-direction",
+                           dest="only_negative",
+                           help="Only print entries with negative direction indicator [Default: False]",
+                           default=False
+                           )
         ######################################################
 
         args = parser.parse_args(sys.argv[2:])
