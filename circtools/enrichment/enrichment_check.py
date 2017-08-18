@@ -762,7 +762,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
                                 # construct the result line
                                 result_string += (
-                                    "%s\t%s\t%d\t%d\t%s\t%f\t%d\t%d\t%d\t%d\t%d\t%s\t%f\t%d\t%d\t%d\t%d\t%d\t%s\t%f\n" %
+                                    "%s\t%s\t%d\t%d\t%s\t%f\t%d\t%d\t%d\t%f\t%d\t%s\t%f\t%d\t%d\t%d\t%f\t%d\t%s\t%f\n" %
                                     (
                                         gene,
                                         str(location_data_circ["chr"]),
