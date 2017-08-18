@@ -642,7 +642,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         Returns the length-normalized count
         """
         if count > 0 and length > 0:
-            return (count / length) * 100000
+            return (count / length) * 1000
         else:
             return 0
 
