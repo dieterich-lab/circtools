@@ -206,10 +206,15 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
             self.log_entry("Starting permutation test phase %d" % (phase+1))
 
+            start_id = (phase*iterations_per_phase)+1
+            stop_id = ((phase+1)*iterations_per_phase)+1
+
+            # compensate for the first round so that we start correctly at ID 0
+            if phase == 0:
+                start_id -= 1
+
             # results of one phase of the computation
-            intermediate_result = mp_pool.map(functools.partial(self.run_permutation_test),
-                                              range(phase*iterations_per_phase+1, (phase+1)*iterations_per_phase)
-                                              )
+            intermediate_result = mp_pool.map(functools.partial(self.run_permutation_test), range(start_id, stop_id))
 
             # how many results did we get back?
             num_results = len(intermediate_result)
