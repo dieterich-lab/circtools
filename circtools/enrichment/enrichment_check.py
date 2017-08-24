@@ -591,15 +591,13 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         return count_table
 
     @staticmethod
-    def decode_location_key(key, keep=False):
+    def decode_location_key(key):
         """Decodes a given location key
         Returns a dictionary of decoded values
         """
         key_components = key.split("_")
 
-        if keep:
-            return key_components[0] + "_" + key_components[1] + "_" + key_components[2] + "_" + key_components[3]
-
+        # we have a normal key without feature information
         if len(key_components) == 4:
 
             data = {
@@ -609,7 +607,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                     "strand": key_components[3],
                     "length": (int(key_components[2])-int(key_components[1])),
                     }
-
+        # we have an extended key with feature information and will return also those
         else:
             data = {
                     "chr": key_components[0],
@@ -820,6 +818,8 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                 observed_value_dict = self.observed_counts[rna_type][gene]
                 # for each location key (for linear that's only one anyway. for circular it may me multiple)
                 for location_key, shuffled_value in nested_dict.items():
+
+                    location_data = self.decode_location_key(location_key)
 
                     # let's test if we observed a higher count in this iteration than web observed experimentally
                     # first make sure the location exists.. should always be true for linear rna but not for
