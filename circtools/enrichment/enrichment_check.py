@@ -732,7 +732,8 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
                                 # how many experimental peaks did we see?
                                 observed_count_circular = self.observed_counts[0][gene][location_key_circular]
-                                observed_count_linear = self.observed_counts[1][gene][location_key_linear]
+                                observed_count_linear = self.observed_counts[1][gene][location_key_linear]\
+                                                        - observed_count_circular
 
                                 # compute simple p-val
                                 p_val_linear = 0
@@ -820,6 +821,15 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                 observed_value_dict = self.observed_counts[rna_type][gene]
                 # for each location key (for linear that's only one anyway. for circular it may me multiple)
                 for location_key, shuffled_value in nested_dict.items():
+
+                    # location_data = self.decode_location_key(location_key)
+                    #
+                    #
+                    # length = self.decode_location_key(location_key)["length"]
+                    #
+                    #
+                    # if self.normalize_count(length, shuffled_value) >= \
+                    #         self.normalize_count(length, observed_value_dict[location_key]):
 
                     # let's test if we observed a higher count in this iteration than web observed experimentally
                     # first make sure the location exists.. should always be true for linear rna but not for
