@@ -495,14 +495,13 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         """
         # initialise empty dict
         return_string = ""
-        last_feature = ""
 
         # holds the different circRNA isoforms for an annotated host gene
         # once we see another host gene annotation, all isoforms are written in the bed string
-        circ_isoforms_net_length = {}
-        circ_isoforms_num_features = {}
-        circ_isoforms_count = {}
-        circ_isoforms_name = {}
+        isoform_net_length = {}
+        isoform_num_features = {}
+        isoform_count = {}
+        isoform_name = {}
 
         for line in str(intersection_input).splitlines():
             bed_feature = line.split('\t')
@@ -514,34 +513,36 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
             key = bed_feature[6] + "_" + bed_feature[7] + "_" + bed_feature[8] + "_" + bed_feature[11]
 
             # we also count how many features are part of this entity
-            if key not in circ_isoforms_net_length:
-                circ_isoforms_net_length[key] = (int(bed_feature[2]) - int(bed_feature[1]))
-                circ_isoforms_num_features[key] = 1
-                circ_isoforms_count[key] = bed_feature[12]
-                circ_isoforms_name[key] = bed_feature[9]
+            if key not in isoform_net_length:
+                isoform_net_length[key] = (int(bed_feature[2]) - int(bed_feature[1]))
+                isoform_num_features[key] = 1
+                isoform_count[key] = int(bed_feature[12])
+                isoform_name[key] = bed_feature[9]
 
             else:
-                circ_isoforms_net_length[key] += (int(bed_feature[2]) - int(bed_feature[1]))
-                circ_isoforms_num_features[key] += 1
+                isoform_net_length[key] += (int(bed_feature[2]) - int(bed_feature[1]))
+                isoform_num_features[key] += 1
+                isoform_count[key] += int(bed_feature[12])
 
-        for feature_key in circ_isoforms_net_length:
+        for feature_key in isoform_net_length:
             data = self.decode_location_key(feature_key)
 
             new_line = data["chr"] + "\t" \
                        + str(data["start"]) + "\t" \
                        + str(data["stop"]) + "\t" \
-                       + str(circ_isoforms_name[feature_key]) + "\t" \
-                       + str(circ_isoforms_net_length[feature_key]) + "_" + \
-                       str(circ_isoforms_num_features[feature_key]) + "\t" + \
+                       + str(isoform_name[feature_key]) + "\t" \
+                       + str(isoform_net_length[feature_key]) + "_" + \
+                       str(isoform_num_features[feature_key]) + "\t" + \
                        data["strand"] + "\t" \
-                       + str(circ_isoforms_count[feature_key])
+                       + str(isoform_count[feature_key])
 
             return_string += new_line + "\n"
 
         # reset stuff
-        circ_isoforms_net_length.clear()
-        circ_isoforms_num_features.clear()
-        circ_isoforms_count.clear()
+        isoform_net_length.clear()
+        isoform_num_features.clear()
+        isoform_count.clear()
+        isoform_name.clear()
 
         return pybedtools.BedTool(return_string, from_string=True)
 
@@ -624,6 +625,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
     def linear_length_wo_circ(self, key_circ, key_linear):
         """Computes the remaining linear RNA length given the circular RNA location key
         Returns a list of circular RNA length [0] and linear RNA length [1]
+        Only used in non-feature mode
         """
         circ = self.decode_location_key(key_circ)
         linear = self.decode_location_key(key_linear)
@@ -818,8 +820,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                 observed_value_dict = self.observed_counts[rna_type][gene]
                 # for each location key (for linear that's only one anyway. for circular it may me multiple)
                 for location_key, shuffled_value in nested_dict.items():
-
-                    location_data = self.decode_location_key(location_key)
 
                     # let's test if we observed a higher count in this iteration than web observed experimentally
                     # first make sure the location exists.. should always be true for linear rna but not for
