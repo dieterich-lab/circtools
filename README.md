@@ -192,7 +192,7 @@ circtools circtest  -d DCC_DIR
 
 ### exon
 
-The exon module of circtools employs the [ballgown R package](https://www.bioconductor.org/packages/release/bioc/html/ballgown.html) to combine data generated with DCC and circtest with cufflinks output generated via [tablemaker](https://github.com/leekgroup/tablemaker) in order get deeper insights into differential exon usage within circRNA candidates. 
+The exon module of circtools employs the [ballgown R package](https://www.bioconductor.org/packages/release/bioc/html/ballgown.html) to combine data generated with DCC and circtest with ballgown-compatible `stringtie` output or cufflinks output converted via [tablemaker](https://github.com/leekgroup/tablemaker) in order get deeper insights into differential exon usage within circRNA candidates. 
 
 
 ```
