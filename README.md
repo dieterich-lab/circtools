@@ -30,40 +30,54 @@ Circtools currently offers four modules:
 
 ```
 $ circtools
-usage: circtools [-V] <command> [<args>]
+
             Available commands:
 
-               enrich       circular RNA RBP enrichment scan
-               primer       circular RNA primer design tool
-               detect       circular RNA detection with DCC
-               reconstruct  circular RNA reconstruction with FUCHS
-               circtest     circular RNA statistical testing
-               exon         circular RNA alternative exon analysis
+               enrich:       circular RNA RBP enrichment scan
+               primer:       circular RNA primer design tool
+               detect:       circular RNA detection with DCC
+               reconstruct:  circular RNA reconstruction with FUCHS
+               circtest:     circular RNA statistical testing
+               exon:         circular RNA alternative exon analysis
+               quickcheck:   circular RNA sequencing library quick checks
+
+
+circtools: a modular, python-based framework for circRNA-related tools that
+unifies several functions in single command line driven software.
+
+positional arguments:
+  command        Command to run
+
+optional arguments:
+  -h, --help     show this help message and exit
+  -V, --version  show program's version number and exit          
+               
 ```
 
 ### detect
 
-The ``detect`` command is an interface to [DCC](https://github.com/dieterich-lab/DCC), also developed at the Dieterich lab. Please see the corresponding [manual](https://github.com/dieterich-lab/DCC) on the GitHub project for instructions how to run DCC.
+The ``detect`` command is an interface to [DCC](https://github.com/dieterich-lab/DCC), also developed at the Dieterich lab. Please see the corresponding [manual](https://github.com/dieterich-lab/DCC) on the GitHub project for instructions how to run DCC. The parameters supplied to circtools will be directly passed to DCC.
 
 ### reconstruct
 
-The ``reconstruct`` command is an interface to [FUCHS](https://github.com/dieterich-lab/FUCHS). FUCHS is employing DCC-generated data to reconstruct circRNA structures. Please see the corresponding [manual](https://github.com/dieterich-lab/FUCHS) on the GitHub project for instructions how to run FUCHS.
+The ``reconstruct`` command is an interface to [FUCHS](https://github.com/dieterich-lab/FUCHS). FUCHS is employing DCC-generated data to reconstruct circRNA structures. Please see the corresponding [manual](https://github.com/dieterich-lab/FUCHS) on the GitHub project for instructions how to run FUCHS. All parameters supplied to circtools will be directly passed to FUCHS.
+
 
 ### primer
 
-The ``primer`` command is used to design and visualize primers required for follow up wet lab experiments to verify circRNA candidates. The full documentation for the ``primer`` module is located in its own [manual](R/circtools/vignettes/plot-transcripts.md).
+The ``primer`` command is used to design and visualize primers required for follow up wet lab experiments to verify circRNA candidates. The full documentation for the ``primer`` module can be found in its own [manual](R/circtools/vignettes/plot-transcripts.md).
 
 ### enrich
 
 The ``enrichment`` module may be used to identify circRNAs enriched for specific RNA binding proteins (RBP) based on DCC-identified circRNAs and processed [eCLIP](http://www.nature.com/nmeth/journal/v13/n6/full/nmeth.3810.html) data. For K526 and HepG2 cell lines plenty of this data is available through the [ENCODE](https://www.encodeproject.org/search/?type=Experiment&assay_title=eCLIP)
- project.
+ project. The enrich module understands the following options:
 
 ```
-circtools enrich --help
 usage: circtools [-h] -c CIRC_RNA_INPUT -b BED_INPUT -a ANNOTATION -g
                  GENOME_FILE [-o OUTPUT_DIRECTORY] [-i NUM_ITERATIONS]
                  [-p NUM_PROCESSES] [-t TMP_DIRECTORY] [-T THRESHOLD]
                  [-P PVAL] [-H HAS_HEADER] [-F OUTPUT_FILENAME]
+                 [-I INCLUDE_FEATURES]
 
 circular RNA RBP enrichment tools
 
@@ -84,7 +98,7 @@ Required options:
 
 Additional options:
   -o OUTPUT_DIRECTORY, --output OUTPUT_DIRECTORY
-                        The output folder for files created by circtools
+                        The output folder for files created by circtest
                         [default: .]
   -i NUM_ITERATIONS, --iterations NUM_ITERATIONS
                         Number of iterations for CLIP shuffling [default:
@@ -101,11 +115,14 @@ Additional options:
                         [default: no]
   -F OUTPUT_FILENAME, --output-filename OUTPUT_FILENAME
                         Defines the output file prefix [default: output]
-
+  -I INCLUDE_FEATURES, --include-features INCLUDE_FEATURES
+                        Defines the the features which should be used for
+                        shuffling. May be specified multiple times. [default:
+                        all - shuffle over the whole genome]
 ```
 ### circtest
 
-We require some tutorial text here.
+The ``circtest`` command is an interface to [CircTest](https://github.com/dieterich-lab/CircTest). The module a a very convenient way to employ statistical testing to circRNA candidates generated with DCC without having to write an R script for each new experiment. For detailed information on the implementation itself take a look at the [CircTest documentation](https://github.com/dieterich-lab/CircTest). In essence, the module allows dynamic grouping of the columns (samples) in the DCC data. 
 
 ```
 circtools circtest --help
@@ -163,11 +180,20 @@ Output options:
                         How should the samples be labeled? [Default: Sample]
 ```
 
+Two samples, each with RNaseR+/- Treatment, three replicates each distributed through the columns specified via -c:
+
+```
+circtools circtest  -d DCC_DIR 
+                    -l Sample_1_RNaseR-,Sample_1_RNaseR+,Sample_2_RNaseR-,Sample_2_RNaseR+
+                    -c 4,6,8,10,12,14,16,17,18,19,20,21
+                    -g 1,1,1,2,2,2,3,3,3,4,4,4
+```
 
 
 ### exon
 
-We require some tutorial text here, too.
+The exon module of circtools employs the [ballgown R package](https://www.bioconductor.org/packages/release/bioc/html/ballgown.html) to combine data generated with DCC and circtest with cufflinks output generated via [tablemaker](https://github.com/leekgroup/tablemaker) in order get deeper insights into differential exon usage within circRNA candidates. 
+
 
 ```
 circtools exon --help
@@ -222,4 +248,41 @@ Output options:
   -n OUTPUT_PREFIX, --output-prefix OUTPUT_PREFIX
                         The output name (prefix) for files created by circtest
                         [Default: exon_analysis]
+```
+
+### quickcheck
+
+The quickcheck module of circtools is an easy way to check the results of a DCC run for problems and to quickly assess the number of circRNAs in a given experiment. The module needs the mapping log files produced by STAR as well as the directory with the DCC results. The module than generates a series of figures in PDF format to assess the results.
+
+```
+usage: circtools [-h] -d DCC_DIR -s STAR_DIR -l CONDITION_LIST -g GROUPING
+                 [-o OUTPUT_DIRECTORY] [-n OUTPUT_NAME]
+
+circular RNA sequencing library quality assessment
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+Required:
+  -d DCC_DIR, --DCC DCC_DIR
+                        Path to the detect/DCC data directory
+  -s STAR_DIR, --star STAR_DIR
+                        Path to the base STAR data directory containing sub-
+                        folders with per-sample mappings
+  -l CONDITION_LIST, --condition-list CONDITION_LIST
+                        Comma-separated list of conditions which should be
+                        comparedE.g. "RNaseR +","RNaseR -"
+  -g GROUPING, --grouping GROUPING
+                        Comma-separated list describing the relation of the
+                        columns specified via -c to the sample names specified
+                        via -l; e.g. -g 1,2 and -r 3 would assign sample1 to
+                        each even column and sample 2 to each odd column
+
+Output options:
+  -o OUTPUT_DIRECTORY, --output-directory OUTPUT_DIRECTORY
+                        The output directory for files created by circtest
+                        [Default: ./]
+  -n OUTPUT_NAME, --output-name OUTPUT_NAME
+                        The output name for files created by circtest
+                        [Default: quickcheck]
 ```
