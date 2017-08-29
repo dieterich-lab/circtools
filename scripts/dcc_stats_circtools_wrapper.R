@@ -197,7 +197,7 @@ pdf(paste(arg_output_directory, ".pdf", sep = "") , height= 8.2, width=11.69 , t
     ref = order(number_of_circles / (uniquely_mapped_reads / 1000000))
 
     # create data frame for ggplot2
-    circle_ratio <- data.frame(rownames(raw_counts), as.integer((number_of_circles / (uniquely_mapped_reads / 1000000))), colors[ref])
+    circle_ratio <- data.frame(rownames(raw_counts), as.integer((number_of_circles / (uniquely_mapped_reads / 1000000))), colors)
     colnames(circle_ratio) <- c("name","num","group")
     circle_ratio <- circle_ratio[with(circle_ratio, order(num)), ]
 
