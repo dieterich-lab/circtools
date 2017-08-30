@@ -117,13 +117,13 @@ plotCirc <- function(sjIds,
         stop("Some provided circs do not overlap with the genes in circGenes")
     }
   } else {
-    circIndex <- which(mcols(circData$circCoords)$sjId == sjIds)
+    circIndex <- which(mcols(circData$circCoords)$sjId %in% sjIds)
     circGenes <- with(
       circData,
       sjGenes[to(circsGeneHits)[from(circsGeneHits) == circIndex]])
     circGenes <- mcols(circGenes)$gene_id
   }
-  circIndex <- which(mcols(circData$circCoords)$sjId == sjIds)
+  circIndex <- which(mcols(circData$circCoords)$sjId %in% sjIds)
   circs <- circData$circCoords[circIndex]
   if (requireNamespace("AnnotationFilter", quietly = TRUE)) {
     filter <- AnnotationFilter::GeneIdFilter(circGenes)
