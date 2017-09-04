@@ -59,8 +59,8 @@ LinearCount <- read.delim(paste(arg_dcc_data, "LinearCount", sep="/"), check.nam
 
 message("Parsing data")
 # remove DCC artifacts from columns names
-names(LinearCount)<-gsub("_STARmappingChimeric.out.junction","",names(LinearCount))
-names(CircRNACount)<-gsub("_STARmappingChimeric.out.junction","",names(CircRNACount))
+names(LinearCount)<-gsub("_STARmapping.*Chimeric.out.junction","",names(LinearCount))
+names(CircRNACount)<-gsub("_STARmapping.*Chimeric.out.junction","",names(CircRNACount))
 
 # summing up counts per column (i.e. library)
 circ_counts_summed <- apply(CircRNACount[, - c(1 : 3)], 2, sum)
@@ -93,7 +93,7 @@ star_runs <- list.files(arg_star_folder, full.names = TRUE)
 star_runs <- star_runs[endsWith(star_runs,"_STARmapping")]
 
 # only use the folders of full mappings (not the per-mate ones)
-star_runs <- star_runs[-grep(c("mate"), star_runs)]
+star_runs <- star_runs[!grepl("*mate*", star_runs)]
 
 # new empty list
 uniquely_mapped_reads <- numeric();
