@@ -78,8 +78,6 @@ run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indi
 
     message("Generating plots")
 
-    pdf(file = paste(filename,".pdf",sep=""), width= 8.2, height=11.69, title="circtools circtest analysis")
-
     max <- nrow(data$summary_table)
 
     # if we havbe too many results, cut them down to the user threshold
@@ -87,49 +85,57 @@ run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indi
         max <- max.plots
     }
 
-    if (only_negative_direction){
-        for (i in rownames(data$summary_table)){
-            if(data$summary_table[i,]$direction < 0){
+    # only if we have any results
+    if (nrow(data$summary_table) > 0){
+        pdf(file = paste(filename,".pdf",sep=""), width= 8.2, height=11.69, title="circtools circtest analysis")
+
+        if (only_negative_direction){
+            for (i in rownames(data$summary_table)){
+                if(data$summary_table[i,]$direction < 0){
+                    invisible(capture.output(Circ.ratioplot(CircRNACount_filtered, LinearCount_filtered, CircCoordinates_filtered,
+                    plotrow = i, size = 16, gene_column = 4, groupindicator1 = indicators,
+                    x = "", y = "", lab_legend = label)))
+                }
+            }
+        } else {
+            for (i in rownames(data$summary_table[1 : max,])){
                 invisible(capture.output(Circ.ratioplot(CircRNACount_filtered, LinearCount_filtered, CircCoordinates_filtered,
                 plotrow = i, size = 16, gene_column = 4, groupindicator1 = indicators,
                 x = "", y = "", lab_legend = label)))
             }
         }
+        dev.off()
+
+        message("creating Excel sheets")
+
+        ## Significant result show in a summary table
+
+        write.table(na.omit(data$summary_table[1 : MAX_LINES,]),
+                    file = paste(filename, ".csv", sep = "") ,
+                    quote = FALSE,
+                    sep = "\t",
+                    eol = "\n",
+                    row.names = FALSE,
+                    col.names = header)
+
+        wb <- createWorkbook()
+
+        addWorksheet(wb, sheetName = "Significant circles")
+        writeDataTable(wb, sheet = 1, x = data$summary_table[1 : MAX_LINES,])
+
+        idx <- rownames(data$summary_table[1 : MAX_LINES,])
+
+        addWorksheet(wb, sheetName = "Circle Counts")
+        writeDataTable(wb, sheet = 2, x = CircRNACount[idx,])
+
+        addWorksheet(wb, sheetName = "Linear Counts")
+        writeDataTable(wb, sheet = 3, x = LinearCount[idx,])
+
+        saveWorkbook(wb, paste(filename, ".xlsx", sep = "") , overwrite = TRUE)
+
     } else {
-        for (i in rownames(data$summary_table[1 : max,])){
-            invisible(capture.output(Circ.ratioplot(CircRNACount_filtered, LinearCount_filtered, CircCoordinates_filtered,
-            plotrow = i, size = 16, gene_column = 4, groupindicator1 = indicators,
-            x = "", y = "", lab_legend = label)))
-        }
+        message("No canidates to plot, exiting.")
     }
-    dev.off()
-
-    message("creating Excel sheets")
-
-    ## Significant result show in a summary table
-
-    write.table(na.omit(data$summary_table[1 : MAX_LINES,]),
-                file = paste(filename, ".csv", sep = "") ,
-                quote = FALSE,
-                sep = "\t",
-                eol = "\n",
-                row.names = FALSE,
-                col.names = header)
-
-    wb <- createWorkbook()
-
-    addWorksheet(wb, sheetName = "Significant circles")
-    writeDataTable(wb, sheet = 1, x = data$summary_table[1 : MAX_LINES,])
-
-    idx <- rownames(data$summary_table[1 : MAX_LINES,])
-
-    addWorksheet(wb, sheetName = "Circle Counts")
-    writeDataTable(wb, sheet = 2, x = CircRNACount[idx,])
-
-    addWorksheet(wb, sheetName = "Linear Counts")
-    writeDataTable(wb, sheet = 3, x = LinearCount[idx,])
-
-    saveWorkbook(wb, paste(filename, ".xlsx", sep = "") , overwrite = TRUE)
 }
 
 ###########################################################
