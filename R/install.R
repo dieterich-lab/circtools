@@ -27,6 +27,10 @@ if (!requireNamespace("devtools")) {
   install.packages("devtools")
 }
 
+if (!requireNamespace("devtools")) {
+  install.packages("devtools")
+}
+
 if (installRSQL)
   devtools::install_github("rstats-db/RSQLite", ref = "v1.1-15")
 
