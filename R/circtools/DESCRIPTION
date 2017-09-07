@@ -1,6 +1,6 @@
 Package: circtools
 Title: Design and analysis of circ-RNA-seq experiments
-Version: 0.0.0.9000
+Version: 0.0.0.9001
 Authors@R: person("Alexey", "Uvarovskii", email = "alexey.mipt@gmail.com", role = c("aut", "cre"))
 Description: Visualisation tools for circular RNAs.
 License: GPL-3

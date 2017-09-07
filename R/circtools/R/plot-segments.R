@@ -194,7 +194,8 @@ plotTranscripts <- function(exons,
     margins(left   = 1,
             bottom = numMarginLines,
             right  = 0.2)
-    counts <- counts[match(counts$id, levels(factor(exons$tx_id))),]
+    counts <- counts[counts$id %in% levels(factor(exons$tx_id)),]
+    counts$id <- match(counts$id, levels(factor(exons$tx_id)))
     plotCounts(id    = counts$id,
                count = counts$count,
                ylim  = isoformsYLim)
