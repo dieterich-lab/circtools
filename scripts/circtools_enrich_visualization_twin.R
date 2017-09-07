@@ -144,7 +144,7 @@ pdf(arg_output, height= 8.2, width=11.69 , title=paste("circtools RBP enrichment
 
     colnames(total) <- c("circRNA","RBP","A","B","rbp_sum","total_sum")
 
-    num_rpbs <- length(unique(total$RBP))
+    num_rbps <- length(unique(total$RBP))
     num_circs <- length(unique(total$circRNA))
 
     # only graph the top arg_min_circRNAs circRNAs
@@ -153,18 +153,18 @@ pdf(arg_output, height= 8.2, width=11.69 , title=paste("circtools RBP enrichment
     circ_simple_plot <- ggplot(data=total) +
                         geom_bar(aes(x=reorder(circRNA, -rbp_sum, function(x) {sum(x)}), y = A, fill = RBP), stat="identity", size=0.1, colour="black") +
                         geom_bar(aes(x=reorder(circRNA, -rbp_sum, function(x) {sum(x)}), y = -B, fill = RBP), stat="identity", size=0.1, colour="black") +
-                        labs(   title = "Assignment of circRNAs to RPBs",
-                                subtitle = paste("plotting colour-coded RBPs per circRNA, ordered by number of total RPB sites ( p <",
+                        labs(   title = "Assignment of circRNAs to rbps",
+                                subtitle = paste("plotting colour-coded RBPs per circRNA, ordered by number of total rbp sites ( p <",
                                             arg_pval, ")")) +
                         labs(y = "Number of enriched RBP binding sites") +
                         labs(x = "CircRNA") +
                         labs(caption = paste(   "based on data from ",
                                                 num_circs,
                                                 " circRNAs and ",
-                                                num_rpbs,
-                                                " RBPs, showing top ",
+                                                num_rbps,
+                                                " RBPs, showing circRNAs with at least ",
                                                 arg_min_circRNAs,
-                                                " enriched CircRNAs: ",
+                                                " RBP sites: ",
                                                 date(),
                                                 "",
                                                 sep="")) +
@@ -241,7 +241,7 @@ pdf(arg_output, height= 8.2, width=11.69 , title=paste("circtools RBP enrichment
     #
     # colnames(total) <- c("RBP","circRNA","A","B","rbp_sum","total_sum")
     #
-    # num_rpbs <- length(unique(total$RBP))
+    # num_rbps <- length(unique(total$RBP))
     # num_circs <- length(unique(total$circRNA))
     #
     # # only graph the top arg_min_circRNAs circRNAs
@@ -260,7 +260,7 @@ pdf(arg_output, height= 8.2, width=11.69 , title=paste("circtools RBP enrichment
     #                     labs(caption = paste(   "based on data from ",
     #                                             num_circs,
     #                                             " circRNAs and ",
-    #                                             num_rpbs,
+    #                                             num_rbps,
     #                                             " RBPs, showing top ",
     #                                             arg_min_circRNAs,
     #                                             " enriched RBPs: ",
