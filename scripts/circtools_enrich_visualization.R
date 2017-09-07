@@ -159,7 +159,7 @@ pdf(arg_output, height= 8.2, width=11.69 , title=paste("circtools RBP enrichment
                         geom_bar(aes(x=reorder(Annotation, -FrequencyA), y=-FrequencyB, fill=Annotation),  colour="black", size=0.1, stat = "identity") +
 
                         labs(   title = "Number of RBP sites per circRNA",
-                                subtitle = paste("Counting circular RNAs (including different isoforms) with significantly enriched RBPs ( p <",
+                                subtitle = paste("Counting RBPs with binding sites enriched in circRNAs (including different isoforms) ( p <",
                                 arg_pval, ")")) +
                         labs(y = "Number of enriched binding sites") +
                         labs(x = "Circular RNA") +
@@ -168,7 +168,7 @@ pdf(arg_output, height= 8.2, width=11.69 , title=paste("circtools RBP enrichment
                                                 length(unique(rbp_data$Annotation)),
                                                 " circRNAs, showing circRNAs with > ",
                                                 arg_min_rbps,
-                                                " RPBs: ",
+                                                " RBPs: ",
                                                 date(),
                                                 "",
                                                 sep="")) +
