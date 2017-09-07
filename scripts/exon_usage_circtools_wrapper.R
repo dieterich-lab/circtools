@@ -413,6 +413,25 @@ RNAse_RenrichedCircTest <- merge(
 # sort by PValue
 RNAse_RenrichedCircTest <- RNAse_RenrichedCircTest[order(RNAse_RenrichedCircTest[,"sig_p"]),]
 
+
+colnames(RNAse_RenrichedCircTest) <- c( "Gene",
+                                        "Start",
+                                        "End",
+                                        "JunctionType",
+                                        "Strand",
+                                        "Start.End.Region",
+                                        "OverallRegion",
+                                        "sig_p",
+                                        "NA",
+                                        "GeneID",
+                                        "NExons",
+                                        "P.Value",
+                                        "FDR",
+                                        "entrezgene",
+                                        "description"
+                                        )
+
+
 # create a data frame with all gene names from circtest and mark them
 CircbackSpliceEnrich <- data.frame(
                                   Gene=unique(circTestSummary[,"Gene"]),
@@ -447,6 +466,19 @@ addWorksheet(wb, sheetName = "enriched BSJ FDR 1% (CircTest)")
 writeDataTable(wb, sheet = 2, x=RNAse_RenrichedCircTest)
 
 # Back-Splice junctions from circTest / FDR 1%
+
+colnames(circTestSummary) <- c( "Chr",
+                                "Start",
+                                "End",
+                                "Gene",
+                                "JunctionType",
+                                "Strand",
+                                "Start.End.Region",
+                                "OverallRegion",
+                                "sig_p",
+                                "NA"
+                                )
+
 addWorksheet(wb, sheetName = "Other BSJ FDR 1%")
 writeDataTable( wb,
               sheet = 3,
