@@ -159,12 +159,16 @@ Processing options:
                         [Default: 3]
   -f MAX_FDR, --max-fdr MAX_FDR
                         Cut-off value for the FDR [Default: 0.05]
+  -p PERCENTAGE, --percentage PERCENTAGE
+                        The minimum percentage of circRNAs account for the
+                        total transcripts in at least one group. [Default:
+                        0.01]
   -s FILTER_SAMPLE, --filter-sample FILTER_SAMPLE
                         Number of samples that need to contain the amount of
-                        reads specified via -c [Default: 3]
+                        reads specified via -C [Default: 3]
   -C FILTER_COUNT, --filter-count FILTER_COUNT
-                        Number of samples that need to contain the amount of
-                        reads specified via -c [Default: 5]
+                        Number of CircRNA reads that each sample specified via
+                        -s has to contain [Default: 5]
 
 Output options:
   -o OUTPUT_DIRECTORY, --output-directory OUTPUT_DIRECTORY
