@@ -340,7 +340,7 @@ class CircTools(object):
         group.add_argument("-p",
                            "--percentage",
                            dest="percentage",
-                           help=" The minimum percentage of circRNAs account for the total "
+                           help="The minimum percentage of circRNAs account for the total "
                                 "transcripts in at least one group. [Default: 0.01]",
                            type=float,
                            default=0.01
@@ -350,7 +350,7 @@ class CircTools(object):
                            "--filter-sample",
                            dest="filter_sample",
                            help="Number of samples that need to contain the amount of reads "
-                                "specified via -c [Default: 3]",
+                                "specified via -C [Default: 3]",
                            type=int,
                            default=3
                            )
@@ -358,8 +358,8 @@ class CircTools(object):
         group.add_argument("-C",
                            "--filter-count",
                            dest="filter_count",
-                           help="Number of samples that need to contain the amount of reads "
-                                "specified via -c [Default: 5]",
+                           help="Number of CircRNA reads that each sample specified via -s has to contain "
+                                "[Default: 5]",
                            type=int,
                            default=5
                            )
