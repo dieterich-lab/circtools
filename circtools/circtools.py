@@ -396,6 +396,14 @@ class CircTools(object):
                            help="How should the samples be labeled? [Default: Sample]",
                            default="Sample"
                            )
+	
+        group.add_argument("-L",
+                           "--limit",
+                           dest="range",
+                           help="How should the samples be labeled? [Default: Sample]",
+                           type=float,
+                           default=1.0
+                           )
 
         group.add_argument("-O",
                            "--only-negative-direction",

@@ -98,7 +98,10 @@ class CircTest(circ_module.circ_template.CircTemplate):
                                 self.cli_params.max_plots,
                                 ])
 
-        self.check_float_arguments([self.cli_params.max_fdr, self.cli_params.percentage])
+        self.check_float_arguments([self.cli_params.max_fdr,
+				    self.cli_params.percentage,
+				    self.cli_params.range
+				   ])
 
         if self.cli_params.max_fdr > 1 or self.cli_params.max_fdr < 0:
             self.log_entry("Error: FDR specified via -f has to be in the range >0 and <1.")
@@ -146,7 +149,8 @@ class CircTest(circ_module.circ_template.CircTemplate):
                 self.cli_params.label,
                 self.cli_params.percentage,
                 self.cli_params.only_negative,
-                self.cli_params.add_header
+                self.cli_params.add_header,
+                self.cli_params.range
                 ]
 
         # ------------------------------------ run script and check output -----------------------
