@@ -50,9 +50,11 @@ args <- commandArgs(trailingOnly = TRUE)
 arg_dcc_data <- args[1] # path is string
 arg_replicates <- unlist(lapply(strsplit(args[2],","), as.numeric)) # list of integers
 arg_condition_list <- strsplit(args[3],",")[[1]] # list of strings
+arg_condition_list <- unlist(arg_condition_list)
 arg_condition_columns <- lapply(strsplit(args[4],","), as.numeric) # list of integers
 arg_condition_columns <- unlist(arg_condition_columns)
 arg_groups <- lapply(strsplit(args[5],","), as.numeric) # list of integers
+arg_groups <- unlist(arg_groups)
 arg_output_directory <- args[6] # string
 arg_ballgown_directory <- args[7] # string
 arg_gtf_file <- args[8] # string
@@ -81,13 +83,14 @@ baseDir <- arg_output_directory
 
 # group mapping
 group <- unlist(lapply(arg_groups, function(x) {return(arg_condition_list[x])}))
+unlist(lapply(arg_groups, function(x) {print(x)}))
 
 # sample<>replicate mapping
 id <- unlist(lapply(seq(1, length(arg_replicates)), function(x) {return((paste(arg_condition_list[x], arg_replicates[x], sep="_R")))}))
 
 bg.dccDF <- data.frame( id=id, group=group)
 
-bg_dirs_to_work <- unlist(lapply(arg_condition_columns, function(x) {return(ballgownRuns[x])}))
+bg_dirs_to_work <- unlist(lapply(arg_condition_columns, function(x) {return(ballgownRuns[x-3])}))
 
 message("Starting ballgown processing")
 
@@ -381,7 +384,7 @@ multiExonOverlap <- as.matrix(findOverlaps(genomicRanges,multiExonRanges))
 singleExonOverlap <- as.matrix(findOverlaps(genomicRanges,singleExonRanges))
 
 # overwrite DCC data frame with more columns
-dccDF<-circTestSummary[,2:7]
+dccDF<-circTestSummary[,1:7]
 
 # reorder columns
 colnames(dccDF)<-c("chr","start","end","GeneName","JType","strand")
@@ -502,9 +505,6 @@ message("Exon analysis finished")
 #
 # plotSubset <- mainTable[order(mainTable[,"FDR"]),]
 # plotSubset <- subset(plotSubset[,"GeneID"],plotSubset[,"RNaseR_enriched"]==1);
-
-# select the top10 enriched genes
-# topEnriched <- RNAse_RenrichedCircTest[1:arg_num_top_genes,"GeneID"]
 #
 # message("Plotting top enriched RNaseR enriched circles")
 #
@@ -514,7 +514,7 @@ message("Exon analysis finished")
 #
 # model <- exonsBy(txdb, by = "tx")
 # exons <- exons(txdb)
-
+#
 # message("Generating PDF plots")
 # sink(file("/dev/null", open = "wt"), type = c("output", "message"))
 #
