@@ -224,7 +224,7 @@ for (sample in seq(1 : 2)) {
             colnames(miniframe) <- c("RBP", "clip_peaks")
                 miniframe <- ddply(unique(miniframe), .(RBP), transform, border = rep(1, clip_peaks))
 
-                theme_set(theme_grey(base_size = 12))
+                theme_set(theme_grey(base_size = 9))
                 circrna_plot[[circ_isoform]] <- ggplot(miniframe, aes(RBP)) +
                     geom_bar(aes(x = reorder(paste(RBP, ": ", clip_peaks, sep = ""), - clip_peaks), clip_peaks, fill = RBP), width = 1, size = 0.15, stat = "identity", color = "white") +
                     scale_y_continuous() +
@@ -238,13 +238,13 @@ for (sample in seq(1 : 2)) {
                     arg_pval, ")\nNumber after RNA binding protein name indicates #eCLIP peaks within annotated circRNA"))
         }
 
-        do.call(grid.arrange, c(circrna_plot, ncol = 3))
+        if (nrow(current_dataframe) == 1){
+            do.call(grid.arrange, c(circrna_plot, ncol = 1))
+        } else {
+            do.call(grid.arrange, c(circrna_plot, ncol = 2))
+        }
     }
 }
-
-
-
-
 
 
 ########################################################################################################################
