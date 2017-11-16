@@ -108,6 +108,10 @@ message("plotting data")
 # we use PDF and standard A4 page size
 pdf(arg_output_file_name, height = 8.2, width = 11.69 , title = paste("circtools RBP enrichment analysis - ", arg_label_sample_1))
 
+########################################################################################################################
+### This is the # circRNAs per RBP plot
+### We count all isoforms as one circRNA here!
+########################################################################################################################
 
 tmp <- data.frame(rbp_data_file_1$RBP)
 colnames(tmp) <- c("RBP")
@@ -182,6 +186,70 @@ rbp_simple_plot <- ggplot(data=total) +
 
 
     print(rbp_simple_plot)
+
+########################################################################################################################
+### This is the # RBPs per circRNA plot
+### We count isoforms specifically and do not sum up!
+########################################################################################################################
+
+sample_list <- list(rbp_data_file_1, rbp_data_file_2)
+sample_names <- list(arg_label_sample_1, arg_label_sample_2)
+
+for (sample in seq(1 : 2)) {
+
+    current_data <- sample_list[[sample]]
+
+    sub_dataframe <- data.frame(table(current_data$Annotation))
+    sub_dataframe$Var1 <- levels(droplevels(sub_dataframe$Var1))
+    sub_dataframe <- sub_dataframe[order(- sub_dataframe$Freq),]
+    to_run <- sub_dataframe$Var1[1 : arg_max_circRNAs]
+
+    for (top_circ in to_run) {
+
+
+        current_dataframe <- data.frame(unique(current_data[current_data$Annotation == top_circ, 4 : 5]))
+        circrna_plot <- list()
+
+        for (circ_isoform in 1 : nrow(current_dataframe))
+        {
+            tmp_frame <- data.frame(current_data[which(current_data$Annotation == top_circ &
+                current_data$start == current_dataframe[circ_isoform, 1] &
+                current_data$stop == current_dataframe[circ_isoform, 2] &
+                current_data$observed_input_peaks_circ_rna > 0), c(1, 2, 3, 4, 5, 9)])
+            colnames(tmp_frame) <- c("RBP", "Annotation", "chr", "start", "stop", "clip_peaks")
+            tmp_frame <- tmp_frame[with(tmp_frame, order(- clip_peaks)),]
+            tmp_frame <- head(tmp_frame, arg_max_circRNAs)
+
+            miniframe <- data.frame(tmp_frame$RBP, tmp_frame$clip_peaks)
+            colnames(miniframe) <- c("RBP", "clip_peaks")
+                miniframe <- ddply(unique(miniframe), .(RBP), transform, border = rep(1, clip_peaks))
+
+                theme_set(theme_grey(base_size = 12))
+                circrna_plot[[circ_isoform]] <- ggplot(miniframe, aes(RBP)) +
+                    geom_bar(aes(x = reorder(paste(RBP, ": ", clip_peaks, sep = ""), - clip_peaks), clip_peaks, fill = RBP), width = 1, size = 0.15, stat = "identity", color = "white") +
+                    scale_y_continuous() +
+                    coord_polar() +
+                    theme(legend.position = "none", axis.text.y = element_blank(), axis.ticks = element_blank()) +
+                    labs(title = paste(sample_names[sample], ":\nComposition of RBP landscape for circRNA", tmp_frame[1, 2]),
+                    subtitle = paste("Isoform ", circ_isoform, ": Chromsome ", tmp_frame[1, 3], ", ", commapos(as.integer(tmp_frame[1, 4])), "->", commapos(as.integer(tmp_frame[1, 5])), sep = "")) +
+                    labs(y = "") +
+                    labs(x = "") +
+                    labs(caption = paste("Based on circRNAs significantly enriched for RBP peaks compared to their host gene ( p <",
+                    arg_pval, ")\nNumber after RNA binding protein name indicates #eCLIP peaks within annotated circRNA"))
+        }
+
+        do.call(grid.arrange, c(circrna_plot, ncol = 3))
+    }
+}
+
+
+
+
+
+
+########################################################################################################################
+### Done with plotting, finishing up
+########################################################################################################################
 
 message(paste("Printing to",arg_output_file_name))
 
