@@ -18,9 +18,11 @@
 # packages (silent load)
 
 suppressMessages(library(ggplot2))
-suppressMessages(library(ggrepel)) # beautifies text labels
+suppressMessages(library(ggrepel))
 suppressMessages(library(data.table))
 suppressMessages(library(reshape2))
+suppressMessages(library(plyr))
+suppressMessages(library(gridExtra))
 
 
 # from https://learnr.wordpress.com/2009/09/24/ggplot2-back-to-back-bar-charts/
@@ -39,42 +41,47 @@ options(echo = FALSE)
 # read arguments
 args <- commandArgs(trailingOnly = TRUE)
 
-arg_data_file <- args[1] # path is string
-arg_data_file2 <- args[2] # path is string
-arg_pval <- as.numeric(args[3])
-arg_min_circRNAs <- as.integer(args[4]) # path is string
-arg_min_rbps <- as.integer(args[5]) # path is string
-arg_output <- args[6] # path is string
-arg_label1 <- args[7] # path is string
-arg_label2 <- args[8] # path is string
+arg_data_file <- args[1]
+arg_pval <- as.numeric(args[2])
+arg_max_circRNAs <- as.integer(args[3])
+arg_min_rbps <- as.integer(args[4])
+arg_output_file_name <- args[5]
+arg_label_sample_1 <- args[6]
 
+# arguments for file 2 are ath the send so we can leave them empty
+arg_data_file2 <- args[7] # path is string
+arg_label_sample_2 <- args[8] # path is string
 
-if (is.na(arg_output)){
-    arg_output <- "./output.pdf"
+# default output file name
+if (is.na(arg_output_file_name)){
+    arg_output_file_name <- "./output.pdf"
 }
 
-if (is.na(arg_label1)){
-    arg_label1 <- "default"
+
+# default label for file 1
+if (is.na(arg_label_sample_1)){
+    arg_label_sample_1 <- "Sample 1"
 }
 
-if (is.na(arg_label2)){
-    arg_label2 <- "default"
+# default label for file 2: should not be used however
+if (is.na(arg_label_sample_2)){
+    arg_label_sample_2 <- "Sample 2"
 }
 
 message("Loading data file")
-rbp_data <- read.delim(arg_data_file, check.names=FALSE, header = F)
-rbp_data2 <- read.delim(arg_data_file2, check.names=FALSE, header = F)
+rbp_data_file_1 <- read.delim(arg_data_file, check.names=FALSE, header = F)
+rbp_data_file_2 <- read.delim(arg_data_file2, check.names=FALSE, header = F)
 
-
-colnames(rbp_data) <- c("RBP", "Annotation", "chr", "start", "stop", "strand", "p_val_circular", "raw_count_circ_rna", "observed_input_peaks_circ_rna", "length_circ_rna", "length_normalized_count_circ_rna", "number_of_features_intersecting_circ", "circ_rna_confidence_interval_0.05", "p_val_linear", "raw_count_host_gene", "observed_input_peaks_host_gene", "length_host_gene_without_circ_rna", "length_normalized_count_host_gene", "number_of_features_intersecting_linear", "host_gene_confidence_interval_0.05", "distance_normalized_counts")
-colnames(rbp_data2) <- colnames(rbp_data)
+# colnames of processed circtools out files (adding 1 column for RBP)
+colnames(rbp_data_file_1) <- c("RBP", "Annotation", "chr", "start", "stop", "strand", "p_val_circular", "raw_count_circ_rna", "observed_input_peaks_circ_rna", "length_circ_rna", "length_normalized_count_circ_rna", "number_of_features_intersecting_circ", "circ_rna_confidence_interval_0.05", "p_val_linear", "raw_count_host_gene", "observed_input_peaks_host_gene", "length_host_gene_without_circ_rna", "length_normalized_count_host_gene", "number_of_features_intersecting_linear", "host_gene_confidence_interval_0.05", "distance_normalized_counts")
+colnames(rbp_data_file_2) <- colnames(rbp_data_file_1)
 
 
 # head(rbp_data)
 message("plotting data")
 
-rbp_data <- rbp_data[rbp_data$p_val_circular < arg_pval & rbp_data$p_val_linear > arg_pval, ]
-rbp_data2 <- rbp_data2[rbp_data2$p_val_circular < arg_pval & rbp_data2$p_val_linear > arg_pval, ]
+rbp_data_file_1 <- rbp_data_file_1[rbp_data_file_1$p_val_circular < arg_pval & rbp_data_file_1$p_val_linear > arg_pval, ]
+rbp_data_file_2 <- rbp_data_file_2[rbp_data_file_2$p_val_circular < arg_pval & rbp_data_file_2$p_val_linear > arg_pval, ]
 
 
 # we use PDF and standard A4 page size
@@ -97,21 +104,26 @@ pdf(arg_output, height= 8.2, width=11.69 , title=paste("circtools RBP enrichment
     rbps <- sort(rbps, decreasing = TRUE)
     rbp_df <- data.frame(rbps)
     colnames(rbp_df) <-c("RBP","Frequency")
-    rbp_df <- rbp_df[rbp_df$Frequency>arg_min_circRNAs,]
+    rbp_df <- rbp_df[rbp_df$Frequency>arg_max_circRNAs,]
 
     rbps2 <- sort(rbps2, decreasing = TRUE)
     rbp_df2 <- data.frame(rbps2)
     colnames(rbp_df2) <-c("RBP","Frequency")
-    rbp_df2 <- rbp_df2[rbp_df2$Frequency>arg_min_circRNAs,]
+    rbp_df2 <- rbp_df2[rbp_df2$Frequency>arg_max_circRNAs,]
 
-    total <- merge(rbp_df,rbp_df2,by="RBP")
+    total <- merge(rbp_df,rbp_df2,by="RBP",all=TRUE)
+    total[is.na(total)] <- 0
     colnames(total) <-c("RBP","FrequencyA","FrequencyB")
+    total$sum <- total$FrequencyA+total$FrequencyB
+    colnames(total) <-c("RBP","FrequencyA","FrequencyB","total")
+
+
 
     rbp_simple_plot <- ggplot(data=total) +
-                        geom_bar(stat="identity", colour="black", size=0.1, aes(x=reorder(RBP, -FrequencyA), y=FrequencyA, fill=RBP)) +
-                        geom_bar(stat="identity", colour="black", size=0.1, aes(x=reorder(RBP, -FrequencyA), y=-FrequencyB, fill=RBP)) +
+                        geom_bar(stat="identity", colour="black", size=0.1, aes(x=reorder(RBP, -total), y=FrequencyA, fill=RBP)) +
+                        #geom_bar(stat="identity", colour="black", size=0.1, aes(x=reorder(RBP, -total), y=-FrequencyB, fill=RBP)) +
 
-                        labs(   title = "Number of circular RNAs per RBP",
+                        labs(   title = paste(arg_label1, ": Number of circular RNAs per RBP", sep=""),
                                 subtitle = paste("Counting circular RNAs (including different isoforms) with significantly enriched RBPs ( p <",
                                 arg_pval, ")")) +
                         labs(y = "Number of circular RNAs") +
@@ -120,7 +132,7 @@ pdf(arg_output, height= 8.2, width=11.69 , title=paste("circtools RBP enrichment
                         labs(caption = paste(   "based on data from ",
                                                 length(unique(rbp_data$RBP)),
                                                 " RBPs, showing RBPs with > ",
-                                                arg_min_circRNAs,
+                                                arg_max_circRNAs,
                                                 " circRNAs: ",
                                                 date(),
                                                 "",
@@ -151,14 +163,19 @@ pdf(arg_output, height= 8.2, width=11.69 , title=paste("circtools RBP enrichment
 
 
     total <- merge(annotation_df,annotation_df2,by="Annotation")
+    
+    
 
+    head(total)
+
+    
     colnames(total) <-c("Annotation","FrequencyA","FrequencyB")
 
     circ_simple_plot <- ggplot(data=total) +
                         geom_bar(aes(x=reorder(Annotation, -FrequencyA), y=FrequencyA, fill=Annotation),  colour="black", size=0.1, stat = "identity") +
                         geom_bar(aes(x=reorder(Annotation, -FrequencyA), y=-FrequencyB, fill=Annotation),  colour="black", size=0.1, stat = "identity") +
 
-                        labs(   title = "Number of RBP sites per circRNA",
+                        labs(   title = paste(arg_label1, ": Number of RBP sites per circRNA"),
                                 subtitle = paste("Counting RBPs with binding sites enriched in circRNAs (including different isoforms) ( p <",
                                 arg_pval, ")")) +
                         labs(y = "Number of enriched binding sites") +
