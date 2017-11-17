@@ -224,7 +224,7 @@ for (sample in seq(1 : 2)) {
             colnames(miniframe) <- c("RBP", "clip_peaks")
                 miniframe <- ddply(unique(miniframe), .(RBP), transform, border = rep(1, clip_peaks))
 
-                theme_set(theme_grey(base_size = 9))
+                theme_set(theme_grey(base_size = 8))
                 circrna_plot[[circ_isoform]] <- ggplot(miniframe, aes(RBP)) +
                     geom_bar(aes(x = reorder(paste(RBP, ": ", clip_peaks, sep = ""), - clip_peaks), clip_peaks, fill = RBP), width = 1, size = 0.15, stat = "identity", color = "white") +
                     scale_y_continuous() +
@@ -234,14 +234,17 @@ for (sample in seq(1 : 2)) {
                     subtitle = paste("Isoform ", circ_isoform, ": Chromsome ", tmp_frame[1, 3], ", ", commapos(as.integer(tmp_frame[1, 4])), "->", commapos(as.integer(tmp_frame[1, 5])), sep = "")) +
                     labs(y = "") +
                     labs(x = "") +
-                    labs(caption = paste("Based on circRNAs significantly enriched for RBP peaks compared to their host gene ( p <",
-                    arg_pval, ")\nNumber after RNA binding protein name indicates #eCLIP peaks within annotated circRNA"))
+                    labs(caption = paste("circRNAs enriched for RBP peaks compared to their host gene ( p <",
+                    arg_pval, ")\n#eCLIP peaks within annotated circRNA"))
         }
 
         if (nrow(current_dataframe) == 1){
             do.call(grid.arrange, c(circrna_plot, ncol = 1))
-        } else {
+        } else if (nrow(current_dataframe) == 2){
             do.call(grid.arrange, c(circrna_plot, ncol = 2))
+        } else {
+            ml <- do.call(marrangeGrob, list(grobs=circrna_plot, nrow = 2, ncol = 2, top=NULL))
+            print(ml)
         }
     }
 }
