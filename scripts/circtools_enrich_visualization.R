@@ -232,10 +232,10 @@ for (sample in seq(1 : 2)) {
                     theme(legend.position = "none", axis.text.y = element_blank(), axis.ticks = element_blank()) +
                     labs(title = paste(sample_names[sample], ":\nComposition of RBP landscape for circRNA", tmp_frame[1, 2]),
                     subtitle = paste("Isoform ", circ_isoform, ": Chromsome ", tmp_frame[1, 3], ", ", commapos(as.integer(tmp_frame[1, 4])), "->", commapos(as.integer(tmp_frame[1, 5])), sep = "")) +
-                    labs(y = "") +
+                    labs(y = "#eCLIP peaks within annotated circRNA") +
                     labs(x = "") +
                     labs(caption = paste("circRNAs enriched for RBP peaks compared to their host gene ( p <",
-                    arg_pval, ")\n#eCLIP peaks within annotated circRNA"))
+                    arg_pval, ")"))
         }
 
         if (nrow(current_dataframe) == 1){
