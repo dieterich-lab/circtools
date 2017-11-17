@@ -145,20 +145,28 @@ if (!is.na(arg_data_file_2)) {
     total[is.na(total)] <- 0
     colnames(total) <- c("RBP", "FrequencyA", "FrequencyB")
     total$sum <- total$FrequencyA + total$FrequencyB
-    colnames(total) <- c("RBP", "FrequencyA", "FrequencyB", "total")
+    colnames(total) <- c("RBP", "FrequencyA", "FrequencyB", "sum")
+    label_pos_1 <- (max(total$FrequencyA, na.rm = TRUE))
+    label_pos_2 <- (max(total$FrequencyA, na.rm = TRUE))
 } else {
     total$sum <- total$Frequency
-    colnames(total) <- c("RBP", "FrequencyA","total")
+    colnames(total) <- c("RBP", "FrequencyA","sum")
+    label_pos_1 <- (max(total$FrequencyA, na.rm = TRUE))
+
 }
 
 # limit to top X
 total <- head(total,arg_max_rbps)
 
+# start actual plotting
 rbp_simple_plot <- ggplot(data=total) +
-                        geom_bar(stat="identity", colour="black", size=0.1, aes(x=reorder(RBP, -total), y=FrequencyA, fill=RBP))
+                        geom_bar(stat="identity", colour="black", size=0.1, aes(x=reorder(RBP, -FrequencyA), y=FrequencyA, fill=RBP)) +
+                        geom_label(aes(x = arg_max_rbps - 1 , y = label_pos_1, label = arg_label_sample_1), fill = "white")
 
                         if (!is.na(arg_data_file_2)) {
-                            rbp_simple_plot <- rbp_simple_plot + geom_bar(stat="identity", colour="black", size=0.1, aes(x=reorder(RBP, -total), y=-FrequencyB, fill=RBP))
+                            rbp_simple_plot <- rbp_simple_plot + geom_bar(stat="identity", colour="black", size=0.1, aes(x=reorder(RBP, -FrequencyA), y=-FrequencyB, fill=RBP))
+                            rbp_simple_plot <- rbp_simple_plot + geom_label(aes(x = arg_max_rbps - 1, y = - label_pos_2, label = arg_label_sample_2), fill = "white")
+
                         }
                         rbp_simple_plot <- rbp_simple_plot +
                         labs(   title = paste(arg_label_sample_1, ": Number of circular RNAs per RBP", sep=""),
@@ -169,9 +177,9 @@ rbp_simple_plot <- ggplot(data=total) +
                         scale_y_continuous(labels = commapos) +
                         labs(caption = paste(   "based on data from ",
                                                 length(unique(rbp_data_file_1$RBP)),
-                                                " RBPs, showing RBPs with > ",
-                                                arg_max_circRNAs,
-                                                " circRNAs: ",
+                                                " RBPs, showing top ",
+                                                arg_max_rbps,
+                                                " RBPS: ",
                                                 date(),
                                                 "",
                                                 sep="")) +
@@ -183,7 +191,6 @@ rbp_simple_plot <- ggplot(data=total) +
                                 axis.text.x = element_text(angle = 90, hjust = 1, size=14)
 
                         )
-
 
     print(rbp_simple_plot)
 
