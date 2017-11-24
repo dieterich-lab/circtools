@@ -46,10 +46,19 @@ arg_max_circRNAs <- as.integer(args[3])
 arg_max_rbps <- as.integer(args[4])
 arg_output_file_name <- args[5]
 arg_label_sample_1 <- args[6]
+arg_data_file_1 <- args[7] # path is string
+arg_colour_mode <- args[8]
 
 # arguments for file 2 are ath the send so we can leave them empty
-arg_data_file_2 <- args[7] # path is string
-arg_label_sample_2 <- args[8] # path is string
+arg_label_sample_2 <- args[9] # path is string
+arg_data_file_2 <- args[10] # path is string
+
+# check colour mode
+if (arg_colour_mode != "colour" & arg_colour_mode != "bw" ) {
+    print(arg_colour_mode)
+    message("Please specify the colour model: colour or bw")
+    quit()
+}
 
 # default output file name
 if (is.na(arg_output_file_name)) {
@@ -160,12 +169,16 @@ total <- head(total,arg_max_rbps)
 # start actual plotting
 rbp_simple_plot <- ggplot(data=total) +
                         geom_bar(stat="identity", colour="black", size=0.1, aes(x=reorder(RBP, -FrequencyA), y=FrequencyA, fill=RBP)) +
+
                         geom_label(aes(x = arg_max_rbps - 1 , y = label_pos_1, label = arg_label_sample_1), fill = "white")
 
                         if (!is.na(arg_data_file_2)) {
                             rbp_simple_plot <- rbp_simple_plot + geom_bar(stat="identity", colour="black", size=0.1, aes(x=reorder(RBP, -FrequencyA), y=-FrequencyB, fill=RBP))
                             rbp_simple_plot <- rbp_simple_plot + geom_label(aes(x = arg_max_rbps - 1, y = - label_pos_2, label = arg_label_sample_2), fill = "white")
 
+                        }
+                        if (arg_colour_mode == "bw" ) {
+                            rbp_simple_plot <- rbp_simple_plot + scale_fill_grey(start = 0, end = .9)
                         }
                         rbp_simple_plot <- rbp_simple_plot +
                         labs(   title = paste(arg_label_sample_1, ": Number of circular RNAs per RBP", sep=""),
@@ -232,7 +245,13 @@ for (sample in seq(1 : 2)) {
 
                 theme_set(theme_grey(base_size = 8))
                 circrna_plot[[circ_isoform]] <- ggplot(miniframe, aes(RBP)) +
-                    geom_bar(aes(x = reorder(paste(RBP, ": ", clip_peaks, sep = ""), - clip_peaks), clip_peaks, fill = RBP), width = 1, size = 0.15, stat = "identity", color = "white") +
+                    geom_bar(aes(x = reorder(paste(RBP, ": ", clip_peaks, sep = ""), - clip_peaks), clip_peaks, fill = RBP), width = 1, size = 0.15, stat = "identity", color = "white")
+
+                    if (arg_colour_mode == "bw" ) {
+                        circrna_plot[[circ_isoform]] <- circrna_plot[[circ_isoform]] + scale_fill_grey(start = 0, end = .9)
+                    }
+
+                    circrna_plot[[circ_isoform]] <- circrna_plot[[circ_isoform]] +
                     scale_y_continuous() +
                     coord_polar() +
                     theme(legend.position = "none", axis.text.y = element_blank(), axis.ticks = element_blank()) +
@@ -331,8 +350,15 @@ circ_simple_plot <- ggplot(data = total) +
     date(),
     "",
     sep = "")) +
-    scale_y_continuous(labels = commapos) + #, limits = c(-50,50)
-    scale_fill_discrete(name = "RBPs") +
+    scale_y_continuous(labels = commapos)  #, limits = c(-50,50)
+
+    if (arg_colour_mode == "bw" ) {
+        circ_simple_plot <- circ_simple_plot + scale_fill_grey(start = 0, end = .9, name = "RBPs")
+    } else {
+        circ_simple_plot <- circ_simple_plot + scale_fill_discrete(name = "RBPs")
+    }
+
+    circ_simple_plot <- circ_simple_plot +
     theme(plot.title = element_text(lineheight = 0.8,
     face = quote(bold)),
     legend.justification = c(1, 1),
