@@ -211,10 +211,15 @@ rbp_simple_plot <- ggplot(data=total) +
 ### We accumulate isoforms!
 ########################################################################################################################
 
-sample_list <- list(rbp_data_file_1, rbp_data_file_2)
-sample_names <- list(arg_label_sample_1, arg_label_sample_2)
+if (!is.na(arg_data_file_2)) {
+    sample_list <- list(rbp_data_file_1, rbp_data_file_2)
+    sample_names <- list(arg_label_sample_1, arg_label_sample_2)
+} else {
+    sample_list <- list(rbp_data_file_1)
+    sample_names <- list(arg_label_sample_1)
+}
 
-for (sample in seq(1 : 2)) {
+for (sample in seq(1 : length(sample_list))) {
 
     current_data <- sample_list[[sample]]
 
