@@ -59,10 +59,17 @@ arg_percent_filter <-as.numeric(args[12]) # float
 arg_only_negative <-as.logical(args[13]) # float
 arg_add_header <-as.logical(args[14]) # float
 arg_range <-as.numeric(args[15]) # float
+arg_colour_mode <- args[16]
 
+# check colour mode
+if (arg_colour_mode != "colour" & arg_colour_mode != "bw" ) {
+    print(arg_colour_mode)
+    message("Please specify the colour model: colour or bw")
+    quit()
+}
 
 run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indicators, label, filename, filer.sample,
-                        filter.count, max_fdr, max.plots, replicates, percent_filter, only_negative_direction, header, range) {
+                        filter.count, max_fdr, max.plots, replicates, percent_filter, only_negative_direction, header, range, colour_mode) {
 
     message("Filtering circRNA counts")
     CircRNACount_filtered <- Circ.filter(circ = CircRNACount, linear = LinearCount,
@@ -96,14 +103,14 @@ run_CircTest = function(CircRNACount, LinearCount, CircCoordinates, groups, indi
                 if(data$summary_table[i,]$direction < 0){
                     invisible(capture.output(Circ.ratioplot(CircRNACount_filtered, LinearCount_filtered, CircCoordinates_filtered,
                     plotrow = i, size = 24, gene_column = 4, groupindicator1 = indicators,
-                    x = "", y = "", lab_legend = label, y_axis_range = range)))
+                    x = "", y = "", lab_legend = label, y_axis_range = range, colour_mode = colour_mode)))
                 }
             }
         } else {
             for (i in rownames(data$summary_table[1 : max,])){
                 invisible(capture.output(Circ.ratioplot(CircRNACount_filtered, LinearCount_filtered, CircCoordinates_filtered,
                 plotrow = i, size = 24, gene_column = 4, groupindicator1 = indicators,
-                x = "", y = "", lab_legend = label, y_axis_range = range)))
+                x = "", y = "", lab_legend = label, y_axis_range = range, colour_mode = colour_mode)))
             }
         }
         dev.off()
@@ -175,5 +182,6 @@ run_CircTest(
     arg_percent_filter,
     arg_only_negative,
     arg_add_header,
-    arg_range	
+    arg_range,
+    arg_colour_mode
 )

@@ -417,6 +417,14 @@ class CircTools(object):
                            help="Add header to CSV output [Default: False]",
                            default=False
                            )
+
+        group.add_argument("-M",
+                           "--colour",
+                           dest="colour",
+                           help="Can be set to bw to create grayscale graphs for manuscripts",
+                           choices=("colour", "bw"),
+                           default="colour"
+                           )
         ######################################################
 
         args = parser.parse_args(sys.argv[2:])
