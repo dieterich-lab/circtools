@@ -114,8 +114,10 @@ class QuickCheck(circ_module.circ_template.CircTemplate):
                 self.cli_params.star_dir,
                 self.cli_params.output_directory + "/" + self.cli_params.output_name,
                 self.cli_params.condition_list,
-                self.cli_params.grouping
-                ]
+                self.cli_params.grouping,
+                self.cli_params.colour
+        ]
+        print(args)
 
         # ------------------------------------ run script and check output -----------------------
 

@@ -47,6 +47,14 @@ arg_star_folder <- args[2] # path is string
 arg_output_directory <- args[3] # string
 arg_condition_list <- strsplit(args[4], ",")[[1]] # list of strings
 arg_grouping <- unlist(lapply(strsplit(args[5], ","), as.numeric)) # list of strings
+arg_colour_mode <- args[6]
+
+# check colour mode
+if (arg_colour_mode != "colour" & arg_colour_mode != "bw" ) {
+    print(arg_colour_mode)
+    message("Please specify the colour model: colour or bw")
+    quit()
+}
 
 group_length <- length(arg_condition_list)
 
@@ -117,11 +125,18 @@ pdf(paste(arg_output_directory, ".pdf", sep = "") , height= 8.2, width=11.69 , t
     raw_counts <- data.frame(circ_counts_summed, linear_counts_summed, colors)
     colnames(raw_counts) <- c("circ","lin","group")
 
-    page_one <- ggplot( raw_counts, aes(x=circ, y=lin, color=as.factor(group), label=rownames(raw_counts))) +
-                        geom_point() +
+    if (arg_colour_mode == "bw" ) {
+        page_one <- ggplot( raw_counts, aes(x=circ, y=lin, shape = as.factor(group) , label=rownames(raw_counts))) +
+                        geom_point(size = 2) + scale_color_grey(start = 0, end = 0) + labs(shape = "Group")
+    } else {
+        page_one <- ggplot( raw_counts, aes(x=circ, y=lin, color=as.factor(group), label=rownames(raw_counts))) +
+                        geom_point() + labs(colours = "Group")
+    }
+
+                        page_one <- page_one +
                         geom_label_repel(   data=raw_counts,
                                             aes(x=circ, y=lin,
-                                            color=factor(group),
+                                            #color=factor(group),
                                             label=rownames(raw_counts)),
                                             box.padding = unit(0.55, "lines"),
                                             point.padding = unit(0.5, "lines")
@@ -130,7 +145,6 @@ pdf(paste(arg_output_directory, ".pdf", sep = "") , height= 8.2, width=11.69 , t
                                 subtitle = "plotting non-normalized raw read counts from STAR") +
                         labs(x = "Circular RNA read count (log scale)") +
                         labs(y = "Linear RNA read count (log scale)") +
-                        labs(colour = "Group") +
                         labs(caption = paste(   "based on data from ",
                                                 length(star_runs),
                                                 " mapped libraries\ncreated: ",
@@ -142,11 +156,17 @@ pdf(paste(arg_output_directory, ".pdf", sep = "") , height= 8.2, width=11.69 , t
                                 # legend.justification = c(1, 1),
                                 # legend.position = c(0.95, 0.95)
                                 legend.justification = "top"
-
                         ) +
                         scale_x_log10() +
                         scale_y_log10() +
                         annotation_logticks(sides = "trbl")
+
+    if (arg_colour_mode == "bw" ) {
+                        page_one <- page_one +  labs(colour = "Group") + labs(shape = "Group")
+    } else {
+                        page_one <- page_one + labs(colours = "Group")
+    }
+
     print(page_one)
 
     ######################### page two
@@ -161,11 +181,18 @@ pdf(paste(arg_output_directory, ".pdf", sep = "") , height= 8.2, width=11.69 , t
     circle_counts <- data.frame(uniquely_mapped_reads, number_of_circles, colors)
     colnames(circle_counts) <- c("unique","circles","group")
 
-    page_two <- ggplot( circle_counts, aes(x=unique, y=circles, color=as.factor(group), label=rownames(raw_counts))) +
-                        geom_point() +
+    if (arg_colour_mode == "bw" ) {
+        page_two <- ggplot( circle_counts, aes(x=unique, y=circles, shape = as.factor(group) , label=rownames(raw_counts))) +
+                        geom_point(size = 2) + scale_color_grey(start = 0, end = 0) + labs(shape = "Group")
+    } else {
+        page_two <- ggplot( circle_counts, aes(x=unique, y=circles, color=as.factor(group), label=rownames(raw_counts))) +
+                        geom_point() + labs(colours = "Group")
+    }
+
+                        page_two <- page_two +
                         geom_label_repel(   data=circle_counts,
                                             aes(x=unique, y=circles,
-                                            color=factor(group),
+                                            #color=factor(group),
                                             label=rownames(raw_counts)),
                                             box.padding = unit(0.55, "lines"),
                                             point.padding = unit(0.5, "lines")
@@ -174,7 +201,6 @@ pdf(paste(arg_output_directory, ".pdf", sep = "") , height= 8.2, width=11.69 , t
                                 subtitle = "plotting uniquely mapped reads from STAR and circRNA predictions from DCC") +
                         labs(x = "Number of mapped reads (log scale)") +
                         labs(y = "Number of detected circles (log scale)") +
-                        labs(colour = "Group") +
                         labs(caption = paste(   "based on data from ",
                                                 length(star_runs),
                                                 " mapped libraries\ncreated: ",
@@ -190,6 +216,13 @@ pdf(paste(arg_output_directory, ".pdf", sep = "") , height= 8.2, width=11.69 , t
                         scale_x_log10() +
                         scale_y_log10() +
                         annotation_logticks(sides = "trbl")
+
+    if (arg_colour_mode == "bw" ) {
+                        page_two <- page_two + labs(colour = "Group") + labs(shape = "Group")
+    } else {
+                        page_two <- page_two + labs(colour = "Group")
+    }
+
     print(page_two)
 
     ######################### page three
@@ -202,8 +235,13 @@ pdf(paste(arg_output_directory, ".pdf", sep = "") , height= 8.2, width=11.69 , t
     circle_ratio <- circle_ratio[with(circle_ratio, order(num)), ]
 
     page_three <- ggplot(data=circle_ratio, aes(x=reorder(name, num), y=num, fill=as.factor(group))) +
-                        geom_bar(stat="identity", colour="black") +
+                        geom_bar(stat="identity", colour="black")
 
+                        if (arg_colour_mode == "bw" ) {
+                            page_three <- page_three + scale_fill_grey(start = 0.4, end = 1)
+                        }
+
+                        page_three <- page_three +
                         labs(   title = "Detected circular RNAs per million unique mapped reads",
                                 subtitle = "plotting circRNA predictions from DCC and uniquely mapped reads from STAR") +
                         labs(y = "Number of detected circular RNAs") +

@@ -469,7 +469,6 @@ class CircTools(object):
                                 "even column and sample 2 to each odd column",
                            required=True
                            )
-
         ######################################################
 
         group = parser.add_argument_group("Output options")
@@ -487,6 +486,15 @@ class CircTools(object):
                            default="quickcheck",
                            help="The output name for files created by " + program_name + " [Default: quickcheck]",
                            )
+
+        group.add_argument("-c",
+                           "--colour",
+                           dest="colour",
+                           help="Can be set to bw to create grayscale graphs for manuscripts",
+                           choices=("colour", "bw"),
+                           default="colour"
+                           )
+
         ######################################################
 
         args = parser.parse_args(sys.argv[2:])
