@@ -16,153 +16,239 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
-import sys
-import os.path
-
-parser = argparse.ArgumentParser(description='Exon composition script')
-
-parser.add_argument("-f1",
-                    "--file-list-1",
-                    dest="file_list1",
-                    help="The files to run on",
-                    required=True)
-
-args = parser.parse_args()
-
-def print_tracks():
 
 
+def build_tracks(cli_args):
+    data = parse_file(cli_args.enrichment_file)
+    generate_igv_script(data, cli_args)
 
 
-    print("load /home/tjakobi/work/projects/circRNA/encode_paper/circtools_exon/k562/exon_analysis_exon_fc_track.bedgraph")
-    print("load /home/tjakobi/work/projects/circRNA/encode_paper/circtools_exon/k562/exon_analysis_exon_pval_track.bedgraph")
+def generate_alternative_exon_tracks(exon_directory_list):
 
-    print("load /home/tjakobi/work/projects/circRNA/encode_paper/circtools_exon/hepg2/exon_analysis_exon_fc_track.bedgraph")
-    print("load /home/tjakobi/work/projects/circRNA/encode_paper/circtools_exon/hepg2/exon_analysis_exon_pval_track.bedgraph")
+    # note: BED graph tracks have to be printed before all BED tracks otherwise IGV does not show them
 
-    print("load /home/tjakobi/work/projects/circRNA/encode_paper/circtools_exon/hepg2/exon_analysis_dcc_bsj_enriched_track.bed")
-    print("load /home/tjakobi/work/projects/circRNA/encode_paper/circtools_exon/k562/exon_analysis_dcc_bsj_enriched_track.bed")
+    # BED graph tracks
+    for directory in exon_directory_list:
+        print("load " + directory + "exon_analysis_exon_fc_track.bedgraph")
+        print("load " + directory + "exon_analysis_exon_pval_track.bedgraph")
 
-    print("load /home/tjakobi/work/projects/circRNA/encode_paper/circtools_exon/k562/exon_analysis_dcc_predictions_track.bed")
+    # BED tracks
+    for directory in exon_directory_list:
+        print("load " + directory + "exon_analysis_dcc_bsj_enriched_track.bed")
 
-    print("load /home/tjakobi/work/projects/circRNA/encode_paper/fuchs/K562.bam")
-    print("load /home/tjakobi/work/projects/circRNA/encode_paper/fuchs/HepG2.bam")
-    print("load /home/tjakobi/work/projects/circRNA/encode_paper/fuchs/output/igv/B_exon_chain_12.bed")
-    print("load /home/tjakobi/work/projects/circRNA/encode_paper/fuchs/output/igv/D_exon_chain_12.bed")
-    print("load /home/tjakobi/work/projects/circRNA/encode_paper/fuchs/output/igv/F_exon_chain_12.bed")
-    print("load /home/tjakobi/work/projects/circRNA/encode_paper/fuchs/output/igv/H_exon_chain_12.bed")
-    print("load /home/tjakobi/work/projects/circRNA/encode_paper/fuchs/output/igv/J_exon_chain_12.bed")
-    print("load /home/tjakobi/work/projects/circRNA/encode_paper/fuchs/output/igv/L_exon_chain_12.bed")
+    # DCC track (use first list element (0) because it's the same track for all runs)
+    print("load " + exon_directory_list[0] + "exon_analysis_dcc_predictions_track.bed")
 
 
-def print_header(gene):
+def generate_raw_data_tracks(bam_file_list):
+
+    # BAM tracks
+    for bam_file in bam_file_list:
+        print("load " + bam_file)
+
+
+def generate_reconstruct_tracks(reconstruct_file_list):
+
+    # BED tracks
+    for bed_file in reconstruct_file_list:
+        print("load " + bed_file)
+
+
+def generate_header(gene_name, genome_build, output_directory):
+
     print("new")
-    print("genome hg38")
-    print("snapshotDirectory /tmp/")
+    print("genome " + genome_build)
+    print("snapshotDirectory " + output_directory)
     print("maxPanelHeight 5000")
-    print("goto "+gene)
-    print_tracks()
+    print("goto " + gene_name)
 
-def print_footer():
+
+def generate_footer(bam_file_list):
+
     print("collapse")
-    print("squish K562.bam")
-    print("squish HepG2.bam")
+
+    # squish BAM tracks
+    for bam_file in bam_file_list:
+        print("squish " + bam_file)
+
     print("#####################")
 
 
-def zoom_location(location):
-    tmp = location.split(':')
-    tmp2 = tmp[1].split('-')
-    chromosome = tmp[0]
-    start = str(int(tmp2[0]) - 5000)
-    stop = str(int(tmp2[1]) + 5000)
-    return chromosome+":"+start+"-"+stop
+def location_zoom(location, zoom_level):
+    location_bits = location.split(':')
+    starts_end_bit = location_bits[1].split('-')
+    chromosome = location_bits[0]
+    start_bit = str(int(starts_end_bit[0]) - zoom_level)
+    stop_bit = str(int(starts_end_bit[1]) + zoom_level)
+    return chromosome + ":" + start_bit + "-" + stop_bit
 
-def overview_location(location):
-    tmp = location.split(':')
-    tmp2 = tmp[1].split('-')
-    chromosome = tmp[0]
-    start = str(int(tmp2[0]) - 100000)
-    stop = str(int(tmp2[1]) + 100000)
-    return chromosome+":"+start+"-"+stop
 
-def print_script(data):
-    gene_num = 0
-    for gene in data:
+def generate_igv_script(rbp_data, cli_args):
+
+    max_genes_to_show = 0
+    for gene_name in rbp_data:
         num = 0
-        for location in data[gene]['loc'].keys():
+        for location in rbp_data[gene_name]['location'].keys():
 
-            print_header(gene)
+            generate_header(gene_name, cli_args.genome_build, cli_args.output_directory)
 
-            for cell in data[gene]['loc'][location].keys():
-                for rbp in data[gene]['loc'][location][cell].keys():
+            generate_raw_data_tracks(cli_args.bam_files)
+            generate_alternative_exon_tracks(cli_args.alt_exon_dirs)
+            generate_reconstruct_tracks(cli_args.fuchs_files)
 
-                    print("load /home/tjakobi/work/data/circtools/encode_hg38_clip_peaks/" + cell + "/combined/" + rbp + "_" + cell + "_combined.bed")
+            for sample in rbp_data[gene_name]['location'][location].keys():
+                for rbp in rbp_data[gene_name]['location'][location][sample].keys():
+
+                    # TODO: make this part less dependent on the directory structure
+                    print("load " +
+                          cli_args.peak_directory +
+                          "/" +
+                          sample +
+                          "/combined/" +
+                          rbp +
+                          "_" +
+                          sample +
+                          "_combined.bed")
+
                     num += 1
                     if num > 4:
                         break
-            print_footer()
+
+            generate_footer(cli_args.bam_files)
 
             print("region " + location)
-            print("goto "+overview_location(location))
-            print("snapshot "+str(data[gene]['rank'])+"_"+gene+"_"+location+"_gene.png")
-            print("goto "+zoom_location(location))
-            print("snapshot "+str(data[gene]['rank'])+"_"+gene+"_"+location+"_zoom.png")
+            print("goto " + location_zoom(location, 100000))
+            print("snapshot " + str(rbp_data[gene_name]['rank']) + "_" + gene_name + "_" + location + "_gene.png")
+            print("goto " + location_zoom(location, 5000))
+            print("snapshot " + str(rbp_data[gene_name]['rank']) + "_" + gene_name + "_" + location + "_zoom.png")
 
-
-        gene_num += 1
-        if gene_num > 2:
+        # stop if we reached the maximum number of genes to print
+        max_genes_to_show += 1
+        if max_genes_to_show > cli_args.max_genes:
             break
 
 
+def parse_file(input_file):
 
-def parse_file(filename_high):
-    #entries_list = {}
     from collections import OrderedDict
     entries_list = OrderedDict()
 
-    with open(filename_high) as fp:
+    with open(input_file) as fp:
         rank = 1
         for line in fp:
-            tmp = line.split('\t')
-            name_split = tmp[0].split('_')
-            gene = tmp[1]
-            location = "chr"+tmp[2] + ":" + tmp[3]  + "-" + tmp[4]
-            rbp = name_split[0]
-            cell = name_split[1]
+            current_line = line.split('\t')
+            name_field = current_line[0].split('_')
+            host_gene = current_line[1]
+            location = "chr" + current_line[2] + ":" + current_line[3] + "-" + current_line[4]
+            rbp = name_field[0]
+            cell = name_field[1]
+
             # create key
-            if gene not in entries_list:
-                entries_list[gene] = {}
-                entries_list[gene]['rank'] = rank
-                entries_list[gene]['rbp_high'] = {}
+            if host_gene not in entries_list:
+                entries_list[host_gene] = {}
+                entries_list[host_gene]['rank'] = rank
+                entries_list[host_gene]['rbp'] = {}
 
-                entries_list[gene]['loc'] = OrderedDict()
-                entries_list[gene]['loc'][location] = OrderedDict()
+                entries_list[host_gene]['location'] = OrderedDict()
+                entries_list[host_gene]['location'][location] = OrderedDict()
 
-                entries_list[gene]['loc'][location]['K562'] = OrderedDict()
-                entries_list[gene]['loc'][location]['HepG2'] = OrderedDict()
+                for sample in args.sample_list:
+                    entries_list[host_gene]['location'][location][sample] = OrderedDict()
 
-                entries_list[gene]['loc'][location][cell][rbp] = 1
+                entries_list[host_gene]['location'][location][cell][rbp] = 1
 
                 rank += 1
             else:
-                if location not in entries_list[gene]['loc']:
-                    entries_list[gene]['loc'][location] = OrderedDict()
-                    entries_list[gene]['loc'][location]['K562'] = OrderedDict()
-                    entries_list[gene]['loc'][location]['HepG2'] = OrderedDict()
-                else:
-                    entries_list[gene]['loc'][location][cell][rbp] = 1
+                if location not in entries_list[host_gene]['location']:
+                    entries_list[host_gene]['location'][location] = OrderedDict()
+                    for sample in args.sample_list:
+                        entries_list[host_gene]['location'][location][sample] = OrderedDict()
 
+                else:
+                    entries_list[host_gene]['location'][location][cell][rbp] = 1
 
     return entries_list
 
 
+# main script starts here
 
-entries1 = parse_file(args.file_list1)
+parser = argparse.ArgumentParser(description='Create an auto-executing IGV script')
 
+group = parser.add_argument_group("Input")
 
-import pprint
-pp = pprint.PrettyPrinter(indent=4)
-#pp.pprint(entries1)
+group.add_argument("-e",
+                   "--enrichment-file",
+                   dest="enrichment_file",
+                   help="An enrichment module output file",
+                   required=True
+                   )
 
-print_script(entries1)
+group.add_argument("-b",
+                   "--bam-files",
+                   dest="bam_files",
+                   nargs='*',
+                   help="List of one or more BAM files with read mapping data",
+                   required=True
+                   )
+
+group.add_argument("-a",
+                   "--alternative-exon-dirs",
+                   dest="alt_exon_dirs",
+                   nargs='*',
+                   help="List of one or more directories containing the result files "
+                        "of the exon module",
+                   required=True
+                   )
+
+group.add_argument("-f",
+                   "--fuchs-files",
+                   dest="fuchs_files",
+                   nargs='*',
+                   help="List of one or more BED files containing results of "
+                        "FUCHS / reconstruct module",
+                   required=True
+                   )
+
+group.add_argument("-c",
+                   "--clip-peaks",
+                   dest="peak_directory",
+                   help="Directory of the CLIP peal bed files",
+                   required=True
+                   )
+
+group.add_argument("-g",
+                   "--genome",
+                   dest="genome_build",
+                   help="Which genome build to use as reference [Default: hg38]",
+                   choices=("hg38", "hg19", "mm9", "mm10"),
+                   default="hg38"
+                   )
+
+group.add_argument("-s",
+                   "--samples",
+                   dest="sample_list",
+                   nargs='*',
+                   help="List of one or more sample/conditions",
+                   required=True
+                   )
+
+group.add_argument("-m",
+                   "--max-number",
+                   dest="max_genes",
+                   help="Maximum number of genes to show [Default: 5]",
+                   type=int,
+                   default=5
+                   )
+
+group = parser.add_argument_group("Output")
+
+group.add_argument("-o",
+                   "--output-directory",
+                   dest="output_directory",
+                   help="Directory for snapshots created by IGV [Default: ./]",
+                   default="./"
+                   )
+
+args = parser.parse_args()
+
+build_tracks(args)
