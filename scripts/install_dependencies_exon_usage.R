@@ -20,17 +20,23 @@
 source("https://bioconductor.statistik.tu-dortmund.de/biocLite.R")
 options(repos = c(CRAN = "https://cran.uni-muenster.de/"))
 
-# we need devtools as requirement for circtest
 pkgs <- c(
-    "devtools",
+    "aod",
     "ballgown",
-    "edgeR",
     "biomaRt",
+    "data.table",
+    "devtools",
+    "edgeR",
+    "GenomicFeatures",
+    "GenomicRanges",
     "ggbio",
     "ggfortify",
+    "ggplot2",
+    "ggrepel",
+    "gridExtra",
     "openxlsx",
-    "GenomicRanges",
-    "GenomicFeatures"
+    "plyr",
+    "reshape2"
 )
 
 # check if devtools is already installed
