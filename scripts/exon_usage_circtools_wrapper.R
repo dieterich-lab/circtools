@@ -411,13 +411,14 @@ write.table(  dccDF,
 RNAse_RenrichedCircTest <- merge(
                           circTestSummary[unique(multiExonOverlap[,1]),],
                           topSplicedGenesMartData,by.x=4,by.y=5
-                        )[,-2]
+                        )
 
 # sort by PValue
 RNAse_RenrichedCircTest <- RNAse_RenrichedCircTest[order(RNAse_RenrichedCircTest[,"sig_p"]),]
 
 
 colnames(RNAse_RenrichedCircTest) <- c( "Gene",
+                                        "Chr",
                                         "Start",
                                         "End",
                                         "JunctionType",
