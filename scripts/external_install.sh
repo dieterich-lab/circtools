@@ -15,14 +15,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# install dependencies for R first
+Rscript install_R_dependencies.R
+
 # install primer-design R part
 Rscript R/install.R
 
 # install CircTest
 Rscript install_circtest.R
-
-# install dependencies for alternative exon usage
-Rscript install_depenencies_exon_usage.R
 
 # install DCC
 cd /tmp/
