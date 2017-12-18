@@ -489,6 +489,16 @@ writeDataTable( wb,
               x=circTestSummary[grep("not_annotated",circTestSummary[,"Gene"]),]
               )
 
+new_sheet <- splicedExonDF[order(splicedExonDF[,"Pval"]),]
+new_sheet <- merge(new_sheet,topSplicedGenesMartDCC,by.x=2,by.y=2)
+new_sheet <- new_sheet[order(new_sheet[,"Pval"]),]
+
+addWorksheet(wb, sheetName = "Exon events")
+writeDataTable( wb,
+              sheet = 4,
+              x=new_sheet
+              )
+
 # close workbook
 saveWorkbook(wb, paste(baseDir,"diff_exon_enrichment.xlsx",sep=""), overwrite = TRUE)
 
