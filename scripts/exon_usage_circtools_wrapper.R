@@ -59,21 +59,14 @@ arg_output_directory <- args[6] # string
 arg_ballgown_directory <- args[7] # string
 arg_gtf_file <- args[8] # string
 arg_circTest_file <- args[9] # string
-# arg_num_top_genes <- as.integer(args[10])
 arg_head_header <- as.logical(args[10])
 
 ## load complete data set
 message("Loading CircRNACount")
 CircRNACount <- read.delim(paste(arg_dcc_data, "CircRNACount", sep="/"), header = T)
 
-message("Loading LinearRNACount")
-LinearCount <- read.delim(paste(arg_dcc_data, "LinearCount", sep="/"), header = T)
-
 message("Loading CircCoordinates")
 CircCoordinates <- read.delim(paste(arg_dcc_data, "CircCoordinates", sep="/"), header = T)
-
-CircRNACount <- CircRNACount[, c(1 : 3, arg_condition_columns)] # we always need the first 3 columns
-LinearCount <- LinearCount[, c(1 : 3, arg_condition_columns)] # we always need the first 3 columns
 
 # read sub directories containing the ballgown runs and return list
 ballgownRuns <- as.list(list.files(arg_ballgown_directory, full.names = TRUE))
@@ -83,7 +76,6 @@ baseDir <- arg_output_directory
 
 # group mapping
 group <- unlist(lapply(arg_groups, function(x) {return(arg_condition_list[x])}))
-unlist(lapply(arg_groups, function(x) {print(x)}))
 
 # sample<>replicate mapping
 id <- unlist(lapply(seq(1, length(arg_replicates)), function(x) {return((paste(arg_condition_list[x], arg_replicates[x], sep="_R")))}))
@@ -95,12 +87,11 @@ bg_dirs_to_work <- unlist(lapply(arg_condition_columns, function(x) {return(ball
 message("Starting ballgown processing")
 
 bg <- ballgown(bg_dirs_to_work, verbose=TRUE)
-pData(bg)<- bg.dccDF
 
 message("Preparing necessary data structures")
 
-whole_exon_table = eexpr(bg, 'all')# eexpr -> exon level
-whole_intron_table = iexpr(bg, 'all')# iexpr -> intron level
+whole_exon_table <- eexpr(bg, 'all')# eexpr -> exon level
+whole_intron_table <- iexpr(bg, 'all')# iexpr -> intron level
 
 t2g<-indexes(bg)$t2g # transcript / gene table
 e2t<-indexes(bg)$e2t # exon / transcript table
@@ -147,9 +138,6 @@ e2g.minimal=e2g.counts[,-c(1,ncol(e2g.counts))]
 
 # indices of exons in e2g.minimal table with > 40 counts throughout all samples
 idx<-which(apply(e2g.minimal,1,sum)>4*10)
-
-# select > 40 count exons from exon / gene table
-e2g.counts<-e2g.counts[idx,];
 
 # select > 40 count exons from the slimmed exon / gene table
 e2g.minimal=e2g.minimal[idx,]
