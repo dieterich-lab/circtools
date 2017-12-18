@@ -294,11 +294,18 @@ singleExonDF=subset(geneBaseTable[,c("chr","start","end","strand")],
 singleExonRanges <- makeGRangesFromDataFrame(singleExonDF);
 
 
-# disabled, biomart data cached to speed up script
 message("Interfacing biomart (may take some time depending on experiment and network)")
-# create biomart object with HS data set
-mart <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
 
+# create biomart object with HS data set
+
+x <- replicate(10, try({
+(useMart("ensembl", dataset = "hsapiens_gene_ensembl", host="uswest.ensembl.org"))}
+))
+
+mart <- x[sapply(x, class)=='Mart'][1]
+mart <- mart[[1]]
+
+# mart <- useMart("ensembl", dataset = "hsapiens_gene_ensembl", host="uswest.ensembl.org")
 # get gene ID, description and hgcn symbol
 martData=getBM(
               attributes=c("hgnc_symbol","ensembl_gene_id", "entrezgene", "description"),
@@ -307,10 +314,6 @@ martData=getBM(
               mart=mart,
               verbose = FALSE
             )
-
-## load the cached version of the biomart query
-## has to be updated when the gene list input changes!
-message("Done with biomart")
 
 
 # enrich the top spliced gene swith the mart data
