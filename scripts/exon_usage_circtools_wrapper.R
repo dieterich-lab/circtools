@@ -294,7 +294,7 @@ geneAttributes <- c("SYMBOL", "GENEID", "ENTREZID", "GENENAME")
 geneAnnotation <- ensembldb::select(
   annotationdb, topSplicedGenes$GeneID, geneAttributes, keytype = "GENEID")
 topSplicedGenesMartData <- merge(
-  topSplicedGenes, geneAnnotation, by.x = "GeneID", by.y = "GENEID")
+  topSplicedGenes, geneAnnotation, by.x = "GeneID", by.y = "GENEID", all.x = TRUE)
 
 # correct again for to 0-based positions
 dccDF<-CircCoordinates
