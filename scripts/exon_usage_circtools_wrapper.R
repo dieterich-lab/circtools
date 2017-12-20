@@ -20,7 +20,6 @@ message("Loading required packages")
 
 suppressMessages(library(ballgown))
 suppressMessages(library(edgeR))
-suppressMessages(library(biomaRt))
 suppressMessages(library(ggbio))
 suppressMessages(library(ggfortify))
 suppressMessages(library(openxlsx))
@@ -60,6 +59,15 @@ arg_ballgown_directory <- args[7] # string
 arg_gtf_file <- args[8] # string
 arg_circTest_file <- args[9] # string
 arg_head_header <- as.logical(args[10])
+
+# load a pkg from a string
+arg_ensembl_pkg <- "EnsDb.Hsapiens.v86"
+
+suppressPackageStartupMessages({
+  # stops if no package
+  library(arg_ensembl_pkg, character.only = TRUE)
+})
+annotationdb <- get(arg_ensembl_pkg)
 
 ## load complete data set
 message("Loading CircRNACount")
@@ -281,31 +289,12 @@ singleExonDF=subset(geneBaseTable[,c("chr","start","end","strand")],
 # create appropriate GRanges objects
 singleExonRanges <- makeGRangesFromDataFrame(singleExonDF);
 
-
-message("Interfacing biomart (may take some time depending on experiment and network)")
-
-# create biomart object with HS data set
-
-x <- replicate(10, try({
-(useMart("ensembl", dataset = "hsapiens_gene_ensembl", host="uswest.ensembl.org"))}
-))
-
-mart <- x[sapply(x, class)=='Mart'][1]
-mart <- mart[[1]]
-
-# mart <- useMart("ensembl", dataset = "hsapiens_gene_ensembl", host="uswest.ensembl.org")
-# get gene ID, description and hgcn symbol
-martData=getBM(
-              attributes=c("hgnc_symbol","ensembl_gene_id", "entrezgene", "description"),
-              filter="ensembl_gene_id",
-              values=topSplicedGenes$GeneID,
-              mart=mart,
-              verbose = FALSE
-            )
-
-
-# enrich the top spliced gene swith the mart data
-topSplicedGenesMartData=merge(topSplicedGenes, martData, by.x=1, by.y=2)
+# retrieve gene annotation
+geneAttributes <- c("SYMBOL", "GENEID", "ENTREZID", "GENENAME")
+geneAnnotation <- ensembldb::select(
+  annotationdb, topSplicedGenes$GeneID, geneAttributes, keytype = "GENEID")
+  topSplicedGenesMartData <- merge(
+  topSplicedGenes, geneAnnotation, by.x = "GeneID", by.y = "GENEID")
 
 # correct again for to 0-based positions
 dccDF<-CircCoordinates
