@@ -45,9 +45,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         # set time format
         time_format = time.strftime("%Y_%m_%d__%H_%M")
 
-        # set up the multiprocessing pool for multi-threading
-        mp_pool = multiprocessing.Pool(processes=self.cli_params.num_processes)
-
         # let's first check if the temporary directory exists
         if not os.path.exists(self.cli_params.tmp_directory):
             os.makedirs(self.cli_params.tmp_directory)
@@ -70,6 +67,20 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         # holds the temporary bed file content
         temp_bed = ""
+
+        # starting up logging system
+        print(os.path.join(self.cli_params.output_directory,
+                                                  self.cli_params.output_filename + "_" + time_format + ".log"))
+
+        logging.basicConfig(filename=os.path.join(self.cli_params.output_directory,
+                                                  self.cli_params.output_filename + "_" + time_format + ".log"),
+                            filemode="w",
+                            level=logging.DEBUG,
+                            format="%(asctime)s %(message)s"
+                            )
+
+        logging.info("%s %s started" % (self.program_name, self.version))
+        logging.info("%s command line: %s" % (self.program_name, " ".join(sys.argv)))
 
         # (default is ["all"])
         if self.cli_params.include_features:
@@ -99,17 +110,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         # set temporary directory for pybedtools
         pybedtools.set_tempdir(self.cli_params.tmp_directory)
-
-        # starting up logging system
-        logging.basicConfig(filename=os.path.join(self.cli_params.output_directory,
-                                                  self.cli_params.output_filename + "_" + time_format + ".log"),
-                            filemode="w",
-                            level=logging.DEBUG,
-                            format="%(asctime)s %(message)s"
-                            )
-
-        logging.info("%s %s started" % (self.program_name, self.version))
-        logging.info("%s command line: %s" % (self.program_name, " ".join(sys.argv)))
 
         # check if input files are in place, we don't wan't to fail later
         self.check_input_files([self.cli_params.bed_input,
@@ -151,6 +151,11 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
             circ_rna_bed = self.virtual_inclusion_object.intersect(circ_rna_bed, s=True, wb=True)
 
         circ_rna_bed.saveas(circle_annotation_file)
+
+
+        # set up the multiprocessing pool for multi-threading
+        mp_pool = multiprocessing.Pool(processes=self.cli_params.num_processes)
+
 
         # create list of shuffled peaks
         self.log_entry("Starting random shuffling of input peaks")
