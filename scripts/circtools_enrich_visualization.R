@@ -46,12 +46,11 @@ arg_max_circRNAs <- as.integer(args[3])
 arg_max_rbps <- as.integer(args[4])
 arg_output_file_name <- args[5]
 arg_label_sample_1 <- args[6]
-arg_data_file_1 <- args[7] # path is string
-arg_colour_mode <- args[8]
+arg_colour_mode <- args[7]
 
 # arguments for file 2 are ath the send so we can leave them empty
-arg_label_sample_2 <- args[9] # path is string
-arg_data_file_2 <- args[10] # path is string
+arg_label_sample_2 <- args[8] # path is string
+arg_data_file_2 <- args[9] # path is string
 
 # check colour mode
 if (arg_colour_mode != "colour" & arg_colour_mode != "bw" ) {
