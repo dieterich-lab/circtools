@@ -190,7 +190,7 @@ rbp_simple_plot <- ggplot(data=total) +
                                                 length(unique(rbp_data_file_1$RBP)),
                                                 " RBPs, showing top ",
                                                 arg_max_rbps,
-                                                " RBPS: ",
+                                                " RBPs: ",
                                                 date(),
                                                 "",
                                                 sep="")) +
