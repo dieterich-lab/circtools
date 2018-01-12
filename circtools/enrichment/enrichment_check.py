@@ -26,6 +26,9 @@ import functools
 import pybedtools
 import circ_module.circ_template
 
+FILE_TYPE_GTF = ".gtf"
+FILE_TYPE_BED = ".bed"
+
 
 class EnrichmentModule(circ_module.circ_template.CircTemplate):
     def __init__(self, argparse_arguments, program_name, version):
@@ -81,6 +84,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         logging.info("%s %s started" % (self.program_name, self.version))
         logging.info("%s command line: %s" % (self.program_name, " ".join(sys.argv)))
+
 
         # (default is ["all"])
         if self.cli_params.include_features:
@@ -405,6 +409,12 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
             logging.info(message)
             sys.exit(message)
         else:
+            # check file type: BED or GTF allowed
+            file_type = os.path.splitext(annotation_file)[1].lower()
+            if file_type != FILE_TYPE_GTF and file_type != FILE_TYPE_BED:
+                message = ("Input file " + str(annotation_file) + " is neither BED nor GTF format!")
+                logging.info(message)
+                sys.exit(message)
             with file_handle:
                 entity_list = []
                 line_iterator = iter(file_handle)
@@ -418,23 +428,50 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                     # split up the annotation line
                     columns = line.split('\t')
 
-                    if columns[2] not in entity_list:
-                        entity_list.append(columns[2])
+                    # we have no "type" in BED
+                    if file_type is FILE_TYPE_GTF:
+                        if columns[2] not in entity_list:
+                            entity_list.append(columns[2])
 
-                    # we only want the coordinates of the gene entries
-                    if not (columns[2] == entity):
-                        continue
+                    # we have no "type" in BED
+                    if file_type is FILE_TYPE_GTF:
+                        # we only want the coordinates of the gene entries
+                        if not (columns[2] == entity):
+                            continue
 
                     # we do not want any 0-length intervals -> bedtools segfault
-                    if int(columns[4]) - int(columns[3]) == 0:
-                        continue
+                    if file_type is FILE_TYPE_GTF and int(columns[4]) - int(columns[3]) == 0:
+                            continue
+                    if file_type is FILE_TYPE_BED and int(columns[1]) - int(columns[2]) == 0:
+                            continue
 
                     # columns 8 is the long annotation string from GTF
-                    gene_name = self.extract_gene_name_from_gtf(columns[8])
+                    if file_type is FILE_TYPE_GTF:
+                        gene_name = self.extract_gene_name_from_gtf(columns[8])
+                    else:
+                        gene_name = columns[3]  # somewhat easier in BED...
 
                     # extract chromosome, start, stop, score(0), name and strand
                     # we hopefully have a gene name now and use this one for the entry
-                    entry = [self.strip_chr_name(columns[0]), columns[3], columns[4], gene_name, str(0), columns[6], ]
+
+                    if file_type is FILE_TYPE_GTF:
+                        entry = [
+                            self.strip_chr_name(columns[0]),
+                            columns[3],
+                            columns[4],
+                            gene_name,
+                            str(0),
+                            columns[6]
+                        ]
+                    else:
+                        entry = [
+                            self.strip_chr_name(columns[0]),
+                            columns[1],
+                            columns[2],
+                            gene_name,
+                            str(0),
+                            columns[5]
+                        ]
 
                     # concatenate lines to one string
                     bed_content += '\t'.join(entry) + "\n"
@@ -442,7 +479,10 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                     entity_count += 1
 
                 # count will be increased one more time even if done - so we subtract 1
-                self.log_entry("Found %s entries of type %s" % (entity_count - 1, entity))
+                if file_type is FILE_TYPE_GTF:
+                    self.log_entry("Found %s entries of type %s" % (entity_count - 1, entity))
+                else:
+                    self.log_entry("Found %s entries " % (entity_count -1))
 
             self.log_entry("Done parsing annotation")
 
