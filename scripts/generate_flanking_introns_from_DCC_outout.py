@@ -18,10 +18,29 @@
 import argparse
 
 
+def return_bed_line(location, gene_name, comment):
+
+    split = location.split('_')
+    return split[0] + "\t" +\
+        split[1] + "\t" +\
+        split[2] + "\t" +\
+        gene_name + "\t" +\
+        "0" + "\t" +\
+        split[3] + "\t" +\
+        "none" + "\t" +\
+        comment
+
+
 def extract_start(string):
 
     split = string.split('_')
     return split[0] + "_" + split[1] + "_" + split[3]
+
+
+def return_wobble(string, wobble):
+
+    split = string.split('_')
+    return split[0] + "_" + str(int(split[1])+wobble) + "_" + split[2]
 
 
 def extract_stop(string):
@@ -40,15 +59,28 @@ def print_results(dcc_dict, gtf_start_dict, gtf_stop_dict):
         start_found = ""
         stop_found = ""
 
-        #print(entry)
-        if stop in gtf_stop_dict:
-            stop_found = (stop + " STOP " + gtf_stop_dict[stop])
+        for wobble in range(-200, 200):
 
-        if start in gtf_start_dict:
-            start_found = (start + " START " + gtf_start_dict[start])
+            current = return_wobble(stop, wobble)
+
+            if current in gtf_stop_dict:
+                # stop_found = (stop + " STOP " + gtf_stop_dict[current])
+                stop_found = gtf_stop_dict[current]
+
+            current = return_wobble(start, wobble)
+
+            if current in gtf_start_dict:
+                # start_found = (start + " START " + gtf_start_dict[current])
+                start_found = gtf_start_dict[current]
 
         if start_found and stop_found:
-            print(entry)
+            #  print(return_bed_line(entry, dcc_dict[entry]))
+
+            # line for downstream intron
+            print(return_bed_line(start_found, dcc_dict[entry], entry))
+
+            # line for upstream exon
+            print(return_bed_line(stop_found, dcc_dict[entry], entry))
 
     return
 
@@ -62,12 +94,12 @@ def parse_dcc_file(input_file):
         for line in fp:
             current_line = line.split('\t')
             loc = current_line[0] + "_" + \
-                  current_line[1] + "_" + \
-                  current_line[2] + "_" + \
-                  current_line[5]  # stop point of previous exon
+                current_line[1] + "_" + \
+                current_line[2] + "_" + \
+                current_line[5]
 
             if loc not in loc_list:
-                loc_list[loc] = 1
+                loc_list[loc] = current_line[3]
 
     return loc_list
 
@@ -81,8 +113,12 @@ def parse_gtf_file(input_file):
 
         for line in fp:
             current_line = line.split('\t')
-            stop = current_line[0] + "_" + str(int(current_line[3]) - 1) + "_" + current_line[6]  # stop point of previous exon
-            start = current_line[0] + "_" + str(int(current_line[4]) + 1) + "_" + current_line[6]  # start point of next exon
+
+            # stop point of previous exon
+            stop = current_line[0] + "_" + str(int(current_line[3]) - 1) + "_" + current_line[6]
+
+            # start point of next exon
+            start = current_line[0] + "_" + str(int(current_line[4]) + 1) + "_" + current_line[6]
 
             loc = current_line[0] + "_" + \
                   current_line[3] + "_" + \
@@ -90,11 +126,9 @@ def parse_gtf_file(input_file):
                   current_line[6]  # stop point of previous exon
 
             # create key
-            if stop not in stop_list:
-                stop_list[stop] = loc
+            stop_list[stop] = loc
 
-            if start not in start_list:
-                start_list[start] = loc
+            start_list[start] = loc
 
     return start_list, stop_list
 
