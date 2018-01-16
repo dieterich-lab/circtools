@@ -223,7 +223,7 @@ splicedExonDF <- merge(
 # build new table with selected columns
 splicedExonDFfixed=splicedExonDF[,c("chr","start","end","log2FC","Pval")];
 splicedExonDFfixed[,2]<-splicedExonDFfixed[,2]-1 # fix start pos (0-based now)
-splicedExonDFfixed[,3]<-splicedExonDFfixed[,3]-1 # fix stop pos (0-based now)
+splicedExonDFfixed[,3]<-splicedExonDFfixed[,3] # fix stop pos (added +1 as it was too short)
 splicedExonDFfixed[,5]<-log2(splicedExonDFfixed[,5]) # get log2 for Pval column
 
 message("Writing bed files...")
@@ -304,7 +304,7 @@ topSplicedGenesMartData <- merge(
 # correct again for to 0-based positions
 dccDF<-CircCoordinates
 dccDF[,2]<-dccDF[,2]-1
-dccDF[,3]<-dccDF[,3]-1
+dccDF[,3]<-dccDF[,3] #was too short had to extend again
 
 # write BED file
 colnames(dccDF)<-c("chr","start","end","GeneName","JType","strand")
@@ -370,7 +370,7 @@ singleExonOverlap <- as.matrix(findOverlaps(genomicRanges,singleExonRanges))
 
 # overwrite DCC data frame with more columns
 dccDF<-circTestSummary[,1:7]
-
+dccDF[,2]<-dccDF[,2]-1
 # reorder columns
 colnames(dccDF)<-c("chr","start","end","GeneName","JType","strand")
 
