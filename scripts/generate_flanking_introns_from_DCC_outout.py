@@ -92,6 +92,11 @@ def parse_dcc_file(input_file):
     with open(input_file) as fp:
 
         for line in fp:
+
+            # make sure we remove the header
+            if line.startswith('Chr'):
+                continue
+
             current_line = line.split('\t')
             loc = current_line[0] + "_" + \
                 current_line[1] + "_" + \
