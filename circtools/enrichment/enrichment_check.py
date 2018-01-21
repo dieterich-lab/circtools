@@ -429,24 +429,24 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                     columns = line.split('\t')
 
                     # we have no "type" in BED
-                    if file_type is FILE_TYPE_GTF:
+                    if file_type == FILE_TYPE_GTF:
                         if columns[2] not in entity_list:
                             entity_list.append(columns[2])
 
                     # we have no "type" in BED
-                    if file_type is FILE_TYPE_GTF:
+                    if file_type == FILE_TYPE_GTF:
                         # we only want the coordinates of the gene entries
                         if not (columns[2] == entity):
                             continue
 
                     # we do not want any 0-length intervals -> bedtools segfault
-                    if file_type is FILE_TYPE_GTF and int(columns[4]) - int(columns[3]) == 0:
+                    if file_type == FILE_TYPE_GTF and int(columns[4]) - int(columns[3]) == 0:
                             continue
-                    if file_type is FILE_TYPE_BED and int(columns[1]) - int(columns[2]) == 0:
+                    if file_type == FILE_TYPE_BED and int(columns[1]) - int(columns[2]) == 0:
                             continue
 
                     # columns 8 is the long annotation string from GTF
-                    if file_type is FILE_TYPE_GTF:
+                    if file_type == FILE_TYPE_GTF:
                         gene_name = self.extract_gene_name_from_gtf(columns[8])
                     else:
                         gene_name = columns[3]  # somewhat easier in BED...
@@ -454,14 +454,15 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                     # extract chromosome, start, stop, score(0), name and strand
                     # we hopefully have a gene name now and use this one for the entry
 
-                    if file_type is FILE_TYPE_GTF:
+                    if file_type == FILE_TYPE_GTF:
+                        print("correct")
                         entry = [
                             self.strip_chr_name(columns[0]),
                             columns[3],
                             columns[4],
                             gene_name,
                             str(0),
-                            columns[6]
+                            columns[6],
                         ]
                     else:
                         entry = [
