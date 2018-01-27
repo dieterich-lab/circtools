@@ -85,7 +85,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         logging.info("%s %s started" % (self.program_name, self.version))
         logging.info("%s command line: %s" % (self.program_name, " ".join(sys.argv)))
 
-
         # (default is ["all"])
         if self.cli_params.include_features:
 
@@ -156,10 +155,8 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         circ_rna_bed.saveas(circle_annotation_file)
 
-
         # set up the multiprocessing pool for multi-threading
         mp_pool = multiprocessing.Pool(processes=self.cli_params.num_processes)
-
 
         # create list of shuffled peaks
         self.log_entry("Starting random shuffling of input peaks")
@@ -455,7 +452,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                     # we hopefully have a gene name now and use this one for the entry
 
                     if file_type == FILE_TYPE_GTF:
-                        print("correct")
                         entry = [
                             self.strip_chr_name(columns[0]),
                             columns[3],
@@ -880,7 +876,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                     # let's test if we observed a higher count in this iteration than web observed experimentally
                     # first make sure the location exists.. should always be true for linear rna but not for
                     # circular RNAs
-                    if shuffled_value >= observed_value_dict[location_key]:
+                    if shuffled_value > observed_value_dict[location_key]:
 
                         # Yes, it's higher, so we update the count of "more than observed" for this gene
                         if gene not in gene_dict:
@@ -918,6 +914,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         """Delete temporary files created by pybedtools
         """
         self.log_entry("Cleaning up temporary files")
+        return
 
         import glob
         for tmp_file in glob.glob(self.cli_params.tmp_directory+"/"+"pybedtools*"):
