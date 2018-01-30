@@ -80,15 +80,25 @@ message(paste("Found ", num_samples, " data columns in provided DCC data", sep="
 
 message(paste(group_length, " different groups provided", sep=""))
 
-# setting colors
-if (length(arg_grouping) < num_samples){
-    message("Assuming (1,2),(1,2),(1,2),... sample grouping")
-    dummy_list <- rep(arg_grouping,(num_samples/group_length))
-    colors <- unlist(lapply(seq(1, num_samples), function(x) {return(arg_condition_list[dummy_list[x]])}))
+if (length(arg_grouping) < num_samples) {
+  message("Assuming (1,2),(1,2),(1,2),... sample grouping")
+  dummy_list <- rep(arg_grouping, (num_samples/group_length))
+  colors <- unlist(lapply(seq(1, num_samples), function(x) {
+    return(arg_condition_list[dummy_list[x]])
+  }))
 } else {
-    message("Setting sample groups manually")
-    colors <- unlist(lapply(seq(1, num_samples), function(x) {return(arg_condition_list[arg_grouping[x]])}))
+  message("Setting sample groups manually")
+  colors <- unlist(lapply(seq(1, num_samples), function(x) {
+    return(arg_condition_list[arg_grouping[x]])
+  }))
+    counts <- c(rep(0,num_samples))
+  generated_sample_names <- unlist(lapply(seq(1, num_samples), function(x) {
+      counts[arg_grouping[x]] <<- counts[arg_grouping[x]]+1
+    return(paste(arg_condition_list[arg_grouping[x]], "-", counts[arg_grouping[x]], sep = ""))
+  }))
 }
+# colnames(circ_counts_summed) <- generated_sample_names
+# colnames(linear_counts_summed) <- generated_sample_names
 
 # get unique mapping reads
 ## which star runs are in the DCC output?
@@ -102,7 +112,6 @@ star_runs <- star_runs[endsWith(star_runs,"_STARmapping")]
 
 # only use the folders of full mappings (not the per-mate ones)
 star_runs <- star_runs[!grepl("*mate*", star_runs)]
-
 # new empty list
 uniquely_mapped_reads <- numeric();
 
@@ -124,6 +133,9 @@ pdf(paste(arg_output_directory, ".pdf", sep = "") , height= 8.2, width=11.69 , t
     # create data frame for ggplot2
     raw_counts <- data.frame(circ_counts_summed, linear_counts_summed, colors)
     colnames(raw_counts) <- c("circ","lin","group")
+
+    rownames(raw_counts) <- generated_sample_names
+    rownames(raw_counts) <- generated_sample_names
 
     if (arg_colour_mode == "bw" ) {
         page_one <- ggplot( raw_counts, aes(x=circ, y=lin, shape = as.factor(group) , label=rownames(raw_counts))) +
