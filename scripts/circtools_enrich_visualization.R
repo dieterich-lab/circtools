@@ -336,7 +336,6 @@ if (!is.na(arg_data_file_2)) {
 } else {
     total <- data1
     colnames(total) <- c( "RBP", "circRNA", "A")
-    total$rbp_sum <- total$A
     total[is.na(total)] <- 0
 }
 
@@ -347,24 +346,27 @@ total <- total[total$circRNA %in% selected_circrnas ,]
 
 for (top_circ in unique(total$circRNA)) {
     total$total_sum[total$circRNA == top_circ] <- sum(total[total$circRNA == top_circ , rbp_sum])
-}
+    total$total_sum_A[total$circRNA == top_circ] <- sum(total[total$circRNA == top_circ , A])
 
-total <- total[order(- total_sum),]
+    if (!is.na(arg_data_file_2)) {
+        total$total_sum_B[total$circRNA == top_circ] <- sum(total[total$circRNA == top_circ , B])
+    }
+}
 
 label_pos <- (max(total$total_sum, na.rm = TRUE) / 2) - 50
 
 circ_simple_plot <- ggplot(data = total) +
-    geom_bar(aes(x = reorder(circRNA, - total_sum), y = A, fill = RBP), stat = "identity", size = 0.0, colour = "black") +
+    geom_bar(aes(x = reorder(circRNA, - total_sum_A), y = A, fill = RBP), stat = "identity", size = 0.0, colour = "black") +
     geom_label(aes(x = arg_max_circRNAs - 4 , y = label_pos, label = arg_label_sample_1), fill = "white")
 
     if (!is.na(arg_data_file_2)) {
-        circ_simple_plot <- circ_simple_plot + geom_bar(aes(x = reorder(circRNA, - total_sum), y = - B, fill = RBP), stat = "identity", size = 0.0, colour = "black") +         geom_label(aes(x = arg_max_circRNAs - 4, y = - label_pos, label = arg_label_sample_2), fill = "white")
+        circ_simple_plot <- circ_simple_plot + geom_bar(aes(x = reorder(circRNA, - total_sum_A), y = - B, fill = RBP), stat = "identity", size = 0.0, colour = "black") +         geom_label(aes(x = arg_max_circRNAs - 4, y = - label_pos, label = arg_label_sample_2), fill = "white")
     }
 
     # geom_bar(aes(x = reorder(circRNA, - total_sum), y = - B, fill = RBP), , stat = "identity", size = 0.0, colour = "black") +
     circ_simple_plot <- circ_simple_plot +  labs(title = paste(arg_label_sample_1, ": Assignment of RBP CLIP peaks to circRNAs", sep=""),
 
-    subtitle = paste("plotting colour-coded RBPs per circRNA, ordered by total number of total RBP eCLIP peaks ( p <",
+    subtitle = paste("plotting colour-coded RBPs per circRNA, ordered by number of accumulated RBP eCLIP peaks ( p <",
     arg_pval, ")")) +
     labs(y = "Number of enriched RBP binding sites detected in the CLIP data set") +
     labs(x = "CircRNA") +
@@ -421,25 +423,17 @@ if (!is.na(arg_data_file_2)) {
 }
 
 
-
-    print(head(circ_rna_selection))
-
-
 if (!is.na(arg_data_file_2)) {
     circ_rna_selection$Var1 <- levels(droplevels(circ_rna_selection$circRNA))
     circ_rna_selection <- circ_rna_selection[order(- circ_rna_selection$A),]
     circ_rna_selection <- circ_rna_selection[circ_rna_selection$Total > 0,]
-
     selected_circrnas <- head(circ_rna_selection$circRNA, arg_max_circRNAs)
-    print(head(circ_rna_selection))
 
 } else {
     circ_rna_selection$Var1 <- levels(droplevels(circ_rna_selection$circRNA))
     circ_rna_selection <- circ_rna_selection[order(- circ_rna_selection$A),]
     circ_rna_selection <- circ_rna_selection[circ_rna_selection$A > 0,]
-
     selected_circrnas <- head(circ_rna_selection$Var1, arg_max_circRNAs)
-    print(head(circ_rna_selection))
 }
 
 
