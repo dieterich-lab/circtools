@@ -173,9 +173,7 @@ if (!is.na(arg_data_file_2)) {
     rbp_df2 <- rbp_df2[rbp_df2$Frequency > arg_max_circRNAs,]
 }
 
-
 total <-rbp_df
-head(total)
 
 if (!is.na(arg_data_file_2)) {
     total <- merge(rbp_df, rbp_df2, by = "RBP", all = TRUE)
@@ -190,7 +188,7 @@ if (!is.na(arg_data_file_2)) {
     colnames(total) <- c("RBP", "FrequencyA","sum")
     label_pos_1 <- (max(total$FrequencyA, na.rm = TRUE))
 }
-head(total)
+
 # limit to top X
 total <- head(total[order(-total$FrequencyA),] ,arg_max_rbps)
 
@@ -354,7 +352,9 @@ num_rbps <- length(unique(total$RBP))
 total <- total[total$circRNA %in% selected_circrnas ,]
 
 for (top_circ in unique(total$circRNA)) {
-    total$total_sum[total$circRNA == top_circ] <- sum(total[total$circRNA == top_circ , rbp_sum])
+    if (!is.na(arg_data_file_2)) {
+        total$total_sum[total$circRNA == top_circ] <- sum(total[total$circRNA == top_circ , rbp_sum])
+    }
     total$total_sum_A[total$circRNA == top_circ] <- sum(total[total$circRNA == top_circ , A])
 
     if (!is.na(arg_data_file_2)) {
@@ -362,8 +362,11 @@ for (top_circ in unique(total$circRNA)) {
     }
 }
 
-label_pos <- (max(total$total_sum, na.rm = TRUE) / 2) - 50
-
+if (!is.na(arg_data_file_2)) {
+    label_pos <- (max(total$total_sum, na.rm = TRUE) / 2) - 50
+} else {
+    label_pos <- (max(circ_rna_selection$A, na.rm = TRUE))
+}
 circ_simple_plot <- ggplot(data = total) +
     geom_bar(aes(x = reorder(circRNA, - total_sum_A), y = A, fill = RBP), stat = "identity", size = 0.0, colour = "black") +
     geom_label(aes(x = arg_max_circRNAs - 4 , y = label_pos, label = arg_label_sample_1), fill = "white")
