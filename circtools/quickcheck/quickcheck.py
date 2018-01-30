@@ -117,7 +117,6 @@ class QuickCheck(circ_module.circ_template.CircTemplate):
                 self.cli_params.grouping,
                 self.cli_params.colour
         ]
-        print(args)
 
         # ------------------------------------ run script and check output -----------------------
 
