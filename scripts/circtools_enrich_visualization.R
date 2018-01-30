@@ -149,6 +149,14 @@ rbps <- table(tmp$RBP)
 
 rbps <- sort(rbps, decreasing = TRUE)
 rbp_df <- data.frame(rbps)
+
+if (length(rbp_df) == 1){
+    rbp_df$RBP <- rownames(rbp_df)
+    colnames(rbp_df) <- c("A", "B")
+    rbp_df <- rbp_df[,c("B","A")]
+    rownames(rbp_df) <- NULL
+}
+
 colnames(rbp_df) <- c("RBP", "Frequency")
 rbp_df <- rbp_df[rbp_df$Frequency > arg_max_circRNAs,]
 
@@ -167,6 +175,7 @@ if (!is.na(arg_data_file_2)) {
 
 
 total <-rbp_df
+head(total)
 
 if (!is.na(arg_data_file_2)) {
     total <- merge(rbp_df, rbp_df2, by = "RBP", all = TRUE)
@@ -181,7 +190,7 @@ if (!is.na(arg_data_file_2)) {
     colnames(total) <- c("RBP", "FrequencyA","sum")
     label_pos_1 <- (max(total$FrequencyA, na.rm = TRUE))
 }
-
+head(total)
 # limit to top X
 total <- head(total[order(-total$FrequencyA),] ,arg_max_rbps)
 
