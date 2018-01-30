@@ -142,7 +142,7 @@ pdf(paste(arg_output_directory, ".pdf", sep = "") , height= 8.2, width=11.69 , t
                         geom_point(size = 2) + scale_color_grey(start = 0, end = 0) + labs(shape = "Group")
     } else {
         page_one <- ggplot( raw_counts, aes(x=circ, y=lin, color=as.factor(group), label=rownames(raw_counts))) +
-                        geom_point() + labs(colours = "Group")
+                        geom_point() + labs(color = "Group")
     }
 
                         page_one <- page_one +
