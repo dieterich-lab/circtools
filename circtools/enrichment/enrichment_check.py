@@ -417,6 +417,11 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                 line_iterator = iter(file_handle)
                 bed_content = ""
                 entity_count = 1
+                # sometimes a gene name is not unique - like Y_RNA
+                # we keep a dict of all names and add the position to the name
+                # in case we counter Y_RNA a second time
+                gene_names = {}
+
                 for line in line_iterator:
                     # we skip any comment lines
                     if line.startswith("#"):
@@ -447,6 +452,16 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                         gene_name = self.extract_gene_name_from_gtf(columns[8])
                     else:
                         gene_name = columns[3]  # somewhat easier in BED...
+
+                    if gene_name not in gene_names:
+                        gene_names[gene_name] = 1
+                    else:
+                        if file_type == FILE_TYPE_GTF:
+                            gene_name = gene_name + "_" + columns[3] + "-" + columns[4]
+                            gene_names[gene_name] = 1
+                        else:
+                            gene_name = gene_name + "_" + columns[1] + "-" + columns[2]
+                            gene_names[gene_name] = 1
 
                     # extract chromosome, start, stop, score(0), name and strand
                     # we hopefully have a gene name now and use this one for the entry
