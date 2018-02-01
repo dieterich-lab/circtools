@@ -417,11 +417,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                 line_iterator = iter(file_handle)
                 bed_content = ""
                 entity_count = 1
-                # sometimes a gene name is not unique - like Y_RNA
-                # we keep a dict of all names and add the position to the name
-                # in case we counter Y_RNA a second time
-                gene_names = {}
-
                 for line in line_iterator:
                     # we skip any comment lines
                     if line.startswith("#"):
@@ -452,16 +447,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                         gene_name = self.extract_gene_name_from_gtf(columns[8])
                     else:
                         gene_name = columns[3]  # somewhat easier in BED...
-
-                    if gene_name not in gene_names:
-                        gene_names[gene_name] = 1
-                    else:
-                        if file_type == FILE_TYPE_GTF:
-                            gene_name = gene_name + "_" + columns[3] + "-" + columns[4]
-                            gene_names[gene_name] = 1
-                        else:
-                            gene_name = gene_name + "_" + columns[1] + "-" + columns[2]
-                            gene_names[gene_name] = 1
 
                     # extract chromosome, start, stop, score(0), name and strand
                     # we hopefully have a gene name now and use this one for the entry
@@ -629,19 +614,30 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                 str(bed_feature[2]) + "_" + \
                 bed_feature[5]
 
+            gene_name = bed_feature[3]
+
             # in feature mode, we extend the key by count and feature length
             if self.virtual_inclusion_file_path != "all":
                 key += "_" + str(bed_feature[4])
 
             # we have to create the nested dictionaries if not already existing
-            if bed_feature[3] not in count_table:
-                count_table[bed_feature[3]] = {}
+            if gene_name not in count_table:
+                count_table[gene_name] = {}
+                # sometime gene names are not unique
+                # we simply check if the last key is at least of the same chromosome
+            else:
+                first_chr = self.decode_location_key(next(iter(count_table[gene_name].keys())))["chr"]
 
-            if key not in count_table[bed_feature[3]]:
-                count_table[bed_feature[3]][key] = {}
+                # check if chromosomes match
+                if first_chr != bed_feature[0]:
+                    gene_name = gene_name + "_" + bed_feature[0] + "_" + bed_feature[1]
+                    count_table[gene_name] = {}
+
+            if key not in count_table[gene_name]:
+                count_table[gene_name][key] = {}
 
             # set the appropriate dict entry
-            count_table[bed_feature[3]][key] = normalize_count(bed_feature[1],
+            count_table[gene_name][key] = normalize_count(bed_feature[1],
                                                                bed_feature[2],
                                                                int(bed_feature[6])
                                                                )
@@ -748,7 +744,9 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                         # for each location key of the circRNA
                         for location_key_circular in self.observed_counts[0][gene]:
 
-                            if self.observed_counts[0][gene][location_key_circular] > 0:
+                            if self.decode_location_key(location_key_circular)["chr"] == \
+                                    self.decode_location_key(location_key_linear)["chr"] and \
+                                    self.observed_counts[0][gene][location_key_circular] > 0:
 
                                 # get the count of simulated peaks > than observed peaks
                                 count_circular = 0
