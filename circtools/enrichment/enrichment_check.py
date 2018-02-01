@@ -85,6 +85,22 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         logging.info("%s %s started" % (self.program_name, self.version))
         logging.info("%s command line: %s" % (self.program_name, " ".join(sys.argv)))
 
+        import subprocess
+
+        try:
+            bedtools_version = subprocess.check_output("bedtools --version",
+                                                       shell=True,
+                                                       stderr=subprocess.DEVNULL).decode("utf-8")
+            bedtools_version = bedtools_version.rstrip()
+
+            self.log_entry("%s detected" % bedtools_version)
+
+            bedtools_version = int(bedtools_version.split(".")[1])
+
+        except subprocess.CalledProcessError:
+            self.log_entry("Bedtools binary not found in your path, exiting")
+            exit(-1)
+
         # (default is ["all"])
         if self.cli_params.include_features:
 
@@ -95,10 +111,14 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
             # we create a bed file on disk for all features
             self.virtual_inclusion_object = pybedtools.BedTool(temp_bed, from_string=True)
 
-            self.virtual_inclusion_object = self.virtual_inclusion_object.sort().merge(s=True,  # strand specific
+            if bedtools_version > 26:
+                self.virtual_inclusion_object = self.virtual_inclusion_object.sort().merge(s=True,  # strand specific
+                                                                                       c="4,5,6",  # copy columns 5 & 6
+                                                                                       o="distinct,distinct,distinct")  # group
+            else:
+                self.virtual_inclusion_object = self.virtual_inclusion_object.sort().merge(s=True,  # strand specific
                                                                                        c="5,6",  # copy columns 5 & 6
                                                                                        o="distinct,distinct")  # group
-
             # set the path where to store it
             self.virtual_inclusion_file_path = self.cli_params.output_directory + \
                                                '/' + self.cli_params.output_filename + \
