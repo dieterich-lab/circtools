@@ -241,76 +241,76 @@ rbp_simple_plot <- ggplot(data=total) +
 ### We accumulate isoforms!
 ########################################################################################################################
 
-# only plot if we see more than one RBP
-if (print_isoforms == 1){
-
-    if (!is.na(arg_data_file_2)) {
-        sample_list <- list(rbp_data_file_1, rbp_data_file_2)
-        sample_names <- list(arg_label_sample_1, arg_label_sample_2)
-    } else {
-        sample_list <- list(rbp_data_file_1)
-        sample_names <- list(arg_label_sample_1)
-    }
-
-    for (sample in seq(1 : length(sample_list))) {
-
-        current_data <- sample_list[[sample]]
-        sub_dataframe <- data.frame(table(current_data$Annotation))
-        sub_dataframe$Var1 <- levels(droplevels(sub_dataframe$Var1))
-        sub_dataframe <- sub_dataframe[order(- sub_dataframe$Freq),]
-        selected_circrnas <- sub_dataframe$Var1[1 : arg_max_circRNAs]
-
-        for (top_circ in selected_circrnas) {
-
-
-            current_dataframe <- data.frame(unique(current_data[current_data$Annotation == top_circ, 4 : 5]))
-            circrna_plot <- list()
-
-            for (circ_isoform in 1 : nrow(current_dataframe))
-            {
-                tmp_frame <- data.frame(current_data[which(current_data$Annotation == top_circ &
-                    current_data$start == current_dataframe[circ_isoform, 1] &
-                    current_data$stop == current_dataframe[circ_isoform, 2] &
-                    current_data$observed_input_peaks_circ_rna > 0), c(1, 2, 3, 4, 5, 9)])
-                colnames(tmp_frame) <- c("RBP", "Annotation", "chr", "start", "stop", "clip_peaks")
-                tmp_frame <- tmp_frame[with(tmp_frame, order(- clip_peaks)),]
-                tmp_frame <- head(tmp_frame, arg_max_circRNAs)
-
-                miniframe <- data.frame(tmp_frame$RBP, tmp_frame$clip_peaks)
-                colnames(miniframe) <- c("RBP", "clip_peaks")
-                    miniframe <- ddply(unique(miniframe), .(RBP), transform, border = rep(1, clip_peaks))
-
-                    theme_set(theme_grey(base_size = 8))
-                    circrna_plot[[circ_isoform]] <- ggplot(miniframe, aes(RBP)) +
-                        geom_bar(aes(x = reorder(paste(RBP, ": ", clip_peaks, sep = ""), - clip_peaks), clip_peaks, fill = RBP), width = 1, size = 0.15, stat = "identity", color = "white")
-
-                        if (arg_colour_mode == "bw" ) {
-                            circrna_plot[[circ_isoform]] <- circrna_plot[[circ_isoform]] + scale_fill_grey(start = 0, end = .9)
-                        }
-
-                        circrna_plot[[circ_isoform]] <- circrna_plot[[circ_isoform]] +
-                        scale_y_continuous() +
-                        coord_polar() +
-                        theme(legend.position = "none", axis.text.y = element_blank(), axis.ticks = element_blank()) +
-                        labs(title = paste(sample_names[sample], ":\nComposition of RBP landscape for circRNA", tmp_frame[1, 2]),
-                        subtitle = paste("Isoform ", circ_isoform, ": Chromsome ", tmp_frame[1, 3], ", ", commapos(as.integer(tmp_frame[1, 4])), "->", commapos(as.integer(tmp_frame[1, 5])), sep = "")) +
-                        labs(y = "Accumulated eCLIP peak number observed for each RBP within the annotated circRNA") +
-                        labs(x = "") +
-                        labs(caption = paste("Top circRNAs enriched for RBP peaks compared to their host gene ( p <",
-                        arg_pval, ")"))
-            }
-
-            if (nrow(current_dataframe) == 1){
-                do.call(grid.arrange, c(circrna_plot, ncol = 1))
-            } else if (nrow(current_dataframe) == 2){
-                do.call(grid.arrange, c(circrna_plot, ncol = 2))
-            } else {
-                ml <- do.call(marrangeGrob, list(grobs=circrna_plot, nrow = 2, ncol = 2, top=NULL))
-                print(ml)
-            }
-        }
-    }
-}
+# # only plot if we see more than one RBP
+# if (print_isoforms == 1){
+#
+#     if (!is.na(arg_data_file_2)) {
+#         sample_list <- list(rbp_data_file_1, rbp_data_file_2)
+#         sample_names <- list(arg_label_sample_1, arg_label_sample_2)
+#     } else {
+#         sample_list <- list(rbp_data_file_1)
+#         sample_names <- list(arg_label_sample_1)
+#     }
+#
+#     for (sample in seq(1 : length(sample_list))) {
+#
+#         current_data <- sample_list[[sample]]
+#         sub_dataframe <- data.frame(table(current_data$Annotation))
+#         sub_dataframe$Var1 <- levels(droplevels(sub_dataframe$Var1))
+#         sub_dataframe <- sub_dataframe[order(- sub_dataframe$Freq),]
+#         selected_circrnas <- sub_dataframe$Var1[1 : arg_max_circRNAs]
+#
+#         for (top_circ in selected_circrnas) {
+#
+#
+#             current_dataframe <- data.frame(unique(current_data[current_data$Annotation == top_circ, 4 : 5]))
+#             circrna_plot <- list()
+#
+#             for (circ_isoform in 1 : nrow(current_dataframe))
+#             {
+#                 tmp_frame <- data.frame(current_data[which(current_data$Annotation == top_circ &
+#                     current_data$start == current_dataframe[circ_isoform, 1] &
+#                     current_data$stop == current_dataframe[circ_isoform, 2] &
+#                     current_data$observed_input_peaks_circ_rna > 0), c(1, 2, 3, 4, 5, 9)])
+#                 colnames(tmp_frame) <- c("RBP", "Annotation", "chr", "start", "stop", "clip_peaks")
+#                 tmp_frame <- tmp_frame[with(tmp_frame, order(- clip_peaks)),]
+#                 tmp_frame <- head(tmp_frame, arg_max_circRNAs)
+#
+#                 miniframe <- data.frame(tmp_frame$RBP, tmp_frame$clip_peaks)
+#                 colnames(miniframe) <- c("RBP", "clip_peaks")
+#                     miniframe <- ddply(unique(miniframe), .(RBP), transform, border = rep(1, clip_peaks))
+#
+#                     theme_set(theme_grey(base_size = 8))
+#                     circrna_plot[[circ_isoform]] <- ggplot(miniframe, aes(RBP)) +
+#                         geom_bar(aes(x = reorder(paste(RBP, ": ", clip_peaks, sep = ""), - clip_peaks), clip_peaks, fill = RBP), width = 1, size = 0.15, stat = "identity", color = "white")
+#
+#                         if (arg_colour_mode == "bw" ) {
+#                             circrna_plot[[circ_isoform]] <- circrna_plot[[circ_isoform]] + scale_fill_grey(start = 0, end = .9)
+#                         }
+#
+#                         circrna_plot[[circ_isoform]] <- circrna_plot[[circ_isoform]] +
+#                         scale_y_continuous() +
+#                         coord_polar() +
+#                         theme(legend.position = "none", axis.text.y = element_blank(), axis.ticks = element_blank()) +
+#                         labs(title = paste(sample_names[sample], ":\nComposition of RBP landscape for circRNA", tmp_frame[1, 2]),
+#                         subtitle = paste("Isoform ", circ_isoform, ": Chromsome ", tmp_frame[1, 3], ", ", commapos(as.integer(tmp_frame[1, 4])), "->", commapos(as.integer(tmp_frame[1, 5])), sep = "")) +
+#                         labs(y = "Accumulated eCLIP peak number observed for each RBP within the annotated circRNA") +
+#                         labs(x = "") +
+#                         labs(caption = paste("Top circRNAs enriched for RBP peaks compared to their host gene ( p <",
+#                         arg_pval, ")"))
+#             }
+#
+#             if (nrow(current_dataframe) == 1){
+#                 do.call(grid.arrange, c(circrna_plot, ncol = 1))
+#             } else if (nrow(current_dataframe) == 2){
+#                 do.call(grid.arrange, c(circrna_plot, ncol = 2))
+#             } else {
+#                 ml <- do.call(marrangeGrob, list(grobs=circrna_plot, nrow = 2, ncol = 2, top=NULL))
+#                 print(ml)
+#             }
+#         }
+#     }
+# }
 ########################################################################################################################
 ### These are the # RBPs peaks per circRNA - i.e. the maximum of the observed peaks
 ### for each circRNA (non isoform specific)
@@ -355,8 +355,6 @@ if (!is.na(arg_data_file_2)) {
 num_circs <- length(unique(total$circRNA))
 num_rbps <- length(unique(total$RBP))
 
-total <- head(total[order(-A)], arg_max_circRNAs)
-
 for (top_circ in unique(total$circRNA)) {
     if (!is.na(arg_data_file_2)) {
         total$total_sum[total$circRNA == top_circ] <- sum(total[total$circRNA == top_circ , rbp_sum])
@@ -367,6 +365,9 @@ for (top_circ in unique(total$circRNA)) {
         total$total_sum_B[total$circRNA == top_circ] <- sum(total[total$circRNA == top_circ , B])
     }
 }
+
+selected_circrnas <- as.character((head(unique(total[order(- total_sum_A),circRNA]),arg_max_circRNAs)))
+total <- total[total$circRNA %in% selected_circrnas ,]
 
 if (!is.na(arg_data_file_2)) {
     label_pos <- (max(total$total_sum, na.rm = TRUE) / 2) - 50
