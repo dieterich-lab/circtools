@@ -161,7 +161,7 @@ if (length(rbp_df) == 1){
 }
 
 colnames(rbp_df) <- c("RBP", "Frequency")
-rbp_df <- rbp_df[rbp_df$Frequency > arg_max_circRNAs,]
+rbp_df <- head(rbp_df, arg_max_rbps)
 
 if (!is.na(arg_data_file_2)) {
     tmp <- data.frame(rbp_data_file_2$RBP)
@@ -173,7 +173,7 @@ if (!is.na(arg_data_file_2)) {
     rbps2 <- sort(rbps2, decreasing = TRUE)
     rbp_df2 <- data.frame(rbps2)
     colnames(rbp_df2) <- c("RBP", "Frequency")
-    rbp_df2 <- rbp_df2[rbp_df2$Frequency > arg_max_circRNAs,]
+    rbp_df2 <-  head(rbp_df2, arg_max_rbps)
 }
 
 total <-rbp_df
