@@ -294,9 +294,9 @@ if (print_isoforms == 1){
                         theme(legend.position = "none", axis.text.y = element_blank(), axis.ticks = element_blank()) +
                         labs(title = paste(sample_names[sample], ":\nComposition of RBP landscape for circRNA", tmp_frame[1, 2]),
                         subtitle = paste("Isoform ", circ_isoform, ": Chromsome ", tmp_frame[1, 3], ", ", commapos(as.integer(tmp_frame[1, 4])), "->", commapos(as.integer(tmp_frame[1, 5])), sep = "")) +
-                        labs(y = "#eCLIP peaks within annotated circRNA") +
+                        labs(y = "Accumulated eCLIP peak number observed for each RBP within the annotated circRNA") +
                         labs(x = "") +
-                        labs(caption = paste("circRNAs enriched for RBP peaks compared to their host gene ( p <",
+                        labs(caption = paste("Top circRNAs enriched for RBP peaks compared to their host gene ( p <",
                         arg_pval, ")"))
             }
 
@@ -355,7 +355,7 @@ if (!is.na(arg_data_file_2)) {
 num_circs <- length(unique(total$circRNA))
 num_rbps <- length(unique(total$RBP))
 
-total <- total[total$circRNA %in% selected_circrnas ,]
+total <- head(total[order(-A)], arg_max_circRNAs)
 
 for (top_circ in unique(total$circRNA)) {
     if (!is.na(arg_data_file_2)) {
