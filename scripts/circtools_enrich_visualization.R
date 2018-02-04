@@ -497,9 +497,9 @@ circ_simple_plot <- ggplot(data = circ_rna_selection) +
     scale_y_continuous(labels = commapos)  #, limits = c(-50,50)
 
     if (arg_colour_mode == "bw" ) {
-        circ_simple_plot <- circ_simple_plot + scale_fill_grey(start = 0, end = .9, name = "RBPs")
+        circ_simple_plot <- circ_simple_plot + scale_fill_grey(start = 0, end = .9, name = "CircRNAs")
     } else {
-        circ_simple_plot <- circ_simple_plot + scale_fill_discrete(name = "RBPs")
+        circ_simple_plot <- circ_simple_plot + scale_fill_discrete(name = "CircRNAs")
     }
 
     circ_simple_plot <- circ_simple_plot +
