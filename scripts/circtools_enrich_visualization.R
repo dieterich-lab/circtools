@@ -508,6 +508,7 @@ circ_simple_plot <- ggplot(data = circ_rna_selection) +
     legend.justification = c(1, 1),
     legend.text = element_text(size = 8),
     legend.key.size = unit(0.3, "cm"),
+    legend.position = "none",
     axis.text.x = element_text(angle = 45, hjust = 1, size = 10)
     ) +
     geom_hline(yintercept = 0, color = "black", size = 0.5) +
