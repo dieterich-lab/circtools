@@ -288,8 +288,7 @@ if (print_isoforms == 1){
                     current_data$observed_input_peaks_circ_rna > 0), c(1, 2, 3, 4, 5, 9)])
                 colnames(tmp_frame) <- c("RBP", "Annotation", "chr", "start", "stop", "clip_peaks")
                 tmp_frame <- tmp_frame[with(tmp_frame, order(- clip_peaks)),]
-                tmp_frame <- head(tmp_frame, arg_max_circRNAs)
-
+                tmp_frame <- head(tmp_frame, arg_max_rbps)
                 miniframe <- data.frame(tmp_frame$RBP, tmp_frame$clip_peaks)
                 colnames(miniframe) <- c("RBP", "clip_peaks")
                     miniframe <- ddply(unique(miniframe), .(RBP), transform, border = rep(1, clip_peaks))
