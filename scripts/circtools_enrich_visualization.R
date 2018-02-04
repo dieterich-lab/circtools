@@ -267,6 +267,11 @@ if (print_isoforms == 1){
         sub_dataframe <- data.frame(table(current_data$Annotation))
         sub_dataframe$Var1 <- levels(droplevels(sub_dataframe$Var1))
         sub_dataframe <- sub_dataframe[order(- sub_dataframe$Freq),]
+
+        if (nrow(sub_dataframe) < arg_max_circRNAs){
+            arg_max_circRNAs <- nrow(sub_dataframe)
+        }
+
         selected_circrnas <- sub_dataframe$Var1[1 : arg_max_circRNAs]
 
         for (top_circ in selected_circrnas) {
