@@ -172,6 +172,15 @@ if (!is.na(arg_data_file_2)) {
 
     rbps2 <- sort(rbps2, decreasing = TRUE)
     rbp_df2 <- data.frame(rbps2)
+
+    if (length(rbp_df2) == 1){
+        rbp_df2$RBP <- rownames(rbp_df2)
+        colnames(rbp_df2) <- c("A", "B")
+        rbp_df2 <- rbp_df2[,c("B","A")]
+        rownames(rbp_df2) <- NULL
+        print_isoforms <- 0
+    }
+
     colnames(rbp_df2) <- c("RBP", "Frequency")
     rbp_df2 <-  head(rbp_df2, arg_max_rbps)
 }
