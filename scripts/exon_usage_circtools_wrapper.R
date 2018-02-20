@@ -292,7 +292,8 @@ singleExonRanges <- makeGRangesFromDataFrame(singleExonDF);
 # retrieve gene annotation
 geneAttributes <- c("SYMBOL", "GENEID", "ENTREZID", "GENENAME")
 geneAnnotation <- ensembldb::select(
-  annotationdb, topSplicedGenes$GeneID, geneAttributes, keytype = "GENEID")
+  annotationdb, as.character(topSplicedGenes$GeneID), geneAttributes, keytype = "GENEID")
+
 topSplicedGenesMartData <- merge(
   topSplicedGenes,
   geneAnnotation,
