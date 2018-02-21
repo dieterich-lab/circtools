@@ -47,12 +47,12 @@ arg_max_rbps <- as.integer(args[4])
 arg_output_file_name <- args[5]
 arg_label_sample_1 <- args[6]
 arg_colour_mode <- args[7]
-arg_use_only_circ_data <- args[8] # path is string
+arg_use_only_circ_data <- args[8]
 
 
 # arguments for file 2 are ath the send so we can leave them empty
-arg_label_sample_2 <- args[9] # path is string
-arg_data_file_2 <- args[10] # path is string
+arg_label_sample_2 <- args[9]
+arg_data_file_2 <- args[10]
 
 
 # check circ-only mode
@@ -201,6 +201,10 @@ if (!is.na(arg_data_file_2)) {
     label_pos_1 <- (max(total$FrequencyA, na.rm = TRUE))
 }
 
+
+num_rbps <- length(unique(total$RBP))
+
+
 # limit to top X
 total <- head(total[order(-total$FrequencyA),] ,arg_max_rbps)
 
@@ -244,6 +248,95 @@ rbp_simple_plot <- ggplot(data=total) +
                         )
 
     print(rbp_simple_plot)
+
+########################################################################################################################
+### This is the # RBPs per circRNA plot
+### We do not accumulate isoforms and only count unique hits
+### This corresponds to the Top X single circRNAs plotted before
+########################################################################################################################
+
+
+if (!is.na(arg_data_file_2)) {
+    tmp1 <- data.frame(table(rbp_data_file_1$Annotation))
+    tmp2 <- data.frame(table(rbp_data_file_2$Annotation))
+    circ_rna_selection <- merge(tmp1, tmp2, by = c("Var1"), all = TRUE)
+    circ_rna_selection[is.na(circ_rna_selection)] <- 0
+    circ_rna_selection$Freq <- circ_rna_selection$Freq.x + circ_rna_selection$Freq.y
+    colnames(circ_rna_selection) <- c( "circRNA", "A", "B", "Total")
+
+} else {
+    circ_rna_selection <- data.frame(table(rbp_data_file_1$Annotation))
+    colnames(circ_rna_selection) <- c( "circRNA", "A")
+
+}
+
+num_circs <- length(unique(circ_rna_selection$circRNA))
+
+if (!is.na(arg_data_file_2)) {
+    circ_rna_selection$Var1 <- levels(droplevels(circ_rna_selection$circRNA))
+    circ_rna_selection <- circ_rna_selection[order(- circ_rna_selection$A),]
+    circ_rna_selection <- circ_rna_selection[circ_rna_selection$Total > 0,]
+    selected_circrnas <- head(circ_rna_selection$circRNA, arg_max_circRNAs)
+
+} else {
+    circ_rna_selection$Var1 <- levels(droplevels(circ_rna_selection$circRNA))
+    circ_rna_selection <- circ_rna_selection[order(- circ_rna_selection$A),]
+    circ_rna_selection <- circ_rna_selection[circ_rna_selection$A > 0,]
+    selected_circrnas <- head(circ_rna_selection$Var1, arg_max_circRNAs)
+}
+
+
+circ_rna_selection <- circ_rna_selection[circ_rna_selection$Var1 %in% selected_circrnas ,]
+
+label_pos <- (max(circ_rna_selection$A, na.rm = TRUE))
+
+circ_simple_plot <- ggplot(data = circ_rna_selection) +
+    geom_bar(aes(x = reorder(circRNA, - A), y = A, fill = circRNA), stat = "identity", size = 0.0, colour = "black") +
+
+    geom_label(aes(x = arg_max_circRNAs - 4 , y = label_pos, label = arg_label_sample_1), fill = "white")
+
+    if (!is.na(arg_data_file_2)) {
+        circ_simple_plot <- circ_simple_plot + geom_bar(aes(x = reorder(circRNA, - Total), y = -B, fill = circRNA), stat = "identity", size = 0.0, colour = "black") +               geom_label(aes(x = arg_max_circRNAs - 4, y = - label_pos, label = arg_label_sample_2), fill = "white")
+    }
+
+    # geom_bar(aes(x = reorder(circRNA, - total_sum), y = - B, fill = RBP), , stat = "identity", size = 0.0, colour = "black") +
+    circ_simple_plot <- circ_simple_plot +  labs(title = paste(arg_label_sample_1, ": Top CircRNAs (by RBP hits)", sep=""),
+    subtitle = paste("plotting colour-coded RBPs per circRNA, ordered by number of (distinct) RBP hits ( p <",
+    arg_pval, ")")) +
+    labs(y = "Number of different RBPs found for circRNA") +
+    labs(x = "CircRNA") +
+    labs(caption = paste("based on data from ",
+    num_circs,
+    " circRNAs and ",
+    num_rbps,
+    " RBPs, showing top ",
+    arg_max_circRNAs,
+    " circRNAs: ",
+    date(),
+    "",
+    sep = "")) +
+    scale_y_continuous(labels = commapos)  #, limits = c(-50,50)
+
+    if (arg_colour_mode == "bw" ) {
+        circ_simple_plot <- circ_simple_plot + scale_fill_grey(start = 0, end = .9, name = "CircRNAs")
+    } else {
+        circ_simple_plot <- circ_simple_plot + scale_fill_discrete(name = "CircRNAs")
+    }
+
+    circ_simple_plot <- circ_simple_plot +
+    theme(plot.title = element_text(lineheight = 0.8,
+    face = quote(bold)),
+    legend.justification = c(1, 1),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.3, "cm"),
+    legend.position = "none",
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 10)
+    ) +
+    geom_hline(yintercept = 0, color = "black", size = 0.5) +
+    guides(fill = guide_legend(ncol = 2))
+
+print(circ_simple_plot)
+
 
 ########################################################################################################################
 ### This is the # circRNAs per RBP plot
@@ -433,92 +526,6 @@ circ_simple_plot <- ggplot(data = total) +
 
 print(circ_simple_plot)
 
-########################################################################################################################
-### This is the # RBPs per circRNA plot
-### We do not accumulate isoforms and only count unique hits
-### This corresponds to the Top X single circRNAs plotted before
-########################################################################################################################
-
-
-if (!is.na(arg_data_file_2)) {
-    tmp1 <- data.frame(table(rbp_data_file_1$Annotation))
-    tmp2 <- data.frame(table(rbp_data_file_2$Annotation))
-    circ_rna_selection <- merge(tmp1, tmp2, by = c("Var1"), all = TRUE)
-    circ_rna_selection[is.na(circ_rna_selection)] <- 0
-    circ_rna_selection$Freq <- circ_rna_selection$Freq.x + circ_rna_selection$Freq.y
-    colnames(circ_rna_selection) <- c( "circRNA", "A", "B", "Total")
-
-} else {
-    circ_rna_selection <- data.frame(table(rbp_data_file_1$Annotation))
-    colnames(circ_rna_selection) <- c( "circRNA", "A")
-
-}
-
-
-if (!is.na(arg_data_file_2)) {
-    circ_rna_selection$Var1 <- levels(droplevels(circ_rna_selection$circRNA))
-    circ_rna_selection <- circ_rna_selection[order(- circ_rna_selection$A),]
-    circ_rna_selection <- circ_rna_selection[circ_rna_selection$Total > 0,]
-    selected_circrnas <- head(circ_rna_selection$circRNA, arg_max_circRNAs)
-
-} else {
-    circ_rna_selection$Var1 <- levels(droplevels(circ_rna_selection$circRNA))
-    circ_rna_selection <- circ_rna_selection[order(- circ_rna_selection$A),]
-    circ_rna_selection <- circ_rna_selection[circ_rna_selection$A > 0,]
-    selected_circrnas <- head(circ_rna_selection$Var1, arg_max_circRNAs)
-}
-
-
-circ_rna_selection <- circ_rna_selection[circ_rna_selection$Var1 %in% selected_circrnas ,]
-
-label_pos <- (max(circ_rna_selection$A, na.rm = TRUE))
-
-circ_simple_plot <- ggplot(data = circ_rna_selection) +
-    geom_bar(aes(x = reorder(circRNA, - A), y = A, fill = circRNA), stat = "identity", size = 0.0, colour = "black") +
-
-    geom_label(aes(x = arg_max_circRNAs - 4 , y = label_pos, label = arg_label_sample_1), fill = "white")
-
-    if (!is.na(arg_data_file_2)) {
-        circ_simple_plot <- circ_simple_plot + geom_bar(aes(x = reorder(circRNA, - Total), y = -B, fill = circRNA), stat = "identity", size = 0.0, colour = "black") +               geom_label(aes(x = arg_max_circRNAs - 4, y = - label_pos, label = arg_label_sample_2), fill = "white")
-    }
-
-    # geom_bar(aes(x = reorder(circRNA, - total_sum), y = - B, fill = RBP), , stat = "identity", size = 0.0, colour = "black") +
-    circ_simple_plot <- circ_simple_plot +  labs(title = paste(arg_label_sample_1, ": Top CircRNAs (by RBP hits)", sep=""),
-    subtitle = paste("plotting colour-coded RBPs per circRNA, ordered by total number of total RBP hits ( p <",
-    arg_pval, ")")) +
-    labs(y = "Number of total RBP hits") +
-    labs(x = "CircRNA") +
-    labs(caption = paste("based on data from ",
-    num_circs,
-    " circRNAs and ",
-    num_rbps,
-    " RBPs, showing top ",
-    arg_max_circRNAs,
-    " circRNAs: ",
-    date(),
-    "",
-    sep = "")) +
-    scale_y_continuous(labels = commapos)  #, limits = c(-50,50)
-
-    if (arg_colour_mode == "bw" ) {
-        circ_simple_plot <- circ_simple_plot + scale_fill_grey(start = 0, end = .9, name = "CircRNAs")
-    } else {
-        circ_simple_plot <- circ_simple_plot + scale_fill_discrete(name = "CircRNAs")
-    }
-
-    circ_simple_plot <- circ_simple_plot +
-    theme(plot.title = element_text(lineheight = 0.8,
-    face = quote(bold)),
-    legend.justification = c(1, 1),
-    legend.text = element_text(size = 8),
-    legend.key.size = unit(0.3, "cm"),
-    legend.position = "none",
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 10)
-    ) +
-    geom_hline(yintercept = 0, color = "black", size = 0.5) +
-    guides(fill = guide_legend(ncol = 2))
-
-print(circ_simple_plot)
 
 ########################################################################################################################
 ### Done with plotting, finishing up
