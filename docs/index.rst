@@ -18,6 +18,9 @@ We developed **circtools**, a modular, Python3-based framework for circRNA-relat
 
 We intend to add more and more modules in the future in order to provide a comprehensive bioinformatics toolbox and also encourage users to contribute modules to circtools.
 
+**circtools** is developed in the `Dieterich Lab <https://dieterichlab.org>`_ at the `University Hospital Heidelberg <https://www.heidelberg-university-hospital.com//>`_.
+
+
 Table of contents
 ============
 .. toctree::
@@ -29,7 +32,7 @@ Table of contents
 
 License
 ============
-circtools is freely available under a GNU General Public License v3.0.
+**circtools** is freely available under a GNU General Public License v3.0.
 
 
 Issues
