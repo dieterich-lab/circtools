@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # install dependencies for R first
-Rscript install_R_dependencies.R
+Rscript scripts/install_R_dependencies.R
 
 # install primer-design R part
 Rscript R/install.R
