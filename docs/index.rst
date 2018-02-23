@@ -28,6 +28,12 @@ Table of contents
 
    Index.md
    Modules.md
+   Detect.md
+   Reconstruct.md
+   Quickcheck.md
+   Circtest.md
+   Enrichment.md
+   Exon.md
    Primer.md
    Usage.md
 
