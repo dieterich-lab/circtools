@@ -28,6 +28,7 @@ Table of contents
 
    Index.md
    Modules.md
+   Primer.md
    Usage.md
 
 License
