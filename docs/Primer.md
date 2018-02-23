@@ -1,6 +1,7 @@
-circtools: primer design module
+Primer design module
 ================
-#### 2017-06-21 /  [Alexey Uvarovskii](https://github.com/alexey0308)
+
+2017-06-21 /  [Alexey Uvarovskii](https://github.com/alexey0308)
 
 Introduction
 ------------
