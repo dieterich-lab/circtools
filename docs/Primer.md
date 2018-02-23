@@ -1,4 +1,4 @@
-Primer design module
+The primer design R package
 ================
 
 2017-06-21 /  [Alexey Uvarovskii](https://github.com/alexey0308)
