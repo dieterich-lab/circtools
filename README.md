@@ -1,3 +1,6 @@
+[![Documentation Status](https://readthedocs.org/projects/circtools/badge/?version=1.2-dev)](http://circtools.readthedocs.io/en/1.2-dev/?badge=1.2-dev)
+
+
 This project contains the framework of the circular RNA toolbox ``circtools``.
 
 # Installation
