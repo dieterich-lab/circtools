@@ -35,7 +35,6 @@ Table of contents
    Enrichment.md
    Exon.md
    Primer.md
-   Usage.md
 
 License
 ============
