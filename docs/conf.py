@@ -20,7 +20,7 @@
 # -- Project information -----------------------------------------------------
 
 project = u'circtools'
-copyright = u'2018, Tobias Jakobi'
+copyright = u'2018, Tobias Jakobi, Dieterich Lab'
 author = u'Tobias Jakobi'
 
 # The short X.Y version
