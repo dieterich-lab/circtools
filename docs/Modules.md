@@ -1,4 +1,4 @@
-# Modules
+# Available modules
 
 Circtools currently offers seven modules:
 
