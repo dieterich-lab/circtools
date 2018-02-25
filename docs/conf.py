@@ -26,7 +26,7 @@ author = u'Tobias Jakobi'
 # The short X.Y version
 version = u''
 # The full version, including alpha/beta/rc tags
-release = u''
+release = ''
 
 
 # -- General configuration ---------------------------------------------------
@@ -119,7 +119,7 @@ htmlhelp_basename = 'circtoolsdoc'
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     #
-    # 'papersize': 'letterpaper',
+     'papersize': 'a4paper',
 
     # The font size ('10pt', '11pt' or '12pt').
     #
@@ -139,7 +139,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'circtools.tex', u'circtools Documentation',
-     u'Tobias Jakobi', 'manual'),
+     u'Tobias Jakobi, Dieterich Lab', 'manual'),
 ]
 
 
@@ -160,6 +160,6 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'circtools', u'circtools Documentation',
-     author, 'circtools', 'One line description of project.',
+     author, 'circtools', 'a one-stop software solution for circular RNA research',
      'Miscellaneous'),
 ]
