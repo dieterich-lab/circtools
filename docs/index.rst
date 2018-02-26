@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 ==================================================================
-circtools - a one-stop software solution for circular RNA research
+circtools: a one-stop software solution for circular RNA research
 ==================================================================
 
 Introduction
@@ -22,27 +22,28 @@ We intend to add more and more modules in the future in order to provide a compr
 
 
 Table of contents
-============
+==================
+
 .. toctree::
    :maxdepth: 2
 
-   Index.md
+   Installation.rst
    Modules.md
-   Detect.md
-   Reconstruct.md
-   Quickcheck.md
-   Circtest.md
-   Enrichment.md
-   Exon.md
+   Detect.rst
+   Reconstruct.rst
+   Quickcheck.rst
+   Circtest.rst
+   Enrichment.rst
+   Exon.rst
    Primer.md
 
 License
-============
-**circtools** is freely available under a GNU General Public License v3.0.
+========
+**circtools** is freely available under the GNU General Public License v3.0.
 
 
 Issues
 ===============
 
-Problems or issues should be reported `via the GitHub issue system <https://github.com/dieterich-lab/circtools/issues/new>`_.
+Problems or issues should be reported `via the GitHub issue system <https://github.com/dieterich-lab/circtools/issues>`_.
 
