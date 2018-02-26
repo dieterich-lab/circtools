@@ -36,6 +36,7 @@ Table of contents
    Enrichment.rst
    Exon.rst
    Primer.md
+   Visualisation.rst
 
 License
 ========
