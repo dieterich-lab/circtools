@@ -18,12 +18,23 @@
 import argparse
 
 
-def return_bed_line(location, gene_name, comment):
+def return_bed_line(location, gene_name, comment, mode, threshold):
 
     split = location.split('_')
+
+    split[1] = int(split[1])
+    split[2] = int(split[2])
+
+    if mode == 1 and split[2] > split[1] + threshold:
+        # print(str(split[2]) +">"+ str(split[1]+ threshold) + " -> " + str(split[2] - split[1]))
+        split[2] = split[1] + threshold
+
+    if mode == 2 and split[1] < split[2] - threshold:
+        split[1] = split[2] - threshold
+
     return split[0] + "\t" +\
-        split[1] + "\t" +\
-        split[2] + "\t" +\
+        str(split[1]) + "\t" +\
+        str(split[2]) + "\t" +\
         gene_name + "\t" +\
         "0" + "\t" +\
         split[3] + "\t" +\
@@ -49,7 +60,7 @@ def extract_stop(string):
     return split[0] + "_" + split[2] + "_" + split[3]
 
 
-def print_results(dcc_dict, gtf_start_dict, gtf_stop_dict):
+def print_results(dcc_dict, gtf_start_dict, gtf_stop_dict, threshold):
 
     for entry in dcc_dict:
 
@@ -77,10 +88,10 @@ def print_results(dcc_dict, gtf_start_dict, gtf_stop_dict):
             #  print(return_bed_line(entry, dcc_dict[entry]))
 
             # line for downstream intron
-            print(return_bed_line(start_found, dcc_dict[entry], entry))
+            print(return_bed_line(start_found, dcc_dict[entry], entry, 2, threshold))
 
             # line for upstream exon
-            print(return_bed_line(stop_found, dcc_dict[entry], entry))
+            print(return_bed_line(stop_found, dcc_dict[entry], entry, 1, threshold))
 
     return
 
@@ -158,12 +169,20 @@ group.add_argument("-g",
                    required=True
                    )
 
+group.add_argument("-t",
+                   "--threshold",
+                   dest="base_threshold",
+                   help="max length of intron sequence",
+                   type=int,
+                   default=2000
+                   )
+
 args = parser.parse_args()
 
 dcc_input = parse_dcc_file(args.dcc_file)
 
 gtf_input = parse_gtf_file(args.gtf_file)
 
-print_results(dcc_input, gtf_input[0], gtf_input[1])
+print_results(dcc_input, gtf_input[0], gtf_input[1], args.base_threshold)
 
 
