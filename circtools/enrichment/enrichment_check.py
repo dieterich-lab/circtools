@@ -958,11 +958,14 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         # we pre-process the first entry of the list because here we stored the observed counts
         # order of tuples: pos 0: circular rna, pos 1: linear rna
 
+        processed_counts = []
+
+        for rna_type in range(0, 2):
+            processed_counts.append(self.process_intersection(self.results[current_iteration][rna_type]))
+
         for rna_type in range(0, 2):
 
-            processed_counts = self.process_intersection(self.results[current_iteration][rna_type])
-
-            for gene, nested_dict in processed_counts.items():
+            for gene, nested_dict in processed_counts[rna_type].items():
 
                 # we need to get the observed count for this gene before we start
                 observed_value_dict = self.observed_counts[rna_type][gene]
@@ -995,8 +998,12 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                                                tmp_data["strand"] + "_" + \
                                                str(tmp_data["feature_length"]) + "_" + \
                                                str(tmp_data["feature_count"])
+                            circ_count = 0
 
-                            if shuffled_value > observed_value_dict[location_key_new]:
+                            if location_key_circular in processed_counts[0][gene]:
+                                circ_count = processed_counts[0][gene][location_key_circular]
+
+                            if shuffled_value-circ_count > observed_value_dict[location_key_new]:
 
                                 # Yes, it's higher, so we update the count of "more than observed" for this gene
                                 if gene not in gene_dict:
