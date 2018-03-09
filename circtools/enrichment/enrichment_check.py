@@ -855,7 +855,8 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
                             if self.virtual_inclusion_file_path != "all":
                                 length.append(self.get_extended_key_data(location_key_circular)["feature_length"])
-                                length.append(self.get_extended_key_data(location_key_linear)["feature_length"])
+                                length.append(self.get_extended_key_data(location_key_linear)["feature_length"] -
+                                              self.get_extended_key_data(location_key_circular)["feature_length"])
                                 location_data_circ = self.decode_location_key(location_key_circular)
                                 location_data_linear = self.decode_location_key(location_key_linear)
                             else:
