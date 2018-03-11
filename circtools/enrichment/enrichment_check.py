@@ -43,6 +43,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         self.phase_storage = {}
         self.virtual_inclusion_file_path = "all"
         self.virtual_inclusion_object = None
+        self.circRNA_buddies = {}
 
     def run_module(self):
 
@@ -315,6 +316,9 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                 bed_content = ""
                 bed_entries = 0
                 bed_peak_sizes = 0
+                last_buddy = "NULL"
+                last_key = "NULL"
+
                 for line in line_iterator:
                     columns = line.split('\t')
 
@@ -326,6 +330,27 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
                     bed_entries += 1
                     bed_peak_sizes += (int(columns[2]) - int(columns[1]))
+
+                    # column7 -> reserved for flanking intron detection
+                    if columns[7]:
+
+                        # remove \n
+                        columns[7] = columns[7].rstrip()
+
+                        # generate key for this buddy
+                        this_key = self.strip_chr_name(columns[0]) + "_" + columns[1] + "_" + columns[2] + "_" + columns[5] + "_" + str(int(columns[2])-int(columns[1])) + "_1"
+
+                        if last_buddy != "NULL" and last_buddy == columns[7]:
+
+                            # save the buddy key pair
+                            self.circRNA_buddies[this_key] = last_key
+                            self.circRNA_buddies[last_key] = this_key
+
+                        # reset buddy
+                        last_buddy = columns[7]
+
+                        # generate key for this buddy
+                        last_key = self.strip_chr_name(columns[0]) + "_" + columns[1] + "_" + columns[2] + "_" + columns[5] + "_" + str(int(columns[2])-int(columns[1])) + "_1"
 
             self.log_entry("Done parsing circular RNA input file:")
             self.log_entry("=> %s circular RNAs, %s nt average (theoretical unspliced) length" %
@@ -547,10 +572,10 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
             # we need to do a second intersect to get the amount of peaks that are located within circular RNAs _AND_
             # also part of a features: e.g. an exon of a circRNA
 
-            intersect_return = base_bed.intersect(query_bed, c=True)
+            intersect_return = base_bed.intersect(query_bed, c=True, s=True)
             intersect_return = self.pre_process_intersection(intersect_return)
         else:
-            intersect_return = base_bed.intersect(query_bed, c=True)
+            intersect_return = base_bed.intersect(query_bed, c=True, s=True)
 
         return intersect_return
 
@@ -584,7 +609,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                 isoform_count[key] = int(bed_feature[12])
                 isoform_name[key] = bed_feature[9]
 
-            else:
+            elif bed_feature[1] != bed_feature[7] and bed_feature[2] != bed_feature[8]:
                 isoform_net_length[key] += (int(bed_feature[2]) - int(bed_feature[1]))
                 isoform_num_features[key] += 1
                 isoform_count[key] += int(bed_feature[12])
@@ -1003,8 +1028,27 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
                             if location_key_circular in processed_counts[0][gene]:
                                 circ_count = processed_counts[0][gene][location_key_circular]
+                                # for intron mode we have to also subtract / add here
 
-                            if shuffled_value-circ_count > observed_value_dict[location_key_new]:
+                                # we got the first circRNA of the buddy pair, we now need to get the second one
+                                count_correction = 0
+                                observed_count_correction = 0
+
+                                if location_key_circular in self.circRNA_buddies:
+                                    #print("buddy pair linear correction: " + location_key_circular + " -> " + self.circRNA_buddies[location_key_circular])
+
+                                    if self.circRNA_buddies[location_key_circular] in processed_counts[0][gene]:
+
+                                        count_correction = processed_counts[0][gene][self.circRNA_buddies[location_key_circular]]
+
+                                    if self.circRNA_buddies[location_key_circular] in self.observed_counts[0][gene]:
+
+                                        observed_count_correction = self.observed_counts[0][gene][self.circRNA_buddies[location_key_circular]]
+
+                                    #print("buddy pair linear correction raw: " + str(shuffled_value) + " -> " + str(count_correction))
+                                    #print("buddy pair linear correction obs: " + str(observed_value_dict[location_key_new]) + " -> " + str(observed_count_correction))
+
+                            if shuffled_value-circ_count-count_correction > observed_value_dict[location_key_new] - observed_count_correction:
 
                                 # Yes, it's higher, so we update the count of "more than observed" for this gene
                                 if gene not in gene_dict:
@@ -1020,7 +1064,22 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                                     gene_dict[gene][rna_type][location_key_new] = True
 
                     else:
-                        if shuffled_value > observed_value_dict[location_key]:
+                        # if circ rna get sister rna and get counts for obs and raw
+
+                        count_correction = 0
+                        observed_count_correction = 0
+
+                        if location_key in self.circRNA_buddies:
+                            #print("buddy pair: " + location_key + " -> " + self.circRNA_buddies[location_key])
+
+                            if self.circRNA_buddies[location_key] in processed_counts[0][gene]:
+                                count_correction = processed_counts[0][gene][self.circRNA_buddies[location_key]]
+                                observed_count_correction = self.observed_counts[0][gene][self.circRNA_buddies[location_key]]
+
+                            #print("buddy pair raw: " + str(shuffled_value) + " -> " + str(count_correction))
+                            #print("buddy pair obs: " + str(observed_value_dict[location_key]) + " -> " + str(observed_count_correction))
+
+                        if shuffled_value + count_correction > observed_value_dict[location_key] + observed_count_correction:
 
                             # Yes, it's higher, so we update the count of "more than observed" for this gene
                             if gene not in gene_dict:
