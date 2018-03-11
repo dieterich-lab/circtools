@@ -572,10 +572,10 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
             # we need to do a second intersect to get the amount of peaks that are located within circular RNAs _AND_
             # also part of a features: e.g. an exon of a circRNA
 
-            intersect_return = base_bed.intersect(query_bed, c=True)
+            intersect_return = base_bed.intersect(query_bed, c=True, s=True)
             intersect_return = self.pre_process_intersection(intersect_return)
         else:
-            intersect_return = base_bed.intersect(query_bed, c=True)
+            intersect_return = base_bed.intersect(query_bed, c=True, s=True)
 
         return intersect_return
 
