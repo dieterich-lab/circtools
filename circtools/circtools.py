@@ -177,6 +177,14 @@ class CircTools(object):
                            action='append',
                            )
 
+        group.add_argument("-k",
+                           "--keep-temp",
+                           dest="keep_temp",
+                           help="Keep temporary files created by circtools/bedtools [default: no]",
+                           type=bool,
+                           default=False
+                           )
+
         args = parser.parse_args(sys.argv[2:])
 
         # make sure we can load the sub module
