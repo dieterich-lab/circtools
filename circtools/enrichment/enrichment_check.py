@@ -286,7 +286,8 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         with open(result_file, 'w') as text_file:
             text_file.write(result_table)
 
-        self.clean_up_temp_files()
+        if not self.cli_params.keep_temp:
+            self.clean_up_temp_files()
 
         # ------------------------------------- Function definitions start here ---------------------------------------
 
@@ -1117,7 +1118,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         """Delete temporary files created by pybedtools
         """
         self.log_entry("Cleaning up temporary files")
-        return
 
         import glob
         for tmp_file in glob.glob(self.cli_params.tmp_directory+"/"+"pybedtools*"):
