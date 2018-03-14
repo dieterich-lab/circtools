@@ -1085,8 +1085,9 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
                             #print("buddy pair raw: " + str(shuffled_value) + " -> " + str(count_correction))
                             #print("buddy pair obs: " + str(observed_value_dict[location_key]) + " -> " + str(observed_count_correction))
+                        # print(gene + "->" + str(rna_type) +  " -> " + str(shuffled_value) +  " -> "  + location_key)
 
-                        if shuffled_value + count_correction > observed_value_dict[location_key] + observed_count_correction:
+                        if location_key in observed_value_dict and shuffled_value + count_correction > observed_value_dict[location_key] + observed_count_correction:
 
                             # Yes, it's higher, so we update the count of "more than observed" for this gene
                             if gene not in gene_dict:
