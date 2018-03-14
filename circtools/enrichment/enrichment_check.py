@@ -333,25 +333,31 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                     bed_peak_sizes += (int(columns[2]) - int(columns[1]))
 
                     # column7 -> reserved for flanking intron detection
+                    # update: make sure column7 has the format we expect
+
                     if columns[7]:
 
-                        # remove \n
-                        columns[7] = columns[7].rstrip()
+                        components = columns[7].split("_")
+                        # we have a normal key without feature information
+                        if len(components) == 4:
 
-                        # generate key for this buddy
-                        this_key = self.strip_chr_name(columns[0]) + "_" + columns[1] + "_" + columns[2] + "_" + columns[5] + "_" + str(int(columns[2])-int(columns[1])) + "_1"
+                            # remove \n
+                            columns[7] = columns[7].rstrip()
 
-                        if last_buddy != "NULL" and last_buddy == columns[7]:
+                            # generate key for this buddy
+                            this_key = self.strip_chr_name(columns[0]) + "_" + columns[1] + "_" + columns[2] + "_" + columns[5] + "_" + str(int(columns[2])-int(columns[1])) + "_1"
 
-                            # save the buddy key pair
-                            self.circRNA_buddies[this_key] = last_key
-                            self.circRNA_buddies[last_key] = this_key
+                            if last_buddy != "NULL" and last_buddy == columns[7]:
 
-                        # reset buddy
-                        last_buddy = columns[7]
+                                # save the buddy key pair
+                                self.circRNA_buddies[this_key] = last_key
+                                self.circRNA_buddies[last_key] = this_key
 
-                        # generate key for this buddy
-                        last_key = self.strip_chr_name(columns[0]) + "_" + columns[1] + "_" + columns[2] + "_" + columns[5] + "_" + str(int(columns[2])-int(columns[1])) + "_1"
+                            # reset buddy
+                            last_buddy = columns[7]
+
+                            # generate key for this buddy
+                            last_key = self.strip_chr_name(columns[0]) + "_" + columns[1] + "_" + columns[2] + "_" + columns[5] + "_" + str(int(columns[2])-int(columns[1])) + "_1"
 
             self.log_entry("Done parsing circular RNA input file:")
             self.log_entry("=> %s circular RNAs, %s nt average (theoretical unspliced) length" %
