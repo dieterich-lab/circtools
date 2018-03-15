@@ -206,12 +206,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
             self.process_intersection(self.results[0][1], linear_start=True)
         )
 
-        import pprint
-        pp = pprint.PrettyPrinter(indent=2)
-        pp.pprint(self.observed_counts[0])
-        pp.pprint(self.observed_counts[1])
-        exit(0)
-
         # how many iterations do we want to do before cleaning up?
         iterations_per_phase = int(self.cli_params.num_iterations / self.cli_params.num_processes)
 
