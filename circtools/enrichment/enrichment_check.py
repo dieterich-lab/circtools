@@ -698,11 +698,11 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                         # sometime gene names are not unique
                         # we simply check if the last key is at least of the same chromosome
                     else:
-                        continue
-                        # first_chr = self.decode_location_key(next(iter(count_table[gene_name].keys())))["chr"]
-                        #
-                        # # check if chromosomes match
-                        # if first_chr != bed_feature[0]:
+                        first_chr = self.decode_location_key(next(iter(count_table[gene_name].keys())))["chr"]
+
+                        # check if chromosomes match
+                        if first_chr != bed_feature[0]:
+                            continue
                         #     gene_name = gene_name + "_" + bed_feature[0] + "_" + bed_feature[1]
                         #     count_table[gene_name] = {}
 
@@ -732,14 +732,13 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                     # sometime gene names are not unique
                     # we simply check if the last key is at least of the same chromosome
                 else:
-                    continue
-
-                    # first_chr = self.decode_location_key(next(iter(count_table[gene_name].keys())))["chr"]
+                    first_chr = self.decode_location_key(next(iter(count_table[gene_name].keys())))["chr"]
 
                     # check if chromosomes match
-                    # if first_chr != bed_feature[0]:
-                        #gene_name = gene_name + "_" + bed_feature[0] + "_" + bed_feature[1]
-                        #count_table[gene_name] = {}
+                    if first_chr != bed_feature[0]:
+                       continue
+                       #gene_name = gene_name + "_" + bed_feature[0] + "_" + bed_feature[1]
+                       #count_table[gene_name] = {}
 
                 if key not in count_table[gene_name]:
                     count_table[gene_name][key] = {}
