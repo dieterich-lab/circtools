@@ -616,7 +616,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                 isoform_count[key] = int(bed_feature[12])
                 isoform_name[key] = bed_feature[9]
 
-            elif bed_feature[1] != bed_feature[7] and bed_feature[2] != bed_feature[8]:
+            elif bed_feature[1] != bed_feature[7] or bed_feature[2] != bed_feature[8]:
                 isoform_net_length[key] += (int(bed_feature[2]) - int(bed_feature[1]))
                 isoform_num_features[key] += 1
                 isoform_count[key] += int(bed_feature[12])
@@ -1087,7 +1087,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                             #print("buddy pair obs: " + str(observed_value_dict[location_key]) + " -> " + str(observed_count_correction))
                         # print(gene + "->" + str(rna_type) +  " -> " + str(shuffled_value) +  " -> "  + location_key)
 
-                        if location_key in observed_value_dict and shuffled_value + count_correction > observed_value_dict[location_key] + observed_count_correction:
+                        if shuffled_value + count_correction > observed_value_dict[location_key] + observed_count_correction:
 
                             # Yes, it's higher, so we update the count of "more than observed" for this gene
                             if gene not in gene_dict:
