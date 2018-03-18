@@ -18,32 +18,26 @@
 import argparse
 
 
-def return_bed_line(five_prime, three_prime, gene_name, comment, threshold):
+def return_bed_line(location, gene_name, comment, mode, threshold):
 
-    three = three_prime.split('_')
-    five = five_prime.split('_')
+    split = location.split('_')
 
-    three[1] = int(three[1])
-    three[2] = int(three[2])
+    split[1] = int(split[1])
+    split[2] = int(split[2])
 
-    five[1] = int(five[1])
-    five[2] = int(five[2])
+    if mode == 1 and split[2] > split[1] + threshold:
+        # print(str(split[2]) +">"+ str(split[1]+ threshold) + " -> " + str(split[2] - split[1]))
+        split[2] = split[1] + threshold
 
-    if three[2] > three[1] + threshold:
-        three[2] = three[1] + threshold
+    if mode == 2 and split[1] < split[2] - threshold:
+        split[1] = split[2] - threshold
 
-    if five[1] < five[2] - threshold:
-        five[1] = five[2] - threshold
-
-    start = five[1]
-    stop = three[2]
-
-    return five[0] + "\t" +\
-        str(start) + "\t" +\
-        str(stop) + "\t" +\
+    return split[0] + "\t" +\
+        str(split[1]) + "\t" +\
+        str(split[2]) + "\t" +\
         gene_name + "\t" +\
-        "0" + "\t" + \
-        five[3] + "\t" +\
+        "0" + "\t" +\
+        split[3] + "\t" +\
         "none" + "\t" +\
         comment
 
@@ -94,10 +88,10 @@ def print_results(dcc_dict, gtf_start_dict, gtf_stop_dict, threshold):
             #  print(return_bed_line(entry, dcc_dict[entry]))
 
             # line for downstream intron
-            print(return_bed_line(start_found, stop_found, dcc_dict[entry], entry, threshold))
+            print(return_bed_line(start_found, dcc_dict[entry], entry, 2, threshold))
 
             # line for upstream exon
-            #print(return_bed_line(stop_found, dcc_dict[entry], entry, 1, threshold))
+            print(return_bed_line(stop_found, dcc_dict[entry], entry, 1, threshold))
 
     return
 
