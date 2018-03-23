@@ -161,8 +161,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         annotation_bed.saveas(gene_annotation_file)
         # read in circular RNA predictions from DCC
         circ_rna_bed = self.read_circ_rna_file(self.cli_params.circ_rna_input,
-                                               annotation_bed,
-                                               self.cli_params.has_header)
+                                               annotation_bed)
 
         # do circle saves
         circle_annotation_file = self.cli_params.output_directory +\
@@ -291,7 +290,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         # ------------------------------------- Function definitions start here ---------------------------------------
 
-    def read_circ_rna_file(self, circ_rna_input, annotation_bed, has_header):
+    def read_circ_rna_file(self, circ_rna_input, annotation_bed):
         """Reads a CircCoordinates file produced by DCC
         Will halt the program if file not accessible
         Returns a BedTool object
@@ -310,10 +309,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         else:
             with file_handle:
                 line_iterator = iter(file_handle)
-                # skip first line with the header
-                # we assume it's there (DCC default)
-                if has_header:
-                    next(line_iterator)
+
                 bed_content = ""
                 bed_entries = 0
                 bed_peak_sizes = 0
@@ -322,6 +318,12 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
                 for line in line_iterator:
                     columns = line.split('\t')
+
+                    # skip first line with the header
+                    # we assume it's there (DCC default)
+
+                    if columns[0] == "Chr" and columns[1] == "Start":
+                        next(line_iterator)
 
                     # extract chromosome, start, stop, gene name, and strand
                     entry = [self.strip_chr_name(columns[0]), columns[1], columns[2], columns[3], "0", columns[5]]
