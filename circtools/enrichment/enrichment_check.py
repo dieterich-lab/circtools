@@ -321,9 +321,8 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
                     # skip first line with the header
                     # we assume it's there (DCC default)
-
                     if columns[0] == "Chr" and columns[1] == "Start":
-                        next(line_iterator)
+                        continue
 
                     # extract chromosome, start, stop, gene name, and strand
                     entry = [self.strip_chr_name(columns[0]), columns[1], columns[2], columns[3], "0", columns[5]]
