@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (C) 2017 Tobias Jakobi
+# Copyright (C) 2018 Tobias Jakobi
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,10 +16,23 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
+import os
+import sys
 
 
-def parse_fuchs_file(input_file, exon_dict):
+def check_input_files(input_file_list):
+    """Checks supplied list of files for existence.
+    Will halt the program if file not accessible
+    """
+    for file in input_file_list:
+        # check if exists
+        if not os.path.isfile(file):
+            message = ("File " + str(file) + " cannot be found, exiting.")
+            sys.exit(message)
 
+
+def parse_bed_file(input_file, annotation, local_dict):
+    
     with open(input_file) as fp:
 
         for line in fp:
@@ -36,21 +49,27 @@ def parse_fuchs_file(input_file, exon_dict):
 
             for wobble in range(-10, 10):
 
-                if columns[0] + "_" + str(int(columns[1])+wobble) in exon_dict:
+                if columns[0] + "_" + str(int(columns[1])+wobble) in annotation:
                     start = 1
 
-                if columns[0] + "_" + str(int(columns[2])+wobble) in exon_dict:
+                if columns[0] + "_" + str(int(columns[2])+wobble) in annotation:
                     stop = 1
 
             if start == 0 and stop == 0:
-                print(line)
+                location = columns[0] + "_" + str(columns[1]) + "_" + str(columns[2])
+                if location not in local_dict:
+                    local_dict[location] = 1
+                else:
+                    local_dict[location] += 1
+
+    return local_dict
 
 
 def parse_gtf_file(input_file):
     from collections import OrderedDict
     import sys
 
-    exon_dict = OrderedDict()
+    annotation = OrderedDict()
 
     try:
         file_handle = open(input_file)
@@ -80,34 +99,101 @@ def parse_gtf_file(input_file):
                 start_key = str(columns[0])+"_"+str(columns[3])
                 stop_key = str(columns[0])+"_"+str(columns[4])
 
-                exon_dict[start_key] = 1
-                exon_dict[stop_key] = 1
+                annotation[start_key] = 1
+                annotation[stop_key] = 1
 
-    return exon_dict
+    return annotation
 
 # main script starts here
 
 
-parser = argparse.ArgumentParser(description='Create ')
+parser = argparse.ArgumentParser(description='Output newly identified exons compare to reference annotation')
 
 group = parser.add_argument_group("Input")
 
-group.add_argument("-g",
-                   "--base-exons",
+group.add_argument("-a",
+                   "--annotation",
                    dest="base_exon_file",
-                   help="Bed file holding the known base exons",
+                   help="Base annotation in GTF format (ENSEMBL)",
                    required=True
                    )
 
+group.add_argument("-g",
+                   "--group-assignment",
+                   dest="assignment",
+                   help="Assignment of BED files to sample groups",
+                   required=True,
+                   nargs='+',
+                   type=int
+                   )
+
 group.add_argument("-f",
-                   "--fuchs-exons",
-                   dest="fuchs_exon_file",
-                   help="Bed file holding the reconstructed FUCHS exons",
-                   required=True
+                   "--bed-files",
+                   dest="bed_files",
+                   help="Space-separated list of BED files to scan",
+                   required=True,
+                   nargs='+',
                    )
 
 
 args = parser.parse_args()
 
+check_input_files(args.bed_files)
+
+
+if len(args.bed_files) != len(args.assignment):
+    print("Differing counts for BED files and group assignment, exiting.")
+    exit(-1)
+
+global_dict = {}
+
+assignment_dict = {}
+
+final_dict = {}
+
 gtf_input = parse_gtf_file(args.base_exon_file)
-parse_fuchs_file(args.fuchs_exon_file, gtf_input)
+
+num_files = len(args.bed_files)
+
+sample_num = len(set(args.assignment))
+
+file_dict = {}
+
+for file in range(0, num_files):
+
+    if args.assignment[file] not in global_dict:
+        global_dict[args.assignment[file]] = {}
+
+    file_dict[args.bed_files[file]] = args.assignment[file]
+
+    if args.assignment[file] not in assignment_dict:
+        assignment_dict[args.assignment[file]] = 1
+    else:
+        assignment_dict[args.assignment[file]] += 1
+
+    global_dict[args.assignment[file]] = parse_bed_file(args.bed_files[file], gtf_input, global_dict[args.assignment[file]])
+
+# for sample in global_dict:
+#     print(len(global_dict[sample]))
+
+
+# remove non-stringent exons
+for sample in global_dict:
+    final_dict[sample] = {}
+    for key in global_dict[sample]:
+        if global_dict[sample][key] >= assignment_dict[sample]:
+            final_dict[sample][key] = global_dict[sample][key]
+
+
+for sample in final_dict:
+    print(len(final_dict[sample]))
+
+#
+# for sample in final_dict:
+#
+#     file = open("sample_"+str(sample)+".out", "w")
+#
+#     for key in final_dict[sample]:
+#         file.write(key+"\n")
+#
+#     file.close()
