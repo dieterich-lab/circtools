@@ -45,7 +45,7 @@ create_quantile_plot <- function(table) {
         plot <- plot + scale_fill_hue(guide="legend", labels=probs, name="Quantiles")
     }
     plot <- plot +
-    labs(title = "Circular RNA predictions from FUCHS",
+    labs(title = "Circular RNA reconstruction results",
     subtitle = paste("CircRNA length - quantile plot for sample \"", lib, "\"", sep="")) +
     labs(y = "Density") +
     labs(x = "CircRNA length") +
@@ -125,11 +125,11 @@ plot <- ggplot(data = data, aes(x = group, y = count, fill = group)) +
         plot <- plot + scale_fill_grey(start = 0, end = .9)
     }
     plot <- plot +
-    labs(title = "Circular RNA predictions from FUCHS",
+    labs(title = "Circular RNA reconstruction results",
     subtitle = "Absolute count - normal scale") +
     labs(y = "Total number of circular RNAs") +
-    labs(x = "Sequencing library") +
-    labs(fill = "Library") +
+    labs(x = "Sample") +
+    labs(fill = "Sample") +
     theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank())
 
 # # total raw number of FUCHS circRNAs
@@ -140,11 +140,11 @@ plot <- ggplot(data = data, aes(x = group, y = count, fill = group)) +
         plot <- plot + scale_fill_grey(start = 0, end = .9)
     }
     plot <- plot +
-    labs(title = "Circular RNA predictions from FUCHS",
+    labs(title = "Circular RNA reconstruction results",
 		subtitle = "Absolute count - log10 scale") +
     labs(y = "Total number of circular RNAs (log10)") +
-    labs(x = "Sequencing library") +
-    labs(fill = "Library") +
+    labs(x = "Sample") +
+    labs(fill = "Sample") +
     scale_y_log10() +
     theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank())
 
@@ -160,11 +160,11 @@ plot <- ggplot(data = isoforms, aes(x = group, y = num, fill = group)) +
         plot <- plot + scale_fill_grey(start = 0, end = .9)
     }
     plot <- plot +
-    labs(title = "Circular RNA predictions from FUCHS",
+    labs(title = "Circular RNA reconstruction results",
     subtitle = "# circRNA isoforms per host gene") +
     labs(y = "Number of isoforms") +
-    labs(x = "Sequencing library") +
-    labs(fill = "Library") +
+    labs(x = "Sample") +
+    labs(fill = "Sample") +
     theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank())
 print(plot)
 
@@ -176,11 +176,11 @@ plot <- ggplot(data = exon_counts, aes(x = group, y = Length_total, fill = group
     }
     plot <- plot +
     scale_y_log10() +
-    labs(title = "Circular RNA predictions from FUCHS",
+    labs(title = "Circular RNA reconstruction results",
     subtitle = "Total length of circRNAs") +
     labs(y = "Total length (exons + introns)") +
-    labs(x = "Sequencing library") +
-    labs(fill = "Library") +
+    labs(x = "Sample") +
+    labs(fill = "Sample") +
     theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank())
 print(plot)
 
@@ -192,11 +192,11 @@ plot <- ggplot(data = exon_counts, aes(x = group, y = Length_exons, fill = group
     }
     plot <- plot +
     scale_y_log10() +
-    labs(title = "Circular RNA predictions from FUCHS",
+    labs(title = "Circular RNA reconstruction results",
     subtitle = "Exon-based length of circRNAs") +
     labs(y = "Length (exons only)") +
-    labs(x = "Sequencing library") +
-    labs(fill = "Library") +
+    labs(x = "Sample") +
+    labs(fill = "Sample") +
     theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank())
 print(plot)
 
@@ -206,11 +206,11 @@ plot <- ggplot(data = exon_counts, aes(x = group, y = Exons, fill = group)) +
         plot <- plot + scale_fill_grey(start = 0, end = .9)
     }
     plot <- plot +
-    labs(title = "Circular RNA predictions from FUCHS",
+    labs(title = "Circular RNA reconstruction results",
     subtitle = "Number of exons per circRNA") +
     labs(y = "# exons per circRNA") +
-    labs(x = "Sequencing library") +
-    labs(fill = "Library") +
+    labs(x = "Sample") +
+    labs(fill = "Sample") +
     theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank())
 print(plot)
 
@@ -222,11 +222,11 @@ plot <- ggplot(data = mate_status, aes(x = group, y = Single, fill = group)) +
     }
     plot <- plot +
     scale_y_log10() +
-    labs(title = "Circular RNA predictions from FUCHS",
+    labs(title = "Circular RNA reconstruction results",
     subtitle = "Single breakpoint circRNAs (absolute)") +
     labs(y = "# single breakpoints") +
-    labs(x = "Sequencing library") +
-    labs(fill = "Library") +
+    labs(x = "Sample") +
+    labs(fill = "Sample") +
     theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank())
 print(plot)
 
@@ -237,31 +237,31 @@ plot <- ggplot(data = mate_status, aes(x = group, y = Double, fill = group)) +
     }
     plot <- plot +
     scale_y_log10() +
-		labs(title = "Circular RNA predictions from FUCHS",
+		labs(title = "Circular RNA reconstruction results",
 		subtitle = "Double breakpoint circRNAs (absolute)") +
     labs(y = "# double breakpoints") +
     labs(y = "# exons per circRNA") +
-    labs(x = "Sequencing library") +
-    labs(fill = "Library") +
+    labs(x = "Sample") +
+    labs(fill = "Sample") +
     theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank())
 print(plot)
 
-plot <- ggplot(data = mate_status, aes(x = group, y = Unknown, fill = group)) +
-    geom_boxplot() + theme_classic()
-
-    if (arg_colour_mode == "bw" ) {
-        plot <- plot + scale_fill_grey(start = 0, end = .9)
-    }
-    plot <- plot +
-    scale_y_log10() +
-		labs(title = "Circular RNA predictions from FUCHS",
-		subtitle = "Unknown breakpoint circRNAs (absolute)") +
-    labs(y = "# unknown breakpoints") +
-    labs(y = "# exons per circRNA") +
-    labs(x = "Sequencing library") +
-    labs(fill = "Library") +
-    theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank())
-print(plot)
+# plot <- ggplot(data = mate_status, aes(x = group, y = Unknown, fill = group)) +
+#     geom_boxplot() + theme_classic()
+#
+#     if (arg_colour_mode == "bw" ) {
+#         plot <- plot + scale_fill_grey(start = 0, end = .9)
+#     }
+#     plot <- plot +
+#     scale_y_log10() +
+# 		labs(title = "Circular RNA reconstruction results",
+# 		subtitle = "Unknown breakpoint circRNAs (absolute)") +
+#     labs(y = "# unknown breakpoints") +
+#     labs(y = "# exons per circRNA") +
+#     labs(x = "Sample") +
+#     labs(fill = "Sample") +
+#     theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank())
+# print(plot)
 
 plot <- ggplot(mate_status, aes(x = group, y = Ratio, fill = group)) +
 		geom_boxplot() + theme_classic()
@@ -269,11 +269,11 @@ plot <- ggplot(mate_status, aes(x = group, y = Ratio, fill = group)) +
         plot <- plot + scale_fill_grey(start = 0, end = .9)
     }
     plot <- plot +
-		labs(title = "Circular RNA predictions from FUCHS",
+		labs(title = "Circular RNA reconstruction results",
 		subtitle = "Ratio of double breakpoints") +
     labs(y = "Ratio double breakpoints") +
-    labs(x = "Sequencing library") +
-    labs(fill = "Library") +
+    labs(x = "Sample") +
+    labs(fill = "Sample") +
     theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank())
 print(plot)
 
