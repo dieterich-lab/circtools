@@ -212,11 +212,22 @@ setup(
 
     # this will be our main "executable"
     scripts=[
-        'scripts/circtools',
-        'scripts/circtools_primer',
-        'scripts/circtools_circtest',
-        'scripts/circtools_exon',
-        'scripts/circtools_quickcheck'
+            'scripts/circtools',
+            'scripts/circtools_circtest',
+            'scripts/circtools_detect_write_skip_tracks.pl',
+            'scripts/circtools_enrich_visualization.R',
+            'scripts/circtools_exon',
+            'scripts/circtools_primer',
+            'scripts/circtools_quickcheck',
+            'scripts/circtools_reconstruct_visualization.R',
+            'scripts/create_igv_script_from_gene_names.py',
+            'scripts/create_igv_script_from_position_list.py',
+            'scripts/create_igv_script.py',
+            'scripts/create_r_environ.sh',
+            'scripts/detect_new_exons_from_fuchs_data.py',
+            'scripts/generate_flanking_introns_from_DCC.py',
+            'scripts/get_introns_from_ensembl.pl',
+            'scripts/retrieve_outmost_exons_from_DCC_output.py'
     ],
 
     # adding support for post install scripts from
