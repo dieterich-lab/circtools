@@ -56,7 +56,7 @@ def parse_bed_file(input_file, annotation, local_dict):
                     stop = 1
 
             if start == 0 and stop == 0:
-                location = columns[0] + "_" + str(columns[1]) + "_" + str(columns[2])
+                location = columns[0] + "\t" + str(columns[1]) + "\t" + str(columns[2])
                 if location not in local_dict:
                     local_dict[location] = 1
                 else:
@@ -173,10 +173,6 @@ for file in range(0, num_files):
 
     global_dict[args.assignment[file]] = parse_bed_file(args.bed_files[file], gtf_input, global_dict[args.assignment[file]])
 
-# for sample in global_dict:
-#     print(len(global_dict[sample]))
-
-
 # remove non-stringent exons
 for sample in global_dict:
     final_dict[sample] = {}
@@ -184,16 +180,11 @@ for sample in global_dict:
         if global_dict[sample][key] >= assignment_dict[sample]:
             final_dict[sample][key] = global_dict[sample][key]
 
-
 for sample in final_dict:
-    print(len(final_dict[sample]))
 
-#
-# for sample in final_dict:
-#
-#     file = open("sample_"+str(sample)+".out", "w")
-#
-#     for key in final_dict[sample]:
-#         file.write(key+"\n")
-#
-#     file.close()
+    file = open("sample_"+str(sample)+".bed", "w")
+
+    for key in final_dict[sample]:
+        file.write(key+"\n")
+
+    file.close()
