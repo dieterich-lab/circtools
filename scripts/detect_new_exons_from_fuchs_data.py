@@ -51,7 +51,6 @@ def parse_bed_file(input_file, annotation, local_dict, min_coverage):
             coverage = float(location_string[2])
 
             if coverage >= min_coverage:
-                print(line)
                 for wobble in range(-10, 10):
 
                     if columns[0] + "_" + str(int(columns[1])+wobble) in annotation:
