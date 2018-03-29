@@ -31,7 +31,7 @@ def check_input_files(input_file_list):
             sys.exit(message)
 
 
-def parse_bed_file(input_file, annotation, local_dict, min_coverage):
+def parse_bed_file(input_file, annotation, local_dict, min_coverage, allowed_wobble):
 
     with open(input_file) as fp:
 
@@ -51,7 +51,7 @@ def parse_bed_file(input_file, annotation, local_dict, min_coverage):
             coverage = float(location_string[2])
 
             if coverage >= min_coverage:
-                for wobble in range(-10, 10):
+                for wobble in range(-1*allowed_wobble, allowed_wobble):
 
                     if columns[0] + "_" + str(int(columns[1])+wobble) in annotation:
                         start = 1
@@ -155,6 +155,15 @@ group.add_argument("-c",
                    default=1.0
                    )
 
+group.add_argument("-w",
+                   "--wobble",
+                   dest="wobble",
+                   help="Specify the amount of wobble bases to identify novel exons",
+                   type=int,
+                   default=10
+                   )
+
+
 args = parser.parse_args()
 
 check_input_files(args.bed_files)
@@ -198,7 +207,8 @@ for file in range(0, num_files):
     global_dict[args.assignment[file]] = parse_bed_file(args.bed_files[file],
                                                         gtf_input,
                                                         global_dict[args.assignment[file]],
-                                                        args.min_coverage
+                                                        args.min_coverage,
+                                                        args.wobble
                                                         )
 
 # remove non-stringent exons
