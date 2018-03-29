@@ -210,9 +210,13 @@ for sample in global_dict:
 
 for sample in final_dict:
 
-    file = open("sample_"+str(sample)+".bed", "w")
+    file = open("sample_"+str(sample)+".gtf", "w")
 
     for key in final_dict[sample]:
-        file.write(key+"\n")
+        entry = key.split('\t')
+
+        sep = "\t"
+
+        file.write(sep.join([entry[0], "circtools", "exon", entry[1], entry[2], ".", ".", ".", "."])+"\n")
 
     file.close()
