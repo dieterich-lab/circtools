@@ -163,6 +163,14 @@ group.add_argument("-w",
                    default=10
                    )
 
+group.add_argument("-m",
+                   "--max-length",
+                   dest="max_length",
+                   help="Maximum length (in BP) of novel exons [Default: 2000]",
+                   type=int,
+                   default=2000
+                   )
+
 
 args = parser.parse_args()
 
@@ -227,6 +235,8 @@ for sample in final_dict:
 
         sep = "\t"
 
-        file.write(sep.join([entry[0], "circtools", "exon", entry[1], entry[2], ".", ".", ".", "."])+"\n")
+        if int(entry[2]) - int(entry[1]) <= args.max_length:
+
+            file.write(sep.join([entry[0], "circtools", "exon", entry[1], entry[2], ".", ".", ".", "."])+"\n")
 
     file.close()
