@@ -31,8 +31,8 @@ def check_input_files(input_file_list):
             sys.exit(message)
 
 
-def parse_bed_file(input_file, annotation, local_dict):
-    
+def parse_bed_file(input_file, annotation, local_dict, min_coverage):
+
     with open(input_file) as fp:
 
         for line in fp:
@@ -47,20 +47,25 @@ def parse_bed_file(input_file, annotation, local_dict):
             start = 0
             stop = 0
 
-            for wobble in range(-10, 10):
+            location_string = columns[3].split('|')
+            coverage = float(location_string[2])
 
-                if columns[0] + "_" + str(int(columns[1])+wobble) in annotation:
-                    start = 1
+            if coverage >= min_coverage:
+                print(line)
+                for wobble in range(-10, 10):
 
-                if columns[0] + "_" + str(int(columns[2])+wobble) in annotation:
-                    stop = 1
+                    if columns[0] + "_" + str(int(columns[1])+wobble) in annotation:
+                        start = 1
 
-            if start == 0 and stop == 0:
-                location = columns[0] + "\t" + str(columns[1]) + "\t" + str(columns[2])
-                if location not in local_dict:
-                    local_dict[location] = 1
-                else:
-                    local_dict[location] += 1
+                    if columns[0] + "_" + str(int(columns[2])+wobble) in annotation:
+                        stop = 1
+
+                if start == 0 and stop == 0:
+                    location = columns[0] + "\t" + str(columns[1]) + "\t" + str(columns[2])
+                    if location not in local_dict:
+                        local_dict[location] = 1
+                    else:
+                        local_dict[location] += 1
 
     return local_dict
 
@@ -135,6 +140,21 @@ group.add_argument("-f",
                    nargs='+',
                    )
 
+group.add_argument("-t",
+                   "--threshold",
+                   dest="threshold",
+                   help="Minimal number of samples that have to agree on a novel exon [default: 2]",
+                   type=int,
+                   default=2
+                   )
+
+group.add_argument("-c",
+                   "--coverage",
+                   dest="min_coverage",
+                   help="Minimal coverage of exons [default: 1.0 == 100%]",
+                   type=float,
+                   default=1.0
+                   )
 
 args = parser.parse_args()
 
@@ -144,6 +164,11 @@ check_input_files(args.bed_files)
 if len(args.bed_files) != len(args.assignment):
     print("Differing counts for BED files and group assignment, exiting.")
     exit(-1)
+
+if args.threshold > len(args.bed_files):
+    print("Threshold > number of provided sources files.")
+    exit(-1)
+
 
 global_dict = {}
 
@@ -171,13 +196,17 @@ for file in range(0, num_files):
     else:
         assignment_dict[args.assignment[file]] += 1
 
-    global_dict[args.assignment[file]] = parse_bed_file(args.bed_files[file], gtf_input, global_dict[args.assignment[file]])
+    global_dict[args.assignment[file]] = parse_bed_file(args.bed_files[file],
+                                                        gtf_input,
+                                                        global_dict[args.assignment[file]],
+                                                        args.min_coverage
+                                                        )
 
 # remove non-stringent exons
 for sample in global_dict:
     final_dict[sample] = {}
     for key in global_dict[sample]:
-        if global_dict[sample][key] >= assignment_dict[sample]:
+        if global_dict[sample][key] >= args.threshold:
             final_dict[sample][key] = global_dict[sample][key]
 
 for sample in final_dict:
