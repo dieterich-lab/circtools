@@ -19,7 +19,7 @@ import argparse
 import pybedtools
 
 
-def generate(input_file, exons_bed):
+def generate(input_file, exons_bed, fasta_file):
 
     exons = pybedtools.example_bedtool(exons_bed)
 
@@ -31,10 +31,9 @@ def generate(input_file, exons_bed):
                 if line.startswith('Chr'):
                     continue
 
-
                 line = line.rstrip()
                 current_line = line.split('\t')
-                print("processing " + current_line[3])
+                #print("processing " + current_line[3])
 
                 sep = "\t"
                 bed_string = sep.join([current_line[0],
@@ -43,10 +42,62 @@ def generate(input_file, exons_bed):
                                       current_line[3],
                                       str(0),
                                       current_line[5]])
+                #print(current_line)
 
                 virtual_bed_file = pybedtools.BedTool(bed_string, from_string=True)
                 result = exons.intersect(virtual_bed_file, s=True)
+
+                fasta_bed_line_start = ""
+                fasta_bed_line_stop = ""
+
+                start = 0
+                stop = 0
                 #print(result)
+
+                for result_line in str(result).splitlines():
+                    bed_feature = result_line.split('\t')
+
+                    if bed_feature[1] == current_line[1] and start == 0:
+                        fasta_bed_line_start += result_line + "\n"
+                        start = 1
+
+                    if bed_feature[2] == current_line[2] and stop == 0:
+                        fasta_bed_line_stop += result_line + "\n"
+                        stop = 1
+
+                virtual_bed_file_start = pybedtools.BedTool(fasta_bed_line_start, from_string=True)
+                virtual_bed_file_stop = pybedtools.BedTool(fasta_bed_line_stop, from_string=True)
+
+                fasta = pybedtools.example_filename(fasta_file)
+
+                virtual_bed_file_start = virtual_bed_file_start.sequence(fi=fasta)
+                virtual_bed_file_stop = virtual_bed_file_stop.sequence(fi=fasta)
+
+                if stop == 0 or start == 0:
+
+                    print("BLA")
+
+                else:
+                    exon1 = open(virtual_bed_file_start.seqfn).read().split("\n", 1)[1].rstrip()
+                    exon2 = open(virtual_bed_file_stop.seqfn).read().split("\n", 1)[1].rstrip()
+                    sep = "_"
+                    name = sep.join([current_line[3],
+                                     current_line[0],
+                                     current_line[1],
+                                     current_line[2],
+                                     current_line[5]])
+                    #print(name)
+
+                    # need to define path top R wrapper
+                    primer_script = 'primer_minimal.R'
+
+                    # Variable number of args in a list
+                    args = [exon1, exon2, name]
+
+                    # ------------------------------------ run script and check output -----------------------
+
+                    import os
+                    os.system(primer_script + " " + ' '.join(str(e) for e in args))
 
 # main script starts here
 
@@ -69,6 +120,13 @@ group.add_argument("-g",
                    required=True
                    )
 
+group.add_argument("-f",
+                   "--fasta",
+                   dest="fasta_file",
+                   help="FASTA file with genome sequence",
+                   required=True
+                   )
+
 group.add_argument("-t",
                    "--threshold",
                    dest="base_threshold",
@@ -79,4 +137,4 @@ group.add_argument("-t",
 
 args = parser.parse_args()
 
-dcc_input = generate(args.dcc_file, args.gtf_file)
+generate(args.dcc_file, args.gtf_file, args.fasta_file)
