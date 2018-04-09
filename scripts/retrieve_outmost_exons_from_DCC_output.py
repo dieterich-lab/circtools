@@ -75,7 +75,7 @@ def generate(input_file, exons_bed, fasta_file):
 
                 if stop == 0 or start == 0:
 
-                    print("BLA")
+                    continue
 
                 else:
                     exon1 = open(virtual_bed_file_start.seqfn).read().split("\n", 1)[1].rstrip()
@@ -86,10 +86,9 @@ def generate(input_file, exons_bed, fasta_file):
                                      current_line[1],
                                      current_line[2],
                                      current_line[5]])
-                    #print(name)
 
                     # need to define path top R wrapper
-                    primer_script = 'primer_minimal.R'
+                    primer_script = 'circtools_primex_wrapper.R'
 
                     # Variable number of args in a list
                     args = [exon1, exon2, name]
