@@ -511,6 +511,21 @@ class CircTools(object):
                            default="colour"
                            )
 
+        group.add_argument("-C",
+                           "--cleanup",
+                           dest="cleanup",
+                           help="String to be removed from each sample name "
+                                "[Default: \"_STARmapping.*Chimeric.out.junction\"]",
+                           default="_STARmapping.*Chimeric.out.junction"
+                           )
+
+        group.add_argument("-S",
+                           "--starfolder",
+                           dest="starfolder",
+                           help="Suffix string of the STAR folders"
+                                "[Default: \"_STARmapping\"]",
+                           default="_STARmapping"
+                           )
         ######################################################
 
         args = parser.parse_args(sys.argv[2:])

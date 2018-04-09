@@ -48,6 +48,10 @@ arg_output_directory <- args[3] # string
 arg_condition_list <- strsplit(args[4], ",")[[1]] # list of strings
 arg_grouping <- unlist(lapply(strsplit(args[5], ","), as.numeric)) # list of strings
 arg_colour_mode <- args[6]
+arg_cleanup_string <- args[7]
+arg_starfolder_suffix <- args[8]
+
+
 
 # check colour mode
 if (arg_colour_mode != "colour" & arg_colour_mode != "bw" ) {
@@ -67,8 +71,8 @@ LinearCount <- read.delim(paste(arg_dcc_data, "LinearCount", sep="/"), check.nam
 
 message("Parsing data")
 # remove DCC artifacts from columns names
-names(LinearCount)<-gsub("_STARmapping.*Chimeric.out.junction","",names(LinearCount))
-names(CircRNACount)<-gsub("_STARmapping.*Chimeric.out.junction","",names(CircRNACount))
+names(LinearCount)<-gsub(arg_cleanup_string,"",names(LinearCount))
+names(CircRNACount)<-gsub(arg_cleanup_string,"",names(CircRNACount))
 
 # summing up counts per column (i.e. library)
 circ_counts_summed <- apply(CircRNACount[, - c(1 : 3)], 2, sum)
@@ -108,7 +112,7 @@ star_columns <- colnames(CircRNACount[, - c(1 : 3)])
 star_runs <- list.files(arg_star_folder, full.names = TRUE)
 
 # only use the folders ending with _STARmapping (Dieterich lab default)
-star_runs <- star_runs[endsWith(star_runs,"_STARmapping")]
+star_runs <- star_runs[endsWith(star_runs, arg_starfolder_suffix)]
 
 # only use the folders of full mappings (not the per-mate ones)
 star_runs <- star_runs[!grepl("*mate*", star_runs)]
@@ -134,8 +138,8 @@ pdf(paste(arg_output_directory, ".pdf", sep = "") , height= 8.2, width=11.69 , t
     raw_counts <- data.frame(circ_counts_summed, linear_counts_summed, colors)
     colnames(raw_counts) <- c("circ","lin","group")
 
-    rownames(raw_counts) <- generated_sample_names
-    rownames(raw_counts) <- generated_sample_names
+    # rownames(raw_counts) <- generated_sample_names
+    # rownames(raw_counts) <- generated_sample_names
 
     if (arg_colour_mode == "bw" ) {
         page_one <- ggplot( raw_counts, aes(x=circ, y=lin, shape = as.factor(group) , label=rownames(raw_counts))) +
@@ -269,7 +273,7 @@ pdf(paste(arg_output_directory, ".pdf", sep = "") , height= 8.2, width=11.69 , t
                                 face=quote(bold)),
                                 legend.justification = c(1, 1),
                                 legend.position = c(0.25, 0.98),
-                                axis.text.x = element_text(angle = 90, hjust = 1, size=14)
+                                axis.text.x = element_text(angle = 45, hjust = 1, size=14)
 
                         ) +
                         geom_label_repel(   data=circle_ratio,
