@@ -17,11 +17,18 @@
 
 import argparse
 import pybedtools
+from Bio.Blast import NCBIWWW
+from Bio.Blast import NCBIXML
+import os
 
 
-def generate(input_file, exons_bed, fasta_file):
+def generate(input_file, exons_bed, fasta_file, tmp_file):
 
     exons = pybedtools.example_bedtool(exons_bed)
+
+    line_number = 0
+
+    open(tmp_file, 'w').close()
 
     with open(input_file) as fp:
 
@@ -31,9 +38,10 @@ def generate(input_file, exons_bed, fasta_file):
                 if line.startswith('Chr'):
                     continue
 
+                line_number += 1
+
                 line = line.rstrip()
                 current_line = line.split('\t')
-                #print("processing " + current_line[3])
 
                 sep = "\t"
                 bed_string = sep.join([current_line[0],
@@ -42,7 +50,6 @@ def generate(input_file, exons_bed, fasta_file):
                                       current_line[3],
                                       str(0),
                                       current_line[5]])
-                #print(current_line)
 
                 virtual_bed_file = pybedtools.BedTool(bed_string, from_string=True)
                 result = exons.intersect(virtual_bed_file, s=True)
@@ -52,7 +59,6 @@ def generate(input_file, exons_bed, fasta_file):
 
                 start = 0
                 stop = 0
-                #print(result)
 
                 for result_line in str(result).splitlines():
                     bed_feature = result_line.split('\t')
@@ -86,17 +92,63 @@ def generate(input_file, exons_bed, fasta_file):
                                      current_line[1],
                                      current_line[2],
                                      current_line[5]])
+                    print("extracting flanking exons for circRNA #", line_number, name, end="\n", flush=True)
 
-                    # need to define path top R wrapper
-                    primer_script = 'circtools_primex_wrapper.R'
+                    with open(tmp_file, 'a') as data_store:
+                        data_store.write("\t".join([name, exon1, exon2, "\n"]))
+                # TODO: remove this constraint
+                if line_number == 1:
+                    break
 
-                    # Variable number of args in a list
-                    args = [exon1, exon2, name]
+    # need to define path top R wrapper
+    primer_script = 'circtools_primex_wrapper.R'
 
-                    # ------------------------------------ run script and check output -----------------------
+    # ------------------------------------ run script and check output -----------------------
 
-                    import os
-                    os.system(primer_script + " " + ' '.join(str(e) for e in args))
+    script_result = os.popen(primer_script + " " + tmp_file).read()
+    # print(script_result)
+
+    for line in script_result.splitlines():
+        entry = line.split('\t')
+        circid = entry[0].split('_')
+        primer_fasta = ">left\n"+entry[1]+"\n>right\n"+entry[2]
+
+        print( entry[0])
+
+        result_handle = NCBIWWW.qblast("blastn", "GPIPE/9606/current/rna", primer_fasta,  hitlist_size=10)
+
+        with open("my_blast.xml", "w") as out_handle:
+            out_handle.write(result_handle.read())
+
+        result_handle.close()
+        result_handle = open("my_blast.xml")
+
+        blast_records = NCBIXML.parse(result_handle)
+
+        names = ["left", "right"]
+
+        record_id = 0
+        for blast_record in blast_records:
+            for description in blast_record.descriptions:
+
+                if description.title.find(circid[0]) == -1 and description.title.find("PREDICTED") == -1:
+                    print(names[record_id] + "->" + description.title)
+                else:
+                    print("No Hits")
+            record_id += 1
+
+
+            #print(blast_record.descriptions[0])
+            # for alignment in blast_record.alignments:
+            #     for hsp in alignment.hsps:
+            #         # print('****Alignment****')
+            #         print('sequence:', alignment.title)
+            #         # print('length:', alignment.length)
+            #         # print('e value:', hsp.expect)
+            #         # print(hsp.query[0:75] + '')
+            #         # print(hsp.match[0:75] + '')
+            #         # print(hsp.sbjct[0:75] + '')
+
 
 # main script starts here
 
@@ -136,4 +188,4 @@ group.add_argument("-t",
 
 args = parser.parse_args()
 
-generate(args.dcc_file, args.gtf_file, args.fasta_file)
+generate(args.dcc_file, args.gtf_file, args.fasta_file, "/tmp/circtools_primex.tmp")
