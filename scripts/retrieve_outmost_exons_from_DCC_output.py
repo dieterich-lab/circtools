@@ -20,6 +20,31 @@ import pybedtools
 from Bio.Blast import NCBIWWW
 from Bio.Blast import NCBIXML
 import os
+import signal
+
+
+# Register an handler for the timeout
+def handler(signum, frame):
+    raise Exception("Maximum execution time for remote BLAST reached. Please try again later.")
+
+
+def call_blast(input_file):
+    return_handle = NCBIWWW.qblast("blastn",
+                                   "GPIPE/9606/current/rna",
+                                   input_file,
+                                   hitlist_size=10,
+                                   expect=1000,
+                                   word_size=7,
+                                   gapcosts="5 2"
+                                   )
+    return return_handle
+
+
+# Register the signal function handler
+signal.signal(signal.SIGALRM, handler)
+
+# Define a timeout for your function
+signal.alarm(120)
 
 
 def generate(input_file, exons_bed, fasta_file, tmp_file):
@@ -97,7 +122,7 @@ def generate(input_file, exons_bed, fasta_file, tmp_file):
                     with open(tmp_file, 'a') as data_store:
                         data_store.write("\t".join([name, exon1, exon2, "\n"]))
                 # TODO: remove this constraint
-                if line_number == 1:
+                if line_number == 30:
                     break
 
     # need to define path top R wrapper
@@ -106,16 +131,51 @@ def generate(input_file, exons_bed, fasta_file, tmp_file):
     # ------------------------------------ run script and check output -----------------------
 
     script_result = os.popen(primer_script + " " + tmp_file).read()
-    # print(script_result)
+
+    # this is the first time we look through the input file
+    # we collect the primer sequences and unify everything in one blast query
+
+    blast_object_cache = {}
+    blast_result_cache = {}
+
+    blast_input_file = ""
 
     for line in script_result.splitlines():
         entry = line.split('\t')
-        circid = entry[0].split('_')
-        primer_fasta = ">left\n"+entry[1]+"\n>right\n"+entry[2]
+        circular_rna_id = entry[0].split('_')
 
-        print( entry[0])
+        print(entry[0])
 
-        result_handle = NCBIWWW.qblast("blastn", "GPIPE/9606/current/rna", primer_fasta,  hitlist_size=10)
+        # both primers are already in cache
+        if entry[1] in blast_object_cache and entry[2] in blast_object_cache:
+            print("do not blast")
+        # only blast 1
+        elif entry[2] in blast_object_cache:
+            blast_input_file += "\n>" + entry[1] + "\n" + entry[1]
+            blast_object_cache[entry[1]] = 1
+        # only blast 2
+        elif entry[1] in blast_object_cache:
+            blast_input_file += "\n>" + entry[2] + "\n" + entry[2]
+            blast_object_cache[entry[2]] = 1
+        # nothing seen yet, blast both
+        else:
+            blast_input_file += "\n>" + entry[1] + "\n"+entry[1]+"\n>" + entry[2] + "\n"+entry[2]
+            blast_object_cache[entry[1]] = 1
+            blast_object_cache[entry[2]] = 1
+
+    # check if we have to blast
+
+    if blast_input_file:
+
+        print("blast")
+        print(blast_input_file)
+
+        try:
+            print("Sending " + str(len(blast_object_cache)) + " primers to BLAST")
+            result_handle = call_blast(blast_input_file)
+        except Exception as exc:
+            print(exc)
+            exit(-1)
 
         with open("my_blast.xml", "w") as out_handle:
             out_handle.write(result_handle.read())
@@ -125,29 +185,51 @@ def generate(input_file, exons_bed, fasta_file, tmp_file):
 
         blast_records = NCBIXML.parse(result_handle)
 
-        names = ["left", "right"]
-
-        record_id = 0
         for blast_record in blast_records:
-            for description in blast_record.descriptions:
 
-                if description.title.find(circid[0]) == -1 and description.title.find("PREDICTED") == -1:
-                    print(names[record_id] + "->" + description.title)
-                else:
-                    print("No Hits")
-            record_id += 1
+            blast_object_cache[blast_record.query] = blast_record
 
+    # we have our two primer blast results now in this object, either fresh or cached
+    blast_obj = [blast_object_cache[entry[1]], blast_object_cache[entry[2]]]
 
-            #print(blast_record.descriptions[0])
-            # for alignment in blast_record.alignments:
-            #     for hsp in alignment.hsps:
-            #         # print('****Alignment****')
-            #         print('sequence:', alignment.title)
-            #         # print('length:', alignment.length)
-            #         # print('e value:', hsp.expect)
-            #         # print(hsp.query[0:75] + '')
-            #         # print(hsp.match[0:75] + '')
-            #         # print(hsp.sbjct[0:75] + '')
+    for blast_record in blast_obj:
+
+        for description in blast_record.descriptions:
+
+            # filter out the host gene we're in now
+            # also filter out all "PREDICTED" stuff
+            if description.title.find(circular_rna_id[0]) == -1:
+                if blast_record.query not in blast_result_cache:
+                    blast_result_cache[blast_record.query] = []
+                blast_result_cache[blast_record.query].append(description.title)
+
+    # go again through the primex output
+    # this time we'll add the blast results as last column
+
+    primex_data_with_blast_results = ""
+
+    for line in script_result.splitlines():
+        entry = line.split('\t')
+
+        # split up the identifier for final plotting
+        line = line.replace("_", "\t")
+
+        left_result = "No hits"
+        right_result = "No hits"
+
+        if entry[1] in blast_result_cache:
+            left_result = ";".join(blast_result_cache[entry[1]])
+
+        if entry[2] in blast_result_cache:
+            right_result = ";".join(blast_result_cache[entry[2]])
+
+        # update line
+        primex_data_with_blast_results += line + "\t" + left_result + "\t" + right_result + "\n"
+
+    # print(primex_data_with_blast_results)
+
+    with open(tmp_file, 'w') as data_store:
+        data_store.write(primex_data_with_blast_results)
 
 
 # main script starts here
