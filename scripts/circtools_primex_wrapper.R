@@ -56,13 +56,40 @@ while (length(current_line <- readLines(con, n = 1, warn = FALSE)) > 0) {
 
     # make sure we found any primers at all
     if (primers$options$PRIMER_PAIR_NUM_RETURNED > 0){
+        colnames(tmp_df) <- c(  "PRIMER_LEFT_SEQUENCE",
+                                "PRIMER_RIGHT_SEQUENCE",
+                                "PRIMER_LEFT",
+                                "PRIMER_RIGHT",
+                                "PRIMER_LEFT_TM",
+                                "PRIMER_RIGHT_TM",
+                                "PRIMER_LEFT_GC_PERCENT",
+                                "PRIMER_RIGHT_GC_PERCENT",
+                                "PRIMER_PAIR_PRODUCT_SIZE"
+                                )
 
         # rename rows by circRNA-ID + running number
         rownames(tmp_df) <- paste(line_column[[1]][1], rownames(tmp_df), sep="_")
 
+    } else {
+
+        tmp_df <- data.frame("NA","NA","NA","NA","NA","NA","NA","NA","NA")
+        colnames(tmp_df) <- c(  "PRIMER_LEFT_SEQUENCE",
+                        "PRIMER_RIGHT_SEQUENCE",
+                        "PRIMER_LEFT",
+                        "PRIMER_RIGHT",
+                        "PRIMER_LEFT_TM",
+                        "PRIMER_RIGHT_TM",
+                        "PRIMER_LEFT_GC_PERCENT",
+                        "PRIMER_RIGHT_GC_PERCENT",
+                        "PRIMER_PAIR_PRODUCT_SIZE"
+                        )
+
+        rownames(tmp_df) <- paste(line_column[[1]][1], rownames(tmp_df), sep="_")
+
+    }
+
         # merge together new and processed results
         data_table <- rbind(data_table, tmp_df)
-    }
 }
 
 # close file connection
