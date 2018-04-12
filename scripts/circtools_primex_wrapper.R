@@ -34,8 +34,8 @@ while (length(current_line <- readLines(con, n = 1, warn = FALSE)) > 0) {
 
     # make sure, that the primer actually COVER the BSJ
     # i.e.: left primer only in exon2, right primer only in exon1
-    seqOpts$SEQUENCE_PRIMER_PAIR_OK_REGION_LIST <- paste(   1,nchar(line_column[[1]][3])-10,
-                                                            1,nchar(line_column[[1]][2]),
+    seqOpts$SEQUENCE_PRIMER_PAIR_OK_REGION_LIST <- paste(   1,nchar(line_column[[1]][3]),
+                                                            nchar(line_column[[1]][3])+1,nchar(line_column[[1]][2])-1,
                                                             sep=","
                                                         )
 
@@ -55,7 +55,7 @@ while (length(current_line <- readLines(con, n = 1, warn = FALSE)) > 0) {
     tmp_df <- primers$primers[-c(1,2,3,c(12:21))]
 
     # make sure we found any primers at all
-    if (primers$options$PRIMER_PAIR_NUM_RETURNED > 0){
+    if (!is.null(primers$options$PRIMER_PAIR_NUM_RETURNED)){
         colnames(tmp_df) <- c(  "PRIMER_LEFT_SEQUENCE",
                                 "PRIMER_RIGHT_SEQUENCE",
                                 "PRIMER_LEFT",
