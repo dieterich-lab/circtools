@@ -6,7 +6,7 @@ suppressMessages(library(kableExtra))
 suppressMessages(library(dplyr))
 
 # switch to red warning color if more blast hits are found
-high_count_number = 5
+high_count_number = 0
 
 args <- commandArgs(trailingOnly = TRUE)
 
@@ -77,8 +77,11 @@ colnames(data_table) <- c(  "Annotation",
                             )
 
 # generate a column with BLAST hit counts
-data_table$BLAST_left_count <- lengths(regmatches(data_table$BLAST_left, gregexpr(";", data_table$BLAST_left)))
-data_table$BLAST_right_count <- lengths(regmatches(data_table$BLAST_right, gregexpr(";", data_table$BLAST_right)))
+data_table$BLAST_left_count <- lengths(regmatches(data_table$BLAST_left, gregexpr(";", data_table$BLAST_left))) + 1
+data_table$BLAST_right_count <- lengths(regmatches(data_table$BLAST_right, gregexpr(";", data_table$BLAST_right))) + 1
+
+data_table$BLAST_left_count[data_table$BLAST_left_count == 1] = 0
+data_table$BLAST_right_count[data_table$BLAST_right_count == 1] = 0
 
 # replace ; with HTML linebreaks for hover popover text
 data_table$BLAST_left <- gsub(";", "<br/><br/>", data_table$BLAST_left)
@@ -121,9 +124,9 @@ output_table <- data_table %>%
     kable("html", escape = F) %>%
     kable_styling(bootstrap_options = c("striped", "hover", "responsive"), full_width = T) %>%
     # column_spec(5, width = "3cm")
-    add_header_above(c("Input circRNA" = 5, "Designed Primers" = 9)) %>%
+    add_header_above(c("Input circRNA" = 5, "Designed Primers" = 9)) # %>%
     # group_rows("Group 1", 4, 7) %>%
     # group_rows("Group 1", 8, 10)
-    collapse_rows(columns = 1)
+    # collapse_rows(columns = 1)
 
 write(paste(html_header, output_table, sep=""), file = "")
