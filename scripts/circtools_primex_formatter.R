@@ -53,9 +53,6 @@ $(document).ready(function(){
 # read data file name from args
 data_file_name <- args[1]
 
-sink("/dev/null")
-
-
 # read whole file into data table
 data_table <- read.csv(data_file_name, header = FALSE, sep = "\t")
 
@@ -129,4 +126,4 @@ output_table <- data_table %>%
     # group_rows("Group 1", 8, 10)
     collapse_rows(columns = 1)
 
-write(paste(html_header, output_table, sep=""), "./bla.html")
+write(paste(html_header, output_table, sep=""), file = "")
