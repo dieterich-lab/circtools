@@ -17,11 +17,75 @@
 
 import argparse
 import os
+import sys
 import signal
 
 import pybedtools
 from Bio.Blast import NCBIWWW
 from Bio.Blast import NCBIXML
+
+
+def read_annotation_file(annotation_file, entity="gene", string=False):
+    """Reads a GTF file
+    Will halt the program if file not accessible
+    Returns a BedTool object only containing gene sections
+    """
+
+    try:
+        file_handle = open(annotation_file)
+    except PermissionError:
+        message = ("Input file " + str(annotation_file) + " cannot be read, exiting.")
+        sys.exit(message)
+    else:
+
+        with file_handle:
+            line_iterator = iter(file_handle)
+            bed_content = ""
+            print("Start parsing GTF file")
+            for line in line_iterator:
+                # we skip any comment lines
+                if line.startswith("#"):
+                    continue
+
+                # split up the annotation line
+                columns = line.split('\t')
+
+                if not (columns[2] == entity):
+                    continue
+
+                # we do not want any 0-length intervals -> bedtools segfault
+                if int(columns[4]) - int(columns[3]) == 0:
+                    continue
+
+                # extract chromosome, start, stop, score(0), name and strand
+                # we hopefully have a gene name now and use this one for the entry
+
+                entry = [
+                    columns[0],
+                    columns[3],
+                    columns[4],
+                    "name",
+                    str(0),
+                    columns[6],
+                ]
+
+                # concatenate lines to one string
+                bed_content += '\t'.join(entry) + "\n"
+
+        if not bed_content:
+            exit(-1)
+
+        if string:
+            return bed_content
+        else:
+            # create a "virtual" BED file
+            virtual_bed_file = pybedtools.BedTool(bed_content, from_string=True)
+            print("Start merging GTF file")
+
+            return virtual_bed_file.sort().merge(s=True,  # strand specific
+                                                 c="4,5,6",  # copy columns 5 & 6
+                                                 o="distinct,distinct,distinct")  # group
+            # return virtual_bed_file
 
 
 # Register an handler for the timeout
@@ -45,12 +109,13 @@ def call_blast(input_file):
 signal.signal(signal.SIGALRM, handler)
 
 # Define a timeout for your function
-signal.alarm(120)
+signal.alarm(240)
 
 
 def generate(input_file, exons_bed, fasta_file, tmp_file):
 
-    exons = pybedtools.example_bedtool(exons_bed)
+    exons = read_annotation_file(exons_bed, entity="exon")
+    exons.saveas("/tmp/tmp.bed")
 
     line_number = 0
 
@@ -147,9 +212,8 @@ def generate(input_file, exons_bed, fasta_file, tmp_file):
 
         print(entry[0])
 
-        # both primers are already in cache
-        if entry[1] in blast_object_cache and entry[2] in blast_object_cache:
-            print("do not blast")
+        if entry[1] == "NA":
+            print("No primer pairs found for "+entry[0])
         # only blast 1
         elif entry[2] in blast_object_cache:
             blast_input_file += "\n>" + entry[1] + "\n" + entry[1]
@@ -166,6 +230,7 @@ def generate(input_file, exons_bed, fasta_file, tmp_file):
 
     # check if we have to blast
 
+    print(blast_input_file)
     if blast_input_file:
 
         try:
@@ -187,19 +252,23 @@ def generate(input_file, exons_bed, fasta_file, tmp_file):
 
             blast_object_cache[blast_record.query] = blast_record
 
-    # we have our two primer blast results now in this object, either fresh or cached
-    blast_obj = [blast_object_cache[entry[1]], blast_object_cache[entry[2]]]
+    # if we encounter NAs nothing has been blasted, we manually set the values now
+    if entry[1] == "NA":
+        blast_result_cache["NA"] = ["Not blasted, no primer pair found"]
+    else:
+        # we have our two primer blast results now in this object, either fresh or cached
+        blast_obj = [blast_object_cache[entry[1]], blast_object_cache[entry[2]]]
 
-    for blast_record in blast_obj:
+        for blast_record in blast_obj:
 
-        for description in blast_record.descriptions:
+            for description in blast_record.descriptions:
 
-            # filter out the host gene we're in now
-            # also filter out all "PREDICTED" stuff
-            if description.title.find(circular_rna_id[0]) == -1:
-                if blast_record.query not in blast_result_cache:
-                    blast_result_cache[blast_record.query] = []
-                blast_result_cache[blast_record.query].append(description.title)
+                # filter out the host gene we're in now
+                # also filter out all "PREDICTED" stuff
+                if description.title.find(circular_rna_id[0]) == -1:
+                    if blast_record.query not in blast_result_cache:
+                        blast_result_cache[blast_record.query] = []
+                    blast_result_cache[blast_record.query].append(description.title)
 
     # go again through the primex output
     # this time we'll add the blast results as last column
