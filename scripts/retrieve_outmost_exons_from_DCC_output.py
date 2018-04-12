@@ -24,6 +24,9 @@ import pybedtools
 from Bio.Blast import NCBIWWW
 from Bio.Blast import NCBIXML
 
+from Bio.SeqFeature import SeqFeature, FeatureLocation
+from Bio.Graphics import GenomeDiagram
+
 
 def read_annotation_file(annotation_file, entity="gene", string=False):
     """Reads a GTF file
@@ -117,16 +120,21 @@ def generate(input_file, exons_bed, fasta_file, tmp_file):
     exons = read_annotation_file(exons_bed, entity="exon")
     exons.saveas("/tmp/tmp.bed")
 
-    line_number = 0
+    line_number = -1
 
-    open(tmp_file, 'w').close()
+    #open(tmp_file, 'w').close()
+
+    exon_storage_tmp = tmp_file+"_exon"
+    blast_storage_tmp = tmp_file+"_blast"
+
+    exon_cache = {}
 
     with open(input_file) as fp:
 
             for line in fp:
 
                 # make sure we remove the header
-                if line.startswith('Chr'):
+                if line.startswith('Chr\t'):
                     continue
 
                 line_number += 1
@@ -185,10 +193,11 @@ def generate(input_file, exons_bed, fasta_file, tmp_file):
                                      current_line[5]])
                     print("extracting flanking exons for circRNA #", line_number, name, end="\n", flush=True)
 
-                    with open(tmp_file, 'a') as data_store:
+                    exon_cache[name] = {1: exon1, 2: exon2}
+                    with open(exon_storage_tmp, 'a') as data_store:
                         data_store.write("\t".join([name, exon1, exon2, "\n"]))
                 # TODO: remove this constraint
-                if line_number == 30:
+                if line_number >= 10:
                     break
 
     # need to define path top R wrapper
@@ -196,7 +205,7 @@ def generate(input_file, exons_bed, fasta_file, tmp_file):
 
     # ------------------------------------ run script and check output -----------------------
 
-    script_result = os.popen(primer_script + " " + tmp_file).read()
+    script_result = os.popen(primer_script + " " + exon_storage_tmp).read()
 
     # this is the first time we look through the input file
     # we collect the primer sequences and unify everything in one blast query
@@ -210,10 +219,8 @@ def generate(input_file, exons_bed, fasta_file, tmp_file):
         entry = line.split('\t')
         circular_rna_id = entry[0].split('_')
 
-        print(entry[0])
-
         if entry[1] == "NA":
-            print("No primer pairs found for "+entry[0])
+            continue
         # only blast 1
         elif entry[2] in blast_object_cache:
             blast_input_file += "\n>" + entry[1] + "\n" + entry[1]
@@ -230,20 +237,20 @@ def generate(input_file, exons_bed, fasta_file, tmp_file):
 
     # check if we have to blast
 
-    print(blast_input_file)
+    # print(blast_input_file)
     if blast_input_file:
 
-        try:
-            print("Sending " + str(len(blast_object_cache)) + " primers to BLAST")
-            result_handle = call_blast(blast_input_file)
-        except Exception as exc:
-            print(exc)
-            exit(-1)
-
-        with open("my_blast.xml", "w") as out_handle:
-            out_handle.write(result_handle.read())
-
-        result_handle.close()
+        # try:
+        #     print("Sending " + str(len(blast_object_cache)) + " primers to BLAST")
+        #     result_handle = call_blast(blast_input_file)
+        # except Exception as exc:
+        #     print(exc)
+        #     exit(-1)
+        #
+        # with open("my_blast.xml", "w") as out_handle:
+        #     out_handle.write(result_handle.read())
+        #
+        # result_handle.close()
         result_handle = open("my_blast.xml")
 
         blast_records = NCBIXML.parse(result_handle)
@@ -295,7 +302,7 @@ def generate(input_file, exons_bed, fasta_file, tmp_file):
 
     # print(primex_data_with_blast_results)
 
-    with open(tmp_file, 'w') as data_store:
+    with open(blast_storage_tmp, 'w') as data_store:
         data_store.write(primex_data_with_blast_results)
 
     # need to define path top R wrapper
@@ -303,11 +310,74 @@ def generate(input_file, exons_bed, fasta_file, tmp_file):
 
     # ------------------------------------ run script and check output -----------------------
 
-    primex_data_formatted = os.popen(primer_script + " " + tmp_file).read()
+    primex_data_formatted = os.popen(primer_script + " " + blast_storage_tmp).read()
 
     with open("/tmp/bla.html", 'w') as data_store:
         data_store.write(primex_data_formatted)
 
+    for line in primex_data_with_blast_results.splitlines():
+        entry = line.split('\t')
+
+        if entry[6] == "NA":
+            continue
+
+        circular_rna_id = "_".join([entry[0],
+                                    entry[1],
+                                    entry[2],
+                                    entry[3],
+                                    entry[4]])
+
+        circular_rna_id_isoform = circular_rna_id + "_" + entry[5]
+
+        circrna_length = int(entry[3]) - int(entry[2])
+
+        exon1_length = len(exon_cache[circular_rna_id][1])
+        exon2_length = len(exon_cache[circular_rna_id][2])
+
+        forward_primer_start = int(entry[8].split(',')[0]) + circrna_length - exon2_length
+        forward_primer_length = int(entry[8].split(',')[1])
+
+        reverse_primer_start = int(entry[9].split(',')[0]) - exon2_length
+        reverse_primer_length = int(entry[9].split(',')[1])
+
+        product_size = entry[14]
+
+        print("\t".join([circular_rna_id_isoform, str(exon1_length), str(exon2_length), str(forward_primer_start),
+                         str(forward_primer_length), str(reverse_primer_start), str(reverse_primer_length),
+                         str(circrna_length)]))
+
+        gdd = GenomeDiagram.Diagram('circRNA primer diagram')
+        gdt_features = gdd.new_track(1, greytrack=True, name="", )
+        gds_features = gdt_features.new_set()
+
+        feature = SeqFeature(FeatureLocation(1, exon1_length), strand=+1)
+        gds_features.add_feature(feature, name="Exon 1", label=True, color="red", label_size=22)
+        #
+        feature = SeqFeature(FeatureLocation(circrna_length - exon2_length, circrna_length), strand=+1)
+        gds_features.add_feature(feature, name="Exon 2", label=True, color="orange", label_size=22)
+
+        feature = SeqFeature(FeatureLocation(forward_primer_start, circrna_length), strand=-1)
+        gds_features.add_feature(feature, name="Product", label=False, color="blue")
+
+        feature = SeqFeature(FeatureLocation(1, reverse_primer_start), strand=-1)
+        gds_features.add_feature(feature, name="Product: " + product_size + "bp", label=True, color="blue",
+                                 label_size=22, label_position="middle")
+
+        feature = SeqFeature(FeatureLocation(reverse_primer_start-reverse_primer_length, reverse_primer_start),
+                             strand=-1)
+        gds_features.add_feature(feature, name="Reverse", label=True, sigil="BIGARROW", color="white",
+                                 arrowshaft_height=0.3, arrowhead_length=0.1, label_size=22)
+
+        feature = SeqFeature(FeatureLocation(forward_primer_start, forward_primer_start + forward_primer_length))
+        gds_features.add_feature(feature, name="Forward", label=True, sigil="BIGARROW", color="white",
+                                 arrowshaft_height=0.3, arrowhead_length=0.1, label_size=22)
+
+        feature = SeqFeature(FeatureLocation(1, 1))
+        gds_features.add_feature(feature, name="BSJ", label=True, color="white", label_size=22)
+
+        gdd.draw(format='circular', pagesize=(600, 600), circle_core=0.6, track_size=0.3, tracklines=0, x=0.00, y=0.00)
+
+        gdd.write("/tmp/" + circular_rna_id_isoform + ".png", "png")
 
 # main script starts here
 

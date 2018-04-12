@@ -55,6 +55,9 @@ data_file_name <- args[1]
 
 # read whole file into data table
 data_table <- read.csv(data_file_name, header = FALSE, sep = "\t")
+data_table$circid <- paste(data_table$V1,data_table$V2,data_table$V3,data_table$V4,data_table$V5,data_table$V6,sep="_")
+
+data_table$circid <- paste(sep="","<img src=/tmp/",data_table$circid,".png>")
 
 # remove unused columns
 data_table <- data_table[-c(6,9,10)]
@@ -73,7 +76,8 @@ colnames(data_table) <- c(  "Annotation",
                             "GC_right",
                             "Product_size",
                             "BLAST_left",
-                            "BLAST_right"
+                            "BLAST_right",
+                            "ID"
                             )
 
 # generate a column with BLAST hit counts
@@ -100,8 +104,10 @@ output_table <- data_table %>%
     background = ifelse(BLAST_left_count > high_count_number, "red", "darkgreen"),
     color = ifelse(BLAST_left_count > high_count_number, "white", "white")),
 
-    Sequence_Left <- cell_spec(Left_, escape = F),
-    Sequence_Right <- cell_spec(Right_, escape = F),
+    Sequence_Left <- cell_spec(escape = F, Left_, popover = spec_popover( title = "Graphical represensation of designed primers\"data-html=\"True\"", position = "left", content =ID )),
+
+    Sequence_Right <- cell_spec(escape = F, Right_, popover = spec_popover( title = "Graphical represensation of designed primers\"data-html=\"True\"", position = "left", content =ID )),
+    # Sequence_Right <- cell_spec(Right_, escape = F),
 
     Specificity_right = cell_spec(paste(BLAST_right_count, "off-site BLAST hits"),
     popover = spec_popover(content = BLAST_right, title = "Blast Hits\"data-html=\"True\"", position = "left"),
@@ -120,6 +126,7 @@ output_table <- data_table %>%
     select(- BLAST_right) %>%
     select(- BLAST_left_count) %>%
     select(- BLAST_right_count) %>%
+    select(- ID) %>%
     select(Annotation, everything()) %>%
     kable("html", escape = F) %>%
     kable_styling(bootstrap_options = c("striped", "hover", "responsive"), full_width = T) %>%
