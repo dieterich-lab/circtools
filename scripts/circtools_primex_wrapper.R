@@ -1,5 +1,6 @@
 #!/usr/bin/env Rscript
 
+# suppress loading messages
 suppressMessages(library(primex))
 suppressMessages(library(formattable))
 suppressMessages(library(kableExtra))
@@ -7,42 +8,75 @@ suppressMessages(library(dplyr))
 
 args <- commandArgs(trailingOnly = TRUE)
 
+# temporary file from python script is the only argument
 data_file_name <- args[1]
 
+# open file for reading
 con  <- file(data_file_name, open = "r")
 
+# create empty data table
 data_table <- data.frame()
 
-while (length(oneLine <- readLines(con, n = 1, warn = FALSE)) > 0) {
-    myVector <- (strsplit(oneLine, "\t"))
-        circ_data <- (strsplit(myVector[[1]][1], "_"))
-    #print(myVector[[1]][1])
+# read file line by line
+while (length(current_line <- readLines(con, n = 1, warn = FALSE)) > 0) {
 
+    # split line by tab
+    line_column <- (strsplit(current_line, "\t"))
+
+    # set minimal information for primer design
     seqOpts <-  seqSettings(
-                        seqId = myVector[[1]][1],
-                        seq = c(myVector[[1]][3], myVector[[1]][2])
+                        seqId = line_column[[1]][1], # name
+                        seq = c(line_column[[1]][3], line_column[[1]][2]) # flanking exons
                         )
 
+    # empty overlap list
     seqOpts$SEQUENCE_OVERLAP_JUNCTION_LIST = NULL
-    seqOpts$SEQUENCE_PRIMER_PAIR_OK_REGION_LIST <- paste(1,nchar(myVector[[1]][3])-10,1,nchar(myVector[[1]][2]),sep=",")
+
+    # make sure, that the primer actually COVER the BSJ
+    # i.e.: left primer only in exon2, right primer only in exon1
+    seqOpts$SEQUENCE_PRIMER_PAIR_OK_REGION_LIST <- paste(   1,nchar(line_column[[1]][3])-10, # exon2
+                                                            1,nchar(line_column[[1]][2]),    # exon1
+                                                            sep=","
+                                                        )
+
+    # return 10 pairs at max
     seqOpts$PRIMER_NUM_RETURN = 10
 
+    # mute primer3 output, we only want the variable later
     sink("/dev/null")
+
+    # restrict PCR product size to 50-160 bp
     productSize(seqOpts, c(50, 160))
     primers <- design(seqOpts, returnStats = TRUE)
+
+    # stop output redirect
     sink()
 
+    # temporary data frame holds the primer results for this circRNA isoform
     tmp_df <- primers$primers[-c(1,2,3,c(12:21))]
 
+    # make sure we found any primers at all
     if (primers$options$PRIMER_PAIR_NUM_RETURNED > 0){
-        rownames(tmp_df) <- paste(myVector[[1]][1], rownames(tmp_df), sep="_")
+
+        # rename rows by circRNA-ID + running number
+        rownames(tmp_df) <- paste(line_column[[1]][1], rownames(tmp_df), sep="_")
+
+        # merge together new and processed results
         data_table <- rbind(data_table, tmp_df)
     }
 }
 
-
+# close file connection
 close(con)
 
-write.table(data_table, file = "", quote = FALSE, sep = "\t",
-            eol = "\n", na = "NA", dec = ".", row.names = TRUE,
-            col.names = FALSE)
+# write tab-separated output to screen -> captured by parent python script
+write.table(data_table,
+            file = "",
+            quote = FALSE,
+            sep = "\t",
+            eol = "\n",
+            na = "NA",
+            dec = ".",
+            row.names = TRUE,
+            col.names = FALSE
+            )
