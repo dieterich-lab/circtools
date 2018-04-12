@@ -196,7 +196,7 @@ class CircTools(object):
         enrich.run_module()
 
     @staticmethod
-    def primer():
+    def primex():
         parser = argparse.ArgumentParser(
             description="circular RNA primer design")
         # NOT prefixing the argument with -- means it"s not optional
@@ -265,9 +265,9 @@ class CircTools(object):
         # make sure we can load the sub module
         sys.path.append(os.path.join(os.path.dirname(__file__)))
 
-        import primer.primer_r
-        primer_instance = primer.primer_r.PrimerDesign(args, program_name, version)
-        primer_instance.run_module()
+        import primex.primex
+        primex_instance = primex.primex.Primex(args, program_name, version)
+        primex_instance.run_module()
 
     @staticmethod
     def detect():

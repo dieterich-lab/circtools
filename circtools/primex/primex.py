@@ -18,7 +18,7 @@
 import circ_module.circ_template
 
 
-class PrimerDesign(circ_module.circ_template.CircTemplate):
+class Primex(circ_module.circ_template.CircTemplate):
     def __init__(self, argparse_arguments, program_name, version):
 
         # get the user supplied options
