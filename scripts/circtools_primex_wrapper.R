@@ -25,8 +25,8 @@ while (length(current_line <- readLines(con, n = 1, warn = FALSE)) > 0) {
 
     # set minimal information for primer design
     seqOpts <-  seqSettings(
-                        seqId = line_column[[1]][1], # name
-                        seq = c(line_column[[1]][3], line_column[[1]][2]) # flanking exons
+                        seqId = line_column[[1]][1],
+                        seq = c(line_column[[1]][3], line_column[[1]][2])
                         )
 
     # empty overlap list
@@ -34,8 +34,8 @@ while (length(current_line <- readLines(con, n = 1, warn = FALSE)) > 0) {
 
     # make sure, that the primer actually COVER the BSJ
     # i.e.: left primer only in exon2, right primer only in exon1
-    seqOpts$SEQUENCE_PRIMER_PAIR_OK_REGION_LIST <- paste(   1,nchar(line_column[[1]][3])-10, # exon2
-                                                            1,nchar(line_column[[1]][2]),    # exon1
+    seqOpts$SEQUENCE_PRIMER_PAIR_OK_REGION_LIST <- paste(   1,nchar(line_column[[1]][3])-10,
+                                                            1,nchar(line_column[[1]][2]),
                                                             sep=","
                                                         )
 
@@ -48,7 +48,6 @@ while (length(current_line <- readLines(con, n = 1, warn = FALSE)) > 0) {
     # restrict PCR product size to 50-160 bp
     productSize(seqOpts, c(50, 160))
     primers <- design(seqOpts, returnStats = TRUE)
-
     # stop output redirect
     sink()
 
