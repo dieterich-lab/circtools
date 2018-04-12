@@ -167,9 +167,6 @@ def generate(input_file, exons_bed, fasta_file, tmp_file):
 
     if blast_input_file:
 
-        print("blast")
-        print(blast_input_file)
-
         try:
             print("Sending " + str(len(blast_object_cache)) + " primers to BLAST")
             result_handle = call_blast(blast_input_file)
@@ -230,6 +227,16 @@ def generate(input_file, exons_bed, fasta_file, tmp_file):
 
     with open(tmp_file, 'w') as data_store:
         data_store.write(primex_data_with_blast_results)
+
+    # need to define path top R wrapper
+    primer_script = 'circtools_primex_formatter.R'
+
+    # ------------------------------------ run script and check output -----------------------
+
+    primex_data_formatted = os.popen(primer_script + " " + tmp_file).read()
+
+    with open("/tmp/bla.html", 'w') as data_store:
+        data_store.write(primex_data_formatted)
 
 
 # main script starts here
