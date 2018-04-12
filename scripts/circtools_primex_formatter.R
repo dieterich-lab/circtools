@@ -10,6 +10,8 @@ high_count_number = 5
 
 args <- commandArgs(trailingOnly = TRUE)
 
+# set output to HTML
+options(knitr.table.format = 'html')
 
 # generic HTML header with bootstrap JS libraries
 #############################################################################################################
