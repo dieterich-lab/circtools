@@ -16,11 +16,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
+import os
+import signal
+
 import pybedtools
 from Bio.Blast import NCBIWWW
 from Bio.Blast import NCBIXML
-import os
-import signal
 
 
 # Register an handler for the timeout
