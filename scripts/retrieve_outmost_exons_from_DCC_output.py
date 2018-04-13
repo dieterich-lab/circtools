@@ -402,14 +402,14 @@ group.add_argument("-d",
 group.add_argument("-g",
                    "--gtf-file",
                    dest="gtf_file",
-                   help="GTF file with all exons",
+                   help="GTF file of genome annotation e.g. ENSEMBL",
                    required=True
                    )
 
 group.add_argument("-f",
                    "--fasta",
                    dest="fasta_file",
-                   help="FASTA file with genome sequence",
+                   help="FASTA file with genome sequence (must match annotation)",
                    required=True
                    )
 
