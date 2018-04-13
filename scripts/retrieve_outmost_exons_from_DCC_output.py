@@ -118,16 +118,19 @@ signal.alarm(240)
 def generate(input_file, exons_bed, fasta_file, tmp_file):
 
     exons = read_annotation_file(exons_bed, entity="exon")
-    exons.saveas("/tmp/tmp.bed")
-
     line_number = -1
 
-    #open(tmp_file, 'w').close()
-
     exon_storage_tmp = tmp_file+"_exon"
+
+    # erase old contents
+    open(exon_storage_tmp, 'w').close()
+
     blast_storage_tmp = tmp_file+"_blast"
 
     exon_cache = {}
+    flanking_exon_cache = {}
+
+    primer_to_circ_cache = {}
 
     with open(input_file) as fp:
 
@@ -141,6 +144,15 @@ def generate(input_file, exons_bed, fasta_file, tmp_file):
 
                 line = line.rstrip()
                 current_line = line.split('\t')
+
+                sep = "_"
+                name = sep.join([current_line[3],
+                                 current_line[0],
+                                 current_line[1],
+                                 current_line[2],
+                                 current_line[5]])
+
+                flanking_exon_cache[name] = {}
 
                 sep = "\t"
                 bed_string = sep.join([current_line[0],
@@ -170,6 +182,9 @@ def generate(input_file, exons_bed, fasta_file, tmp_file):
                         fasta_bed_line_stop += result_line + "\n"
                         stop = 1
 
+                    if bed_feature[1] > current_line[1] and bed_feature[2] < current_line[2]:
+                        flanking_exon_cache[name][bed_feature[1]+"_"+bed_feature[2]] = 1
+
                 virtual_bed_file_start = pybedtools.BedTool(fasta_bed_line_start, from_string=True)
                 virtual_bed_file_stop = pybedtools.BedTool(fasta_bed_line_stop, from_string=True)
 
@@ -185,19 +200,16 @@ def generate(input_file, exons_bed, fasta_file, tmp_file):
                 else:
                     exon1 = open(virtual_bed_file_start.seqfn).read().split("\n", 1)[1].rstrip()
                     exon2 = open(virtual_bed_file_stop.seqfn).read().split("\n", 1)[1].rstrip()
-                    sep = "_"
-                    name = sep.join([current_line[3],
-                                     current_line[0],
-                                     current_line[1],
-                                     current_line[2],
-                                     current_line[5]])
+
                     print("extracting flanking exons for circRNA #", line_number, name, end="\n", flush=True)
 
                     exon_cache[name] = {1: exon1, 2: exon2}
+
                     with open(exon_storage_tmp, 'a') as data_store:
                         data_store.write("\t".join([name, exon1, exon2, "\n"]))
+
                 # TODO: remove this constraint
-                if line_number >= 10:
+                if line_number >= 30:
                     break
 
     # need to define path top R wrapper
@@ -222,63 +234,58 @@ def generate(input_file, exons_bed, fasta_file, tmp_file):
         if entry[1] == "NA":
             continue
         # only blast 1
-        elif entry[2] in blast_object_cache:
+        elif entry[2] in blast_object_cache and not entry[1] in blast_object_cache:
             blast_input_file += "\n>" + entry[1] + "\n" + entry[1]
             blast_object_cache[entry[1]] = 1
+            primer_to_circ_cache[entry[1]] = circular_rna_id[0]
         # only blast 2
-        elif entry[1] in blast_object_cache:
+        elif entry[1] in blast_object_cache and not entry[2] in blast_object_cache:
             blast_input_file += "\n>" + entry[2] + "\n" + entry[2]
             blast_object_cache[entry[2]] = 1
+            primer_to_circ_cache[entry[2]] = circular_rna_id[0]
         # nothing seen yet, blast both
+        elif entry[1] in blast_object_cache and entry[2] in blast_object_cache:
+            continue
         else:
             blast_input_file += "\n>" + entry[1] + "\n"+entry[1]+"\n>" + entry[2] + "\n"+entry[2]
             blast_object_cache[entry[1]] = 1
             blast_object_cache[entry[2]] = 1
+            primer_to_circ_cache[entry[1]] = circular_rna_id[0]
+            primer_to_circ_cache[entry[2]] = circular_rna_id[0]
 
     # check if we have to blast
-
-    # print(blast_input_file)
     if blast_input_file:
 
-        # try:
-        #     print("Sending " + str(len(blast_object_cache)) + " primers to BLAST")
-        #     result_handle = call_blast(blast_input_file)
-        # except Exception as exc:
-        #     print(exc)
-        #     exit(-1)
-        #
-        # with open("my_blast.xml", "w") as out_handle:
-        #     out_handle.write(result_handle.read())
-        #
-        # result_handle.close()
+        try:
+            print("Sending " + str(len(blast_object_cache)) + " primers to BLAST")
+            result_handle = call_blast(blast_input_file)
+        except Exception as exc:
+            print(exc)
+            exit(-1)
+
+        with open("my_blast.xml", "w") as out_handle:
+            out_handle.write(result_handle.read())
+
+        result_handle.close()
         result_handle = open("my_blast.xml")
 
         blast_records = NCBIXML.parse(result_handle)
 
         for blast_record in blast_records:
 
-            blast_object_cache[blast_record.query] = blast_record
-
-    # if we encounter NAs nothing has been blasted, we manually set the values now
-    if entry[1] == "NA":
-        blast_result_cache["NA"] = ["Not blasted, no primer pair found"]
-    else:
-        # we have our two primer blast results now in this object, either fresh or cached
-        blast_obj = [blast_object_cache[entry[1]], blast_object_cache[entry[2]]]
-
-        for blast_record in blast_obj:
+            if blast_record.query not in blast_result_cache:
+                blast_result_cache[blast_record.query] = []
 
             for description in blast_record.descriptions:
 
                 # filter out the host gene we're in now
                 # also filter out all "PREDICTED" stuff
-                if description.title.find(circular_rna_id[0]) == -1:
-                    if blast_record.query not in blast_result_cache:
-                        blast_result_cache[blast_record.query] = []
+                if description.title.find(primer_to_circ_cache[blast_record.query]) == -1:
                     blast_result_cache[blast_record.query].append(description.title)
 
-    # go again through the primex output
-    # this time we'll add the blast results as last column
+    # if we encounter NAs nothing has been blasted, we manually set the values now
+    if entry[1] == "NA":
+        blast_result_cache["NA"] = ["Not blasted, no primer pair found"]
 
     primex_data_with_blast_results = ""
 
@@ -342,42 +349,48 @@ def generate(input_file, exons_bed, fasta_file, tmp_file):
 
         product_size = entry[14]
 
-        print("\t".join([circular_rna_id_isoform, str(exon1_length), str(exon2_length), str(forward_primer_start),
-                         str(forward_primer_length), str(reverse_primer_start), str(reverse_primer_length),
-                         str(circrna_length)]))
-
         gdd = GenomeDiagram.Diagram('circRNA primer diagram')
         gdt_features = gdd.new_track(1, greytrack=True, name="", )
         gds_features = gdt_features.new_set()
 
         feature = SeqFeature(FeatureLocation(1, exon1_length), strand=+1)
-        gds_features.add_feature(feature, name="Exon 1", label=True, color="red", label_size=22)
+        gds_features.add_feature(feature, name="Exon 1", label=False, color="#ff6877", label_size=22)
         #
         feature = SeqFeature(FeatureLocation(circrna_length - exon2_length, circrna_length), strand=+1)
-        gds_features.add_feature(feature, name="Exon 2", label=True, color="orange", label_size=22)
+        gds_features.add_feature(feature, name="Exon 2", label=False, color="#ffac68", label_size=22)
 
         feature = SeqFeature(FeatureLocation(forward_primer_start, circrna_length), strand=-1)
-        gds_features.add_feature(feature, name="Product", label=False, color="blue")
+        gds_features.add_feature(feature, name="Product", label=False, color="#6881ff")
 
         feature = SeqFeature(FeatureLocation(1, reverse_primer_start), strand=-1)
-        gds_features.add_feature(feature, name="Product: " + product_size + "bp", label=True, color="blue",
+        gds_features.add_feature(feature, name="Product: " + product_size + "bp", label=False, color="#6881ff",
                                  label_size=22, label_position="middle")
 
         feature = SeqFeature(FeatureLocation(reverse_primer_start-reverse_primer_length, reverse_primer_start),
                              strand=-1)
-        gds_features.add_feature(feature, name="Reverse", label=True, sigil="BIGARROW", color="white",
+        gds_features.add_feature(feature, name="Reverse", label=False, sigil="BIGARROW", color="#75ff68",
                                  arrowshaft_height=0.3, arrowhead_length=0.1, label_size=22)
 
         feature = SeqFeature(FeatureLocation(forward_primer_start, forward_primer_start + forward_primer_length))
-        gds_features.add_feature(feature, name="Forward", label=True, sigil="BIGARROW", color="white",
+        gds_features.add_feature(feature, name="Forward", label=False, sigil="BIGARROW", color="#75ff68",
                                  arrowshaft_height=0.3, arrowhead_length=0.1, label_size=22)
 
         feature = SeqFeature(FeatureLocation(1, 1))
         gds_features.add_feature(feature, name="BSJ", label=True, color="white", label_size=22)
 
+        for exon in flanking_exon_cache[circular_rna_id]:
+
+            exon_start,exon_stop = exon.split('_')
+
+            exon_start = int(exon_start) - int(entry[2])
+            exon_stop = int(exon_stop) - int(entry[2])
+
+            feature = SeqFeature(FeatureLocation(exon_start, exon_stop), strand=+1)
+            gds_features.add_feature(feature, name="Exon", label=False, color="grey", label_size=22)
+
         gdd.draw(format='circular', pagesize=(600, 600), circle_core=0.6, track_size=0.3, tracklines=0, x=0.00, y=0.00)
 
-        gdd.write("/tmp/" + circular_rna_id_isoform + ".png", "png")
+        gdd.write("/tmp/" + circular_rna_id_isoform + ".svg", "svg")
 
 # main script starts here
 
