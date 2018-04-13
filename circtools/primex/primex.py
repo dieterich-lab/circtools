@@ -32,43 +32,4 @@ class Primex(circ_module.circ_template.CircTemplate):
         return self.program_name
 
     def run_module(self):
-
-        # needed for Rscript decoupling
-        import subprocess
-
-        # import re module
-        import re
-
-        r_location = subprocess.check_output(['which', self.command], universal_newlines=True,
-                                             stderr=subprocess.STDOUT).split('\n')[0]
-
-        r_version = subprocess.check_output([self.command, '--version'], universal_newlines=True,
-                                            stderr=subprocess.STDOUT)
-        # okay, Rscript is really there, we put together the command line now:
-
-        m = re.search('(\d+\.\d+\.\d+)', r_version)
-        r_version = m.group(0)
-
-        self.log_entry("Using R version %s [%s]" % (r_version, r_location))
-
-        # ------------------------------------ need to call the correct R script here -----------------------
-
-        # need to define path top R wrapper
-        primer_script = 'circtools_primer'
-
-        # Variable number of args in a list
-        args = [
-                '--circFile', self.cli_params.circFile,
-                '--ensPackage', self.cli_params.ensPackage,
-                '--bsgPackage', self.cli_params.bsgPackage,
-                '--typeExons', self.cli_params.typeExons,
-                '--reportFile', self.cli_params.reportFile,
-                '--productFile', self.cli_params.productFile,
-                '--rdsFile', self.cli_params.rdsFile,
-                '--sep', self.cli_params.sep
-                ]
-
-        # ------------------------------------ run script and check output -----------------------
-
-        import os
-        os.system(primer_script + " " + ' '.join(str(e) for e in args))
+        return
