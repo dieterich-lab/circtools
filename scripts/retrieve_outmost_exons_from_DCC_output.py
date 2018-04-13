@@ -108,13 +108,6 @@ def call_blast(input_file):
     return return_handle
 
 
-# Register the signal function handler
-signal.signal(signal.SIGALRM, handler)
-
-# Define a timeout for your function
-signal.alarm(240)
-
-
 def generate(input_file, exons_bed, fasta_file, tmp_file):
 
     exons = read_annotation_file(exons_bed, entity="exon")
@@ -430,4 +423,12 @@ group.add_argument("-t",
 
 args = parser.parse_args()
 
+
+# Register the signal function handler for BLAST calls
+signal.signal(signal.SIGALRM, handler)
+
+# Define a timeout for BLAST calls (seconds)
+signal.alarm(240)
+
+# call main function
 generate(args.dcc_file, args.gtf_file, args.fasta_file, "/tmp/circtools_primex.tmp")
