@@ -232,6 +232,15 @@ class CircTools(object):
                            default="hs"
                            )
 
+        group = parser.add_argument_group("Output options")
+
+        group.add_argument("-o",
+                           "--output",
+                           dest="output_dir",
+                           help="Output directory (must exist)",
+                           default="./"
+                           )
+
         group = parser.add_argument_group("Additional options")
 
         group.add_argument("-t",
