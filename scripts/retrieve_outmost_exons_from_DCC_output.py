@@ -108,24 +108,25 @@ def call_blast(input_file):
     return return_handle
 
 
-def generate(input_file, exons_bed, fasta_file, tmp_file):
+def run_primer_design(circrna_input_file, exons_bed, fasta_file, temp_dir):
 
     exons = read_annotation_file(exons_bed, entity="exon")
     line_number = -1
 
-    exon_storage_tmp = tmp_file+"_exon"
+    # define temporary files
+    exon_storage_tmp = temp_dir + "circtools_flanking_exons.tmp"
+    blast_storage_tmp = temp_dir + "circtools_blast_results.tmp"
+    blast_xml_tmp = temp_dir + "circtools_blast_results.xml"
 
     # erase old contents
     open(exon_storage_tmp, 'w').close()
 
-    blast_storage_tmp = tmp_file+"_blast"
-
+    # define cache dicts
     exon_cache = {}
     flanking_exon_cache = {}
-
     primer_to_circ_cache = {}
 
-    with open(input_file) as fp:
+    with open(circrna_input_file) as fp:
 
             for line in fp:
 
@@ -226,19 +227,24 @@ def generate(input_file, exons_bed, fasta_file, tmp_file):
 
         if entry[1] == "NA":
             continue
+
         # only blast 1
         elif entry[2] in blast_object_cache and not entry[1] in blast_object_cache:
             blast_input_file += "\n>" + entry[1] + "\n" + entry[1]
             blast_object_cache[entry[1]] = 1
             primer_to_circ_cache[entry[1]] = circular_rna_id[0]
+
         # only blast 2
         elif entry[1] in blast_object_cache and not entry[2] in blast_object_cache:
             blast_input_file += "\n>" + entry[2] + "\n" + entry[2]
             blast_object_cache[entry[2]] = 1
             primer_to_circ_cache[entry[2]] = circular_rna_id[0]
-        # nothing seen yet, blast both
+
+        # seen both already, skip
         elif entry[1] in blast_object_cache and entry[2] in blast_object_cache:
             continue
+
+        # nothing seen yet, blast both
         else:
             blast_input_file += "\n>" + entry[1] + "\n"+entry[1]+"\n>" + entry[2] + "\n"+entry[2]
             blast_object_cache[entry[1]] = 1
@@ -256,11 +262,11 @@ def generate(input_file, exons_bed, fasta_file, tmp_file):
             print(exc)
             exit(-1)
 
-        with open("my_blast.xml", "w") as out_handle:
+        with open(blast_xml_tmp, "w") as out_handle:
             out_handle.write(result_handle.read())
 
         result_handle.close()
-        result_handle = open("my_blast.xml")
+        result_handle = open(blast_xml_tmp)
 
         blast_records = NCBIXML.parse(result_handle)
 
@@ -300,8 +306,6 @@ def generate(input_file, exons_bed, fasta_file, tmp_file):
         # update line
         primex_data_with_blast_results += line + "\t" + left_result + "\t" + right_result + "\n"
 
-    # print(primex_data_with_blast_results)
-
     with open(blast_storage_tmp, 'w') as data_store:
         data_store.write(primex_data_with_blast_results)
 
@@ -315,9 +319,11 @@ def generate(input_file, exons_bed, fasta_file, tmp_file):
     with open("/tmp/bla.html", 'w') as data_store:
         data_store.write(primex_data_formatted)
 
+    # here we create the circular graphics for primer visualisation
     for line in primex_data_with_blast_results.splitlines():
         entry = line.split('\t')
 
+        # no primers, no graphics
         if entry[6] == "NA":
             continue
 
@@ -385,8 +391,9 @@ def generate(input_file, exons_bed, fasta_file, tmp_file):
 
         gdd.write("/tmp/" + circular_rna_id_isoform + ".svg", "svg")
 
-# main script starts here
 
+########################################################################################################################
+# main script starts here
 
 parser = argparse.ArgumentParser(description='Create ')
 
@@ -414,11 +421,10 @@ group.add_argument("-f",
                    )
 
 group.add_argument("-t",
-                   "--threshold",
-                   dest="base_threshold",
-                   help="max length of intron sequence",
-                   type=int,
-                   default=2000
+                   "--temp",
+                   dest="global_temp_dir",
+                   help="Temporary directory (must exist)",
+                   default="/tmp/"
                    )
 
 args = parser.parse_args()
@@ -431,4 +437,4 @@ signal.signal(signal.SIGALRM, handler)
 signal.alarm(240)
 
 # call main function
-generate(args.dcc_file, args.gtf_file, args.fasta_file, "/tmp/circtools_primex.tmp")
+run_primer_design(args.dcc_file, args.gtf_file, args.fasta_file, args.global_temp_dir)
