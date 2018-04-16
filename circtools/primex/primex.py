@@ -224,10 +224,8 @@ class Primex(circ_module.circ_template.CircTemplate):
                 virtual_bed_file_start = pybedtools.BedTool(fasta_bed_line_start, from_string=True)
                 virtual_bed_file_stop = pybedtools.BedTool(fasta_bed_line_stop, from_string=True)
 
-                fasta = pybedtools.example_filename(self.fasta_file)
-
-                virtual_bed_file_start = virtual_bed_file_start.sequence(fi=fasta)
-                virtual_bed_file_stop = virtual_bed_file_stop.sequence(fi=fasta)
+                virtual_bed_file_start = virtual_bed_file_start.sequence(fi=self.fasta_file)
+                virtual_bed_file_stop = virtual_bed_file_stop.sequence(fi=self.fasta_file)
 
                 if stop == 0 or start == 0:
 
