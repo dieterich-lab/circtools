@@ -45,7 +45,7 @@ class Primex(circ_module.circ_template.CircTemplate):
         self.organism = self.cli_params.organism
 
         self.homo_sapiens_blast_db = "GPIPE/9606/current/rna"
-        self.mus_musculus_blast_db = "GPIPE/9606/current/rna"
+        self.mus_musculus_blast_db = "GPIPE/10090/current/rna"
         self.other_blast_db = "nt"
 
     def module_name(self):
