@@ -61,7 +61,7 @@ class Primex(circ_module.circ_template.CircTemplate):
         blast_db = "nt"
         if organism == "mm":
             blast_db = self.mus_musculus_blast_db
-        elif blast_db == "hs":
+        elif organism == "hs":
             blast_db = self.homo_sapiens_blast_db
 
         return_handle = NCBIWWW.qblast("blastn",
