@@ -42,6 +42,11 @@ class Primex(circ_module.circ_template.CircTemplate):
         self.fasta_file = self.cli_params.fasta_file
         self.dcc_file = self.cli_params.dcc_file
         self.output_dir = self.cli_params.output_dir
+        self.organism = self.cli_params.organism
+
+        self.homo_sapiens_blast_db = "GPIPE/9606/current/rna"
+        self.mus_musculus_blast_db = "GPIPE/9606/current/rna"
+        self.other_blast_db = "nt"
 
     def module_name(self):
         """"Return a string representing the name of the module."""
@@ -51,10 +56,16 @@ class Primex(circ_module.circ_template.CircTemplate):
     def handler(self, signum, frame):
         raise Exception("Maximum execution time for remote BLAST reached. Please try again later.")
 
-    @staticmethod
-    def call_blast(input_file):
+    def call_blast(self, input_file, organism):
+
+        blast_db = "nt"
+        if organism == "mm":
+            blast_db = self.mus_musculus_blast_db
+        elif blast_db == "hs":
+            blast_db = self.homo_sapiens_blast_db
+
         return_handle = NCBIWWW.qblast("blastn",
-                                       "GPIPE/9606/current/rna",
+                                       blast_db,
                                        input_file,
                                        hitlist_size=10,
                                        expect=1000,
@@ -276,7 +287,7 @@ class Primex(circ_module.circ_template.CircTemplate):
 
             try:
                 print("Sending " + str(len(blast_object_cache)) + " primers to BLAST")
-                result_handle = self.call_blast(blast_input_file)
+                result_handle = self.call_blast(blast_input_file, self.organism)
             except Exception as exc:
                 print(exc)
                 exit(-1)
