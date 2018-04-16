@@ -85,15 +85,16 @@ class PostInstallCommand(install):
                 subprocess.check_call(["sh", "scripts/install_external.sh"])
 
                 # step 2: update $PATH
-                print("In order for circtools to be globally callable, we would add the installation folder to the $PATH")
-                print("variable. Would you like us to do that?")
+                print("In order for circtools to be globally callable, we would add the installation"
+                      " folder to the $PATH variable. Would you like us to do that?")
 
                 answer = query_yes_no("Update $PATH in .bashrc?")
                 if answer:
                     print("Running update script...")
                     subprocess.check_call(["sh", "scripts/install_add_to_bashrc.sh"])
                 else:
-                    print("Okay. Please update the $PATH variable yourself, otherwise you may not be able to run circtools.")
+                    print("Okay. Please update the $PATH variable yourself, "
+                          "otherwise you may not be able to run circtools.")
                 print("")
 
                 # step 3: create .Renviron file
