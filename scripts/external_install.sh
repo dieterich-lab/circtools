@@ -18,9 +18,6 @@
 # install dependencies for R first
 Rscript scripts/install_R_dependencies.R
 
-# install primer-design R part
-Rscript R/install.R
-
 # install CircTest
 Rscript install_circtest.R
 
