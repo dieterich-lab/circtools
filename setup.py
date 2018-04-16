@@ -68,21 +68,44 @@ class PostInstallCommand(install):
         print("")
 
         # step 1: install DCC, FUCHS and primer design R module
-        print("We need to install two other programs of the Dieterich lab circRNA suit, DCC and FUCHS as well "
-              "as R package dependencies for other module of circtools")
+        print("We need to install two other programs of the Dieterich Lab circRNA suit, DCC and FUCHS, as well "
+              "as R package dependencies for other modules of circtools")
         print("We'll install everything for you from GitHub and CRAN for you.")
         print("")
         print("In order for the circtools primer design module to run, we need to install some R modules.")
-        print("Please make sure R >= 3.4.0 is installed and your R library path is writeable .")
-
-        subprocess.check_call(["sh", "scripts/external_install.sh"])
-        sleep(2)
+        print("Please make sure R >= 3.3.3 is installed and your R library path is writeable .")
         print("")
 
-        # step 2: update $PATH
-        print("In order for circtools to be globally callable, please add the installation folder to the your $PATH"
-              "environment variable")
-        sleep(2)
+        answer = query_yes_no("Do you want to continue the automatic dependency installation?\n"
+                              "-> \"n\" will only install the circtools base package\n"
+                              "-> CTRL-C will abort the installation\n")
+        if answer:
+            subprocess.check_call(["sh", "scripts/install_external.sh"])
+
+            # step 2: update $PATH
+            print("In order for circtools to be globally callable, we would add the installation folder to the $PATH")
+            print("variable. Would you like us to do that?")
+
+            answer = query_yes_no("Update $PATH in .bashrc?")
+            if answer:
+                print("Running update script...")
+                subprocess.check_call(["sh", "scripts/install_add_to_bashrc.sh"])
+            else:
+                print("Okay. Please update the $PATH variable yourself, otherwise you may not be able to run circtools.")
+            print("")
+
+            # step 3: create .Renviron file
+            print("In order for the circtools primer design module to run, we need to install some R modules.")
+            print("Please make sure R >= 3.3.3 is installed.")
+            print("Should we update the R package location in order to install package as user?")
+
+            answer = query_yes_no("Update R_LIB in .Renviron")
+            if answer:
+                print("Running update script...")
+                subprocess.check_call(["sh", "scripts/install_create_r_environ.sh"])
+            else:
+                print("Okay. If the R library path is not writeable the installation will most probably fail.")
+            print("")
 
         install.run(self)
         # place for post install commands
@@ -209,7 +232,6 @@ setup(
             'scripts/circtools_detect_write_skip_tracks.pl',
             'scripts/circtools_enrich_visualization.R',
             'scripts/circtools_exon',
-            'scripts/circtools_primer',
             'scripts/circtools_quickcheck',
             'scripts/circtools_reconstruct_visualization.R',
             'scripts/circtools_primex_wrapper.R',
@@ -217,11 +239,9 @@ setup(
             'scripts/create_igv_script_from_gene_names.py',
             'scripts/create_igv_script_from_position_list.py',
             'scripts/create_igv_script.py',
-            'scripts/create_r_environ.sh',
             'scripts/detect_new_exons_from_fuchs_data.py',
             'scripts/generate_flanking_introns_from_DCC.py',
-            'scripts/get_introns_from_ensembl.pl',
-            'scripts/retrieve_outmost_exons_from_DCC_output.py'
+            'scripts/get_introns_from_ensembl.pl'
     ],
 
     # adding support for post install scripts from
