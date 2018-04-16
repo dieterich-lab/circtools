@@ -33,5 +33,8 @@ if (length(pkgs) > 0)
 # load devtools library
 library(devtools)
 
-# install circtest from the dieterich lab github page from master branch
+# install CircTest from the Dieterich Lab GitHub page from master branch
+install_github("dieterich-lab/CircTest", ref = "master")
+
+# install primex from the Dieterich Lab GitHub page from master branch
 install_github("dieterich-lab/CircTest", ref = "master")
