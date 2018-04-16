@@ -84,15 +84,6 @@ class PostInstallCommand(install):
               "environment variable")
         sleep(2)
 
-        print("")
-
-        # step 4: install OligoArrayAux
-        print("The circtools primer module also requires the software \"OligoArrayAux\".")
-        print("Running installer script...")
-        sleep(2)
-
-        subprocess.check_call(["sh", "scripts/install_oligo_array_aux.sh"])
-
         install.run(self)
         # place for post install commands
 
@@ -220,6 +211,8 @@ setup(
             'scripts/circtools_primer',
             'scripts/circtools_quickcheck',
             'scripts/circtools_reconstruct_visualization.R',
+            'scripts/circtools_primex_wrapper.R',
+            'scripts/circtools_primex_formatter.R',
             'scripts/create_igv_script_from_gene_names.py',
             'scripts/create_igv_script_from_position_list.py',
             'scripts/create_igv_script.py',
