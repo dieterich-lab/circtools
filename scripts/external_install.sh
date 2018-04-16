@@ -18,9 +18,6 @@
 # install dependencies for R first
 Rscript scripts/install_R_dependencies.R
 
-# install CircTest
-Rscript install_circtest.R
-
 # install DCC
 cd /tmp/
 git clone https://github.com/dieterich-lab/DCC.git
