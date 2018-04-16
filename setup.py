@@ -164,7 +164,8 @@ setup(
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
         'pybedtools>=0.7.10',
-        'statsmodels>=0.8.0'
+        'statsmodels>=0.8.0',
+        'biopython >= 1.71'
     ],
 
     # List additional groups of dependencies here (e.g. development
