@@ -63,49 +63,51 @@ class PostInstallCommand(install):
     def run(self):
 
         import subprocess
-        from time import sleep
+        import os
 
-        print("")
+        if not os.environ.get('READTHEDOCS') == 'True':
 
-        # step 1: install DCC, FUCHS and primer design R module
-        print("We need to install two other programs of the Dieterich Lab circRNA suit, DCC and FUCHS, as well "
-              "as R package dependencies for other modules of circtools")
-        print("We'll install everything for you from GitHub and CRAN for you.")
-        print("")
-        print("In order for the circtools primer design module to run, we need to install some R modules.")
-        print("Please make sure R >= 3.3.3 is installed and your R library path is writeable .")
-        print("")
-
-        answer = query_yes_no("Do you want to continue the automatic dependency installation?\n"
-                              "-> \"n\" will only install the circtools base package\n"
-                              "-> CTRL-C will abort the installation\n")
-        if answer:
-            subprocess.check_call(["sh", "scripts/install_external.sh"])
-
-            # step 2: update $PATH
-            print("In order for circtools to be globally callable, we would add the installation folder to the $PATH")
-            print("variable. Would you like us to do that?")
-
-            answer = query_yes_no("Update $PATH in .bashrc?")
-            if answer:
-                print("Running update script...")
-                subprocess.check_call(["sh", "scripts/install_add_to_bashrc.sh"])
-            else:
-                print("Okay. Please update the $PATH variable yourself, otherwise you may not be able to run circtools.")
             print("")
 
-            # step 3: create .Renviron file
+            # step 1: install DCC, FUCHS and primer design R module
+            print("We need to install two other programs of the Dieterich Lab circRNA suit, DCC and FUCHS, as well "
+                  "as R package dependencies for other modules of circtools")
+            print("We'll install everything for you from GitHub and CRAN for you.")
+            print("")
             print("In order for the circtools primer design module to run, we need to install some R modules.")
-            print("Please make sure R >= 3.3.3 is installed.")
-            print("Should we update the R package location in order to install package as user?")
-
-            answer = query_yes_no("Update R_LIB in .Renviron")
-            if answer:
-                print("Running update script...")
-                subprocess.check_call(["sh", "scripts/install_create_r_environ.sh"])
-            else:
-                print("Okay. If the R library path is not writeable the installation will most probably fail.")
+            print("Please make sure R >= 3.3.3 is installed and your R library path is writeable .")
             print("")
+
+            answer = query_yes_no("Do you want to continue the automatic dependency installation?\n"
+                                  "-> \"n\" will only install the circtools base package\n"
+                                  "-> CTRL-C will abort the installation\n")
+            if answer:
+                subprocess.check_call(["sh", "scripts/install_external.sh"])
+
+                # step 2: update $PATH
+                print("In order for circtools to be globally callable, we would add the installation folder to the $PATH")
+                print("variable. Would you like us to do that?")
+
+                answer = query_yes_no("Update $PATH in .bashrc?")
+                if answer:
+                    print("Running update script...")
+                    subprocess.check_call(["sh", "scripts/install_add_to_bashrc.sh"])
+                else:
+                    print("Okay. Please update the $PATH variable yourself, otherwise you may not be able to run circtools.")
+                print("")
+
+                # step 3: create .Renviron file
+                print("In order for the circtools primer design module to run, we need to install some R modules.")
+                print("Please make sure R >= 3.3.3 is installed.")
+                print("Should we update the R package location in order to install package as user?")
+
+                answer = query_yes_no("Update R_LIB in .Renviron")
+                if answer:
+                    print("Running update script...")
+                    subprocess.check_call(["sh", "scripts/install_create_r_environ.sh"])
+                else:
+                    print("Okay. If the R library path is not writeable the installation will most probably fail.")
+                print("")
 
         install.run(self)
         # place for post install commands
