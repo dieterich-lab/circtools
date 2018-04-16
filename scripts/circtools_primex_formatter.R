@@ -6,7 +6,7 @@ suppressMessages(library(kableExtra))
 suppressMessages(library(dplyr))
 
 # switch to red warning color if more blast hits are found
-high_count_number = 5
+high_count_number = 0
 
 args <- commandArgs(trailingOnly = TRUE)
 
@@ -41,7 +41,7 @@ $(document).ready(function(){
    <style type=\"text/css\">
         /* The max width is dependant on the container (more info below) */
         .popover{
-            max-width: 30%; /* Max Width of the popover (depending on the container!) */
+            max-width: 50%; /* Max Width of the popover (depending on the container!) */
         }
     </style>
 
@@ -55,6 +55,9 @@ data_file_name <- args[1]
 
 # read whole file into data table
 data_table <- read.csv(data_file_name, header = FALSE, sep = "\t")
+data_table$circid <- paste(data_table$V1,data_table$V2,data_table$V3,data_table$V4,data_table$V5,data_table$V6,sep="_")
+
+data_table$circid <- paste(sep="","<img src=/tmp/",data_table$circid,".svg>")
 
 # remove unused columns
 data_table <- data_table[-c(6,9,10)]
@@ -73,12 +76,32 @@ colnames(data_table) <- c(  "Annotation",
                             "GC_right",
                             "Product_size",
                             "BLAST_left",
-                            "BLAST_right"
+                            "BLAST_right",
+                            "ID"
                             )
 
-# generate a column with BLAST hit counts
-data_table$BLAST_left_count <- lengths(regmatches(data_table$BLAST_left, gregexpr(";", data_table$BLAST_left)))
-data_table$BLAST_right_count <- lengths(regmatches(data_table$BLAST_right, gregexpr(";", data_table$BLAST_right)))
+colnames_final <- c(  "Annotation",
+                            "Chr",
+                            "Start",
+                            "Stop",
+                            "Strand",
+                            "TM left",
+                            "TM right",
+                            "GC% left",
+                            "GC% right",
+                            "Product size",
+                            "BLAST",
+                            "Forward",
+                            "Reverse",
+                            "BLAST"
+                            )
+
+# run_primer_design a column with BLAST hit counts
+data_table$BLAST_left_count <- lengths(regmatches(data_table$BLAST_left, gregexpr(";", data_table$BLAST_left))) + 1
+data_table$BLAST_right_count <- lengths(regmatches(data_table$BLAST_right, gregexpr(";", data_table$BLAST_right))) + 1
+
+data_table$BLAST_left_count[data_table$BLAST_left_count == 1] = 0
+data_table$BLAST_right_count[data_table$BLAST_right_count == 1] = 0
 
 # replace ; with HTML linebreaks for hover popover text
 data_table$BLAST_left <- gsub(";", "<br/><br/>", data_table$BLAST_left)
@@ -92,18 +115,21 @@ output_table <- data_table %>%
     mutate(
     Product_size = color_bar('lightblue')(Product_size),
 
-    Specificity_left = cell_spec(paste(BLAST_left_count, "off-site BLAST hits"),
+    L = cell_spec(paste(BLAST_left_count),
     popover = spec_popover(content = BLAST_left, title = "Blast Hits\"data-html=\"True\"", position = "right"),
     background = ifelse(BLAST_left_count > high_count_number, "red", "darkgreen"),
+    color = ifelse(BLAST_left_count > high_count_number, "white", "white"), bold = "true"),
+
+    Forward <- cell_spec(escape = F, Left_, popover = spec_popover( title = "Graphical represensation of designed primers and annotated circRNA structure\"data-html=\"True\"", position = "left", content =ID ), background = ifelse(BLAST_left_count > high_count_number, "red", "darkgreen"),
     color = ifelse(BLAST_left_count > high_count_number, "white", "white")),
 
-    Sequence_Left <- cell_spec(Left_, escape = F),
-    Sequence_Right <- cell_spec(Right_, escape = F),
+    Reverse <- cell_spec(escape = F, Right_, popover = spec_popover( title = "Graphical represensation of designed primers and annotated circRNA structure\"data-html=\"True\"", position = "left", content =ID ), background = ifelse(BLAST_right_count > high_count_number, "red", "darkgreen"),
+    color = ifelse(BLAST_right_count > high_count_number, "white", "white")),
 
-    Specificity_right = cell_spec(paste(BLAST_right_count, "off-site BLAST hits"),
+    R = cell_spec(paste(BLAST_right_count),
     popover = spec_popover(content = BLAST_right, title = "Blast Hits\"data-html=\"True\"", position = "left"),
     background = ifelse(BLAST_right_count > high_count_number, "red", "darkgreen"),
-    color = ifelse(BLAST_right_count > high_count_number, "white", "white")),
+    color = ifelse(BLAST_right_count > high_count_number, "white", "white"), bold = "true"),
 
     TM_left = color_tile('white', 'red')(TM_left),
     TM_right = color_tile('white', 'red')(TM_right),
@@ -117,13 +143,14 @@ output_table <- data_table %>%
     select(- BLAST_right) %>%
     select(- BLAST_left_count) %>%
     select(- BLAST_right_count) %>%
+    select(- ID) %>%
     select(Annotation, everything()) %>%
-    kable("html", escape = F) %>%
+    kable("html", escape = F, col.names=colnames_final) %>%
     kable_styling(bootstrap_options = c("striped", "hover", "responsive"), full_width = T) %>%
     # column_spec(5, width = "3cm")
-    add_header_above(c("Input circRNA" = 5, "Designed Primers" = 9)) %>%
+    add_header_above(c("Input circRNAs" = 5, "Designed Primers" = 9)) # %>%
     # group_rows("Group 1", 4, 7) %>%
     # group_rows("Group 1", 8, 10)
-    collapse_rows(columns = 1)
+    # collapse_rows(columns = 1)
 
 write(paste(html_header, output_table, sep=""), file = "")

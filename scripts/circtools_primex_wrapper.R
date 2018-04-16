@@ -27,15 +27,17 @@ while (length(current_line <- readLines(con, n = 1, warn = FALSE)) > 0) {
     seqOpts <-  seqSettings(
                         seqId = line_column[[1]][1],
                         seq = c(line_column[[1]][3], line_column[[1]][2])
-                        )
+                            )
+
+    seqOpts <- productSize(seqOpts, c(50, 180))
 
     # empty overlap list
     seqOpts$SEQUENCE_OVERLAP_JUNCTION_LIST = NULL
 
     # make sure, that the primer actually COVER the BSJ
     # i.e.: left primer only in exon2, right primer only in exon1
-    seqOpts$SEQUENCE_PRIMER_PAIR_OK_REGION_LIST <- paste(   1,nchar(line_column[[1]][3])-10,
-                                                            1,nchar(line_column[[1]][2]),
+    seqOpts$SEQUENCE_PRIMER_PAIR_OK_REGION_LIST <- paste(   1,nchar(line_column[[1]][3]),
+                                                            nchar(line_column[[1]][3])+1,nchar(line_column[[1]][2])-1,
                                                             sep=","
                                                         )
 
@@ -46,7 +48,7 @@ while (length(current_line <- readLines(con, n = 1, warn = FALSE)) > 0) {
     sink("/dev/null")
 
     # restrict PCR product size to 50-160 bp
-    productSize(seqOpts, c(50, 160))
+    #productSize(seqOpts, c(50, 180))
     primers <- design(seqOpts, returnStats = TRUE)
     # stop output redirect
     sink()
@@ -55,14 +57,44 @@ while (length(current_line <- readLines(con, n = 1, warn = FALSE)) > 0) {
     tmp_df <- primers$primers[-c(1,2,3,c(12:21))]
 
     # make sure we found any primers at all
-    if (primers$options$PRIMER_PAIR_NUM_RETURNED > 0){
+    if (!is.null(primers$options$PRIMER_PAIR_NUM_RETURNED) && primers$options$PRIMER_PAIR_NUM_RETURNED > 0){
+        colnames(tmp_df) <- c(  "PRIMER_LEFT_SEQUENCE",
+                                "PRIMER_RIGHT_SEQUENCE",
+                                "PRIMER_LEFT",
+                                "PRIMER_RIGHT",
+                                "PRIMER_LEFT_TM",
+                                "PRIMER_RIGHT_TM",
+                                "PRIMER_LEFT_GC_PERCENT",
+                                "PRIMER_RIGHT_GC_PERCENT",
+                                "PRIMER_PAIR_PRODUCT_SIZE"
+                                )
 
         # rename rows by circRNA-ID + running number
         rownames(tmp_df) <- paste(line_column[[1]][1], rownames(tmp_df), sep="_")
 
         # merge together new and processed results
         data_table <- rbind(data_table, tmp_df)
+
+    } else if (!is.null(primers$options$PRIMER_PAIR_NUM_RETURNED) && primers$options$PRIMER_PAIR_NUM_RETURNED == 0){
+
+        tmp_df <- data.frame("NA","NA","NA","NA","NA","NA","NA","NA","NA")
+        colnames(tmp_df) <- c(  "PRIMER_LEFT_SEQUENCE",
+                        "PRIMER_RIGHT_SEQUENCE",
+                        "PRIMER_LEFT",
+                        "PRIMER_RIGHT",
+                        "PRIMER_LEFT_TM",
+                        "PRIMER_RIGHT_TM",
+                        "PRIMER_LEFT_GC_PERCENT",
+                        "PRIMER_RIGHT_GC_PERCENT",
+                        "PRIMER_PAIR_PRODUCT_SIZE"
+                        )
+
+        rownames(tmp_df) <- paste(line_column[[1]][1], rownames(tmp_df), sep="_")
+        # merge together new and processed results
+        data_table <- rbind(data_table, tmp_df)
     }
+
+
 }
 
 # close file connection

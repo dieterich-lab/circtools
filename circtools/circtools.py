@@ -196,66 +196,58 @@ class CircTools(object):
         enrich.run_module()
 
     @staticmethod
-    def primer():
+    def primex():
         parser = argparse.ArgumentParser(
             description="circular RNA primer design")
         # NOT prefixing the argument with -- means it"s not optional
 
         group = parser.add_argument_group("Input")
-        group.add_argument("-c",
-                           "--circFile",
-                           dest="circFile",
-                           help="A tab/comma separated file of splice junction coordinates with the columns ordered as:\
-                            chromosome, start, end, strand",
-                           required=True
 
-                           )
-        group.add_argument("-e",
-                           "--ensPackage",
-                           dest="ensPackage",
-                           help="An ensembldb package name, e.g. EnsDb.Hsapiens.v86",
-                           required=True
-                           )
-        group.add_argument("-b",
-                           "--bsgPackage",
-                           dest="bsgPackage",
-                           help="BSGenome package name, e.g. BSgenome.Hsapiens.NCBI.GRCh38",
-                           required=True
-                           )
-
-        group = parser.add_argument_group("Processing")
-        group.add_argument("-t",
-                           "--typeExons",
-                           dest="typeExons",
-                           help="Longest|shortest|all exons to use for primer design",
-                           )
-
-        group = parser.add_argument_group("Output")
-        group.add_argument("-r",
-                           "--reportFile",
-                           dest="reportFile",
-                           help="A filename for an  HTML report with exon sequences [Default: report.html]",
-                           )
-        group.add_argument("-p",
-                           "--primerFile",
-                           dest="primerFile",
-                           help="A filename for an... [Default: primers.tsv]",  # Todo: help text missing
-                           )
-        group.add_argument("-u",
-                           "--productFile",
-                           dest="productFile",
-                           help="A filename for an  HTML report with exon sequences [Default: products.tsv]",
-                           )
         group.add_argument("-d",
-                           "--rdsFile",
-                           dest="rdsFile",
-                           help="A filename for the RDS object of the result from the `designPrimers` R function "
-                                "[Default: result.rds]",
+                           "--dcc-file",
+                           dest="dcc_file",
+                           help="CircCoordinates file from DCC / detect module",
+                           required=True
                            )
-        group.add_argument("-s",
-                           "--sep",
-                           dest="sep",
-                           help="The separator in input and output files [Default: \\t]",
+
+        group.add_argument("-g",
+                           "--gtf-file",
+                           dest="gtf_file",
+                           help="GTF file of genome annotation e.g. ENSEMBL",
+                           required=True
+                           )
+
+        group.add_argument("-f",
+                           "--fasta",
+                           dest="fasta_file",
+                           help="FASTA file with genome sequence (must match annotation)",
+                           required=True
+                           )
+
+        group.add_argument("-O",
+                           "--organism",
+                           dest="organism",
+                           help="Organism of the study (used for primer BLASTing), mm = Mus musculus, hs = Homo sapiens",
+                           choices=("mm", "hs"),
+                           default="hs"
+                           )
+
+        group = parser.add_argument_group("Output options")
+
+        group.add_argument("-o",
+                           "--output",
+                           dest="output_dir",
+                           help="Output directory (must exist)",
+                           default="./"
+                           )
+
+        group = parser.add_argument_group("Additional options")
+
+        group.add_argument("-t",
+                           "--temp",
+                           dest="global_temp_dir",
+                           help="Temporary directory (must exist)",
+                           default="/tmp/"
                            )
 
         args = parser.parse_args(sys.argv[2:])
@@ -265,9 +257,9 @@ class CircTools(object):
         # make sure we can load the sub module
         sys.path.append(os.path.join(os.path.dirname(__file__)))
 
-        import primer.primer_r
-        primer_instance = primer.primer_r.PrimerDesign(args, program_name, version)
-        primer_instance.run_module()
+        import primex.primex
+        primex_instance = primex.primex.Primex(args, program_name, version)
+        primex_instance.run_module()
 
     @staticmethod
     def detect():
