@@ -43,6 +43,12 @@ class Primex(circ_module.circ_template.CircTemplate):
         self.dcc_file = self.cli_params.dcc_file
         self.output_dir = self.cli_params.output_dir
         self.organism = self.cli_params.organism
+        self.gene_list = self.cli_params.gene_list
+        self.id_list = self.cli_params.id_list
+
+        if self.id_list and self.gene_list:
+            print("Please specify either host genes via -G or circRNA IDs via -i.")
+            sys.exit(-1)
 
         self.homo_sapiens_blast_db = "GPIPE/9606/current/rna"
         self.mus_musculus_blast_db = "GPIPE/10090/current/rna"
@@ -169,12 +175,18 @@ class Primex(circ_module.circ_template.CircTemplate):
                 line = line.rstrip()
                 current_line = line.split('\t')
 
+                if self.gene_list and not self.id_list and current_line[3] not in self.gene_list:
+                    continue
+
                 sep = "_"
                 name = sep.join([current_line[3],
                                  current_line[0],
                                  current_line[1],
                                  current_line[2],
                                  current_line[5]])
+
+                if self.id_list and not self.gene_list and name not in self.id_list:
+                    continue
 
                 flanking_exon_cache[name] = {}
 
