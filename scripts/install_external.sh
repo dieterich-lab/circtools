@@ -15,8 +15,54 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+function install_bedtools {
+    cd /tmp/
+    wget https://github.com/arq5x/bedtools2/releases/download/v2.27.1/bedtools-2.27.1.tar.gz
+    tar -zxvf bedtools-2.27.1.tar.gz
+    cd bedtools2
+    make
+    mkdir -p  $HOME/.local/bin/
+    cp -av bin/* $HOME/.local/bin/
+    # mkdir -p  $HOME/.local/share/bedtools/
+    # cp genomes -av $HOME/.local/share/bedtools/
+    rm /tmp/bedtools2 -rf
+}
+
 # install dependencies for R first
 Rscript scripts/install_R_dependencies.R
+
+BEDTOOLS=`which bedtools`
+
+if [ $BEDTOOLS ]; then
+
+    # get current version of bedtools
+    VERSION=`bedtools --version | cut -f 2 -d '.'`
+
+    # we want to have >= 27 in order to work correctly
+    if [ "$VERSION" -lt "27"  ]; then
+        echo "bedtools major version is < 26. Installation of bedtools >= 2.27 recommended."
+        read -p "Install now [Y/N]" -n 1 -r
+        echo    # (optional) move to a new line
+        if [[ ! $REPLY =~ ^[Yy]$ ]]
+        then
+            [[ "$0" = "$BASH_SOURCE" ]] || return 1 # handle exits from shell or function but don't exit interactive shell
+        else
+            install_bedtools
+        fi
+    else
+        echo "Found recent bedtools version, skipping installation"
+        [[ "$0" = "$BASH_SOURCE" ]] || return 1
+    fi
+else
+    read -p "No installation of bedtools found in \$PATH. Install now? [Y/N]" -n 1 -r
+    echo    # (optional) move to a new line
+    if [[ ! $REPLY =~ ^[Yy]$ ]]
+    then
+        [[ "$0" = "$BASH_SOURCE" ]] || return 1 # handle exits from shell or function but don't exit interactive shell
+    else
+        install_bedtools
+    fi
+fi
 
 # install DCC
 cd /tmp/
