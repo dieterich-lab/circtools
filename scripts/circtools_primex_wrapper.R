@@ -76,7 +76,7 @@ while (length(current_line <- readLines(con, n = 1, warn = FALSE)) > 0) {
         # merge together new and processed results
         data_table <- rbind(data_table, tmp_df)
 
-    } else if (!is.null(primers$options$PRIMER_PAIR_NUM_RETURNED) && primers$options$PRIMER_PAIR_NUM_RETURNED == 0){
+    } else {
 
         tmp_df <- data.frame("NA","NA","NA","NA","NA","NA","NA","NA","NA")
         colnames(tmp_df) <- c(  "PRIMER_LEFT_SEQUENCE",
