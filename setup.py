@@ -82,7 +82,7 @@ class PostInstallCommand(install):
                                   "-> \"n\" will only install the circtools base package\n"
                                   "-> CTRL-C will abort the installation\n")
             if answer:
-                subprocess.check_call(["sh", "scripts/install_external.sh"])
+                subprocess.check_call(["bash", "scripts/install_external.sh"])
 
                 # step 2: update $PATH
                 print("In order for circtools to be globally callable, we would add the installation"
@@ -91,7 +91,7 @@ class PostInstallCommand(install):
                 answer = query_yes_no("Update $PATH in .bashrc?")
                 if answer:
                     print("Running update script...")
-                    subprocess.check_call(["sh", "scripts/install_add_to_bashrc.sh"])
+                    subprocess.check_call(["bash", "scripts/install_add_to_bashrc.sh"])
                 else:
                     print("Okay. Please update the $PATH variable yourself, "
                           "otherwise you may not be able to run circtools.")
@@ -105,7 +105,7 @@ class PostInstallCommand(install):
                 answer = query_yes_no("Update R_LIB in .Renviron")
                 if answer:
                     print("Running update script...")
-                    subprocess.check_call(["sh", "scripts/install_create_r_environ.sh"])
+                    subprocess.check_call(["bash", "scripts/install_create_r_environ.sh"])
                 else:
                     print("Okay. If the R library path is not writeable the installation will most probably fail.")
                 print("")
