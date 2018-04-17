@@ -19,7 +19,6 @@ import circ_module.circ_template
 
 import os
 import sys
-import signal
 
 import pybedtools
 from Bio.Blast import NCBIWWW
@@ -242,7 +241,7 @@ class Primex(circ_module.circ_template.CircTemplate):
                     with open(exon_storage_tmp, 'a') as data_store:
                         data_store.write("\t".join([name, exon1, exon2, "\n"]))
 
-                # TODO: remove this constraint
+                #TODO: remove this constraint
                 if line_number >= 30:
                     break
 
