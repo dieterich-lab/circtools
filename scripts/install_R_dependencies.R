@@ -51,4 +51,4 @@ library(devtools)
 install_github("dieterich-lab/CircTest", ref = "master")
 
 # install primex from the Dieterich Lab GitHub page from master branch
-install_github("dieterich-lab/CircTest", ref = "master")
+install_github("dieterich-lab/primex", ref = "master")
