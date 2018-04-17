@@ -44,6 +44,7 @@ class Primex(circ_module.circ_template.CircTemplate):
         self.organism = self.cli_params.organism
         self.gene_list = self.cli_params.gene_list
         self.id_list = self.cli_params.id_list
+        self.product_range = self.cli_params.product_size
 
         if self.id_list and self.gene_list:
             print("Please specify either host genes via -G or circRNA IDs via -i.")
@@ -137,6 +138,7 @@ class Primex(circ_module.circ_template.CircTemplate):
                 virtual_bed_file = pybedtools.BedTool(bed_content, from_string=True)
                 print("Start merging GTF file")
 
+                # we trust that bedtools >= 2.27 is installed. Otherwise this merge will probably fail
                 return virtual_bed_file.sort().merge(s=True,  # strand specific
                                                      c="4,5,6",  # copy columns 5 & 6
                                                      o="distinct,distinct,distinct")  # group
@@ -250,7 +252,9 @@ class Primex(circ_module.circ_template.CircTemplate):
 
         # ------------------------------------ run script and check output -----------------------
 
-        script_result = os.popen(primer_script + " " + exon_storage_tmp).read()
+        script_result = os.popen(primer_script + " " +
+                                 exon_storage_tmp + " " +
+                                 str(self.product_range[0]) + "," + str(self.product_range[1])).read()
 
         # this is the first time we look through the input file
         # we collect the primer sequences and unify everything in one blast query

@@ -30,6 +30,14 @@ def main():
     CircTools()
 
 
+def product_range(p):
+    try:
+        a, b = map(int, p.split(','))
+        return a, b
+    except:
+        raise argparse.ArgumentTypeError("Product must be a range x->y as in x,y")
+
+
 class CircTools(object):
 
     def __init__(self):
@@ -253,18 +261,30 @@ class CircTools(object):
         group.add_argument("-G",
                            "--genes",
                            dest="gene_list",
-                           help="Comma-separated list of host gene names. Primers for CircRNAs of those genes will be "
+                           help="Space-separated list of host gene names. Primers for CircRNAs of those genes will be "
                                 "designed."
-                                "E.g. \"CAMSAP1\",\"RYR2\"",
-                           required=False
+                                "E.g. -G \"CAMSAP1\" \"RYR2\"",
+                           required=False,
+                           nargs='+'
+                           )
+
+        group.add_argument("-p",
+                           "--product-size",
+                           dest="product_size",
+                           help="Space-separated range for the desired PCR product. E.g. -p 80 160 [default]",
+                           required=False,
+                           default=[80, 160],
+                           type=int,
+                           nargs='+'
                            )
 
         group.add_argument("-i",
                            "--id-list",
                            dest="id_list",
-                           help="Comma-separated list of circRNA IDs."
-                                " E.g. \"CAMSAP1_9_135850137_135850461_-\",\"CAMSAP1_9_135881633_135883078_-\"",
-                           required=False
+                           help="Space-separated list of circRNA IDs."
+                                " E.g. -i \"CAMSAP1_9_135850137_135850461_-\" \"CAMSAP1_9_135881633_135883078_-\"",
+                           required=False,
+                           nargs='+'
                            )
         args = parser.parse_args(sys.argv[2:])
 

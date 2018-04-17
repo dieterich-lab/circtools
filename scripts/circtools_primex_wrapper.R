@@ -10,6 +10,7 @@ args <- commandArgs(trailingOnly = TRUE)
 
 # temporary file from python script is the only argument
 data_file_name <- args[1]
+product_size = unlist(lapply(strsplit(args[2],","), as.numeric))
 
 # open file for reading
 con  <- file(data_file_name, open = "r")
@@ -29,7 +30,7 @@ while (length(current_line <- readLines(con, n = 1, warn = FALSE)) > 0) {
                         seq = c(line_column[[1]][3], line_column[[1]][2])
                             )
 
-    seqOpts <- productSize(seqOpts, c(50, 180))
+    seqOpts <- productSize(seqOpts, c(product_size[1], product_size[2]))
 
     # empty overlap list
     seqOpts$SEQUENCE_OVERLAP_JUNCTION_LIST = NULL
