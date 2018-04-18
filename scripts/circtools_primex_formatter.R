@@ -165,12 +165,12 @@ output_table <- data_table %>%
     background = ifelse(BLAST_right_count > high_count_number, "red", "darkgreen"),
     color = ifelse(BLAST_right_count > high_count_number, "white", "white"), bold = "true"),
 
-    TM_left = formatter('span', style = style(background.color = left_tm_color, color = "black"))(TM_left),
-    TM_right = formatter('span', style = style(background.color = right_tm_color, color ="black"))(TM_right),
+    TM_left = color_bar(left_tm_color)(TM_left),
+    TM_right = color_bar(left_tm_color)(TM_right),
 
-    GC_left = formatter('span', style = style(background.color = left_gc_color, color = "black"))(GC_left),
 
-    GC_right = formatter('span', style = style(background.color = right_gc_color, color = "black"))(GC_right),
+    GC_left = color_bar(left_gc_color)(GC_left),
+    GC_right = color_bar(right_gc_color)(GC_right),
 
 
     Strand = formatter('span', style = style(font.weight = "bold"))(Strand)
