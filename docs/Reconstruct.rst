@@ -224,7 +224,7 @@ The files  ``chimeric.sam``, ``mate1.chimeric.sam``, and ``mate2.chimeric.sam`` 
 4. Running FUCHS
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Run FUCHS to start the pipeline which will extract reads, check mate status, detect alternative splicing events, classify different isoforms, generate coverage profiles and cluster circRNAs based on coverage profiles
+Run FUCHS to start the pipeline which will extract reads, check mate status, detect alternative splicing events, classify different isoforms, run_primer_design coverage profiles and cluster circRNAs based on coverage profiles
 
 .. code-block:: bash
 
