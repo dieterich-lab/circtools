@@ -36,7 +36,12 @@ pkgs <- c(
     "openxlsx",
     "plyr",
     "reshape2",
-    "devtools"
+    "devtools",
+    "kableExtra",
+    "formattable",
+    "dplyr",
+    "RColorBrewer",
+    "colortools"
 )
 
 # check if devtools is already installed
