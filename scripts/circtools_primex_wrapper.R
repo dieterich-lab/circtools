@@ -10,7 +10,8 @@ args <- commandArgs(trailingOnly = TRUE)
 
 # temporary file from python script is the only argument
 data_file_name <- args[1]
-product_size = unlist(lapply(strsplit(args[2],","), as.numeric))
+product_size <- unlist(lapply(strsplit(args[2],","), as.numeric))
+junction_mode <- args[3]
 
 # open file for reading
 con  <- file(data_file_name, open = "r")
@@ -36,11 +37,21 @@ while (length(current_line <- readLines(con, n = 1, warn = FALSE)) > 0) {
     seqOpts$SEQUENCE_OVERLAP_JUNCTION_LIST = NULL
 
     # make sure, that the primer actually COVER the BSJ
-    # i.e.: left primer only in exon2, right primer only in exon1
-    seqOpts$SEQUENCE_PRIMER_PAIR_OK_REGION_LIST <- paste(   1,nchar(line_column[[1]][3]),
-                                                            nchar(line_column[[1]][3])+1,nchar(line_column[[1]][2])-1,
-                                                            sep=","
-                                                        )
+
+    # forward primer should cover BSJ
+    if (junction_mode == "f"){
+        seqOpts$SEQUENCE_PRIMER_PAIR_OK_REGION_LIST <- paste(nchar(line_column[[1]][3])-15,",30,,",sep="")
+    # reverse primer should cover BSJ
+    } else if (junction_mode == "r"){
+        seqOpts$SEQUENCE_PRIMER_PAIR_OK_REGION_LIST <- paste(",,",nchar(line_column[[1]][3])-15,",30",sep="")
+
+    # left primer only in exon2, right primer only in exon1
+    } else {
+        seqOpts$SEQUENCE_PRIMER_PAIR_OK_REGION_LIST <- paste(   1,nchar(line_column[[1]][3]),
+                                                                nchar(line_column[[1]][3])+1,nchar(line_column[[1]][2])-1,
+                                                                sep=","
+                                                            )
+    }
 
     # return 10 pairs at max
     seqOpts$PRIMER_NUM_RETURN = 10
