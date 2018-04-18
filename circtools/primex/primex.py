@@ -146,7 +146,7 @@ class Primex(circ_module.circ_template.CircTemplate):
     def run_module(self):
 
         exons = self.read_annotation_file(self.gtf_file, entity="exon")
-        line_number = -1
+        circ_rna_number = 1
 
         # define temporary files
         exon_storage_tmp = self.temp_dir + "circtools_flanking_exons.tmp"
@@ -170,8 +170,6 @@ class Primex(circ_module.circ_template.CircTemplate):
                 # make sure we remove the header
                 if line.startswith('Chr\t'):
                     continue
-
-                line_number += 1
 
                 line = line.rstrip()
                 current_line = line.split('\t')
@@ -236,7 +234,8 @@ class Primex(circ_module.circ_template.CircTemplate):
                     exon1 = open(virtual_bed_file_start.seqfn).read().split("\n", 1)[1].rstrip()
                     exon2 = open(virtual_bed_file_stop.seqfn).read().split("\n", 1)[1].rstrip()
 
-                    print("extracting flanking exons for circRNA #", line_number, name, end="\n", flush=True)
+                    print("extracting flanking exons for circRNA #", circ_rna_number, name, end="\n", flush=True)
+                    circ_rna_number += 1
 
                     exon_cache[name] = {1: exon1, 2: exon2}
 
@@ -264,7 +263,7 @@ class Primex(circ_module.circ_template.CircTemplate):
 
         blast_input_file = ""
 
-        if line_number < 30:
+        if circ_rna_number < 3:
 
             for line in script_result.splitlines():
                 entry = line.split('\t')
@@ -297,12 +296,15 @@ class Primex(circ_module.circ_template.CircTemplate):
                     primer_to_circ_cache[entry[1]] = circular_rna_id[0]
                     primer_to_circ_cache[entry[2]] = circular_rna_id[0]
 
+        run_blast = 0
+
         # check if we have to blast
         if blast_input_file:
 
             try:
                 print("Sending " + str(len(blast_object_cache)) + " primers to BLAST")
                 result_handle = self.call_blast(blast_input_file, self.organism)
+                run_blast = 1
             except Exception as exc:
                 print(exc)
                 exit(-1)
@@ -339,8 +341,12 @@ class Primex(circ_module.circ_template.CircTemplate):
             # split up the identifier for final plotting
             line = line.replace("_", "\t")
 
-            left_result = "No hits"
-            right_result = "No hits"
+            if run_blast == 1:
+                left_result = "No hits"
+                right_result = "No hits"
+            else:
+                left_result = "Not blasted, no primer pair found"
+                right_result = left_result
 
             if entry[1] in blast_result_cache:
                 left_result = ";".join(blast_result_cache[entry[1]])
