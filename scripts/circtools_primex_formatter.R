@@ -4,6 +4,8 @@
 suppressMessages(library(formattable))
 suppressMessages(library(kableExtra))
 suppressMessages(library(dplyr))
+suppressMessages(library(RColorBrewer))
+suppressMessages(library(colortools))
 
 # switch to red warning color if more blast hits are found
 high_count_number = 0
@@ -50,6 +52,32 @@ $(document).ready(function(){
 "
 #############################################################################################################
 
+# generate a divergent color scale with 11 shades
+color_palette <- rev(brewer.pal(n = 5, name = 'RdYlGn'))
+
+#default TM value
+default_tm_value <- 60
+default_gc_value <- 50
+
+construct_color_column <- function(column, default_value, palette)
+{
+    top_val <- (max(column, na.rm=T) - default_value)
+    bottom_val <- (default_value - min(column, na.rm=T))
+
+    if (top_val > bottom_val){
+        from <- default_value - top_val
+        to <- default_value + top_val
+    } else {
+        from <- default_value - bottom_val
+        to <- default_value + bottom_val
+    }
+    return(as.character(cut(column,seq( from, to, length.out= length(palette)+1 ), labels=palette, include.lowest = T)))
+}
+
+generate_complementary_column <- function (input){
+    return (complementary(input)[2])
+}
+
 # read data file name from args
 data_file_name <- args[1]
 
@@ -80,7 +108,13 @@ colnames(data_table) <- c(  "Annotation",
                             "ID"
                             )
 
-colnames_final <- c(  "Annotation",
+data_table$right_tm_color  = construct_color_column(data_table$TM_right,default_tm_value,color_palette)
+data_table$left_tm_color   = construct_color_column(data_table$TM_left,default_tm_value,color_palette)
+
+data_table$left_gc_color   = construct_color_column(data_table$GC_left,default_gc_value,color_palette)
+data_table$right_gc_color  = construct_color_column(data_table$GC_right,default_gc_value,color_palette)
+
+colnames_final <- c(        "Annotation",
                             "Chr",
                             "Start",
                             "Stop",
@@ -94,7 +128,7 @@ colnames_final <- c(  "Annotation",
                             "BLAST",
                             "Reverse",
                             "BLAST"
-                            )
+                    )
 
 # run_primer_design a column with BLAST hit counts
 data_table$BLAST_left_count <- lengths(regmatches(data_table$BLAST_left, gregexpr(";", data_table$BLAST_left))) + 1
@@ -131,10 +165,14 @@ output_table <- data_table %>%
     background = ifelse(BLAST_right_count > high_count_number, "red", "darkgreen"),
     color = ifelse(BLAST_right_count > high_count_number, "white", "white"), bold = "true"),
 
-    TM_left = color_tile('white', 'red')(TM_left),
-    TM_right = color_tile('white', 'red')(TM_right),
-    GC_left = color_tile('white', 'orange')(GC_left),
-    GC_right = color_tile('white', 'orange')(GC_right),
+    TM_left = formatter('span', style = style(background.color = left_tm_color, color = "black"))(TM_left),
+    TM_right = formatter('span', style = style(background.color = right_tm_color, color ="black"))(TM_right),
+
+    GC_left = formatter('span', style = style(background.color = left_gc_color, color = "black"))(GC_left),
+
+    GC_right = formatter('span', style = style(background.color = right_gc_color, color = "black"))(GC_right),
+
+
     Strand = formatter('span', style = style(font.weight = "bold"))(Strand)
     ) %>%
     select(- Left_) %>%
@@ -144,6 +182,10 @@ output_table <- data_table %>%
     select(- BLAST_left_count) %>%
     select(- BLAST_right_count) %>%
     select(- ID) %>%
+    select(- right_tm_color) %>%
+    select(- left_tm_color) %>%
+    select(- right_gc_color) %>%
+    select(- left_gc_color) %>%
     select(Annotation, everything()) %>%
     kable("html", escape = F, col.names=colnames_final) %>%
     kable_styling(bootstrap_options = c("striped", "hover", "responsive"), full_width = T) %>%
