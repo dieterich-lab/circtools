@@ -53,7 +53,7 @@ $(document).ready(function(){
 #############################################################################################################
 
 # generate a divergent color scale with 11 shades
-color_palette <- rev(brewer.pal(n = 5, name = 'RdYlGn'))
+color_palette <- rev(brewer.pal(n = 5, name = 'RdBu'))
 
 #default TM value
 default_tm_value <- 60
