@@ -243,9 +243,9 @@ class Primex(circ_module.circ_template.CircTemplate):
                     with open(exon_storage_tmp, 'a') as data_store:
                         data_store.write("\t".join([name, exon1, exon2, "\n"]))
 
-                #TODO: remove this constraint
-                if line_number >= 30:
-                    break
+        if not exon_cache:
+            print("Could not find any circRNAs matching your criteria, exiting.")
+            exit(-1)
 
         # need to define path top R wrapper
         primer_script = 'circtools_primex_wrapper.R'
@@ -264,36 +264,38 @@ class Primex(circ_module.circ_template.CircTemplate):
 
         blast_input_file = ""
 
-        for line in script_result.splitlines():
-            entry = line.split('\t')
-            circular_rna_id = entry[0].split('_')
+        if line_number < 30:
 
-            if entry[1] == "NA":
-                continue
+            for line in script_result.splitlines():
+                entry = line.split('\t')
+                circular_rna_id = entry[0].split('_')
 
-            # only blast 1
-            elif entry[2] in blast_object_cache and not entry[1] in blast_object_cache:
-                blast_input_file += "\n>" + entry[1] + "\n" + entry[1]
-                blast_object_cache[entry[1]] = 1
-                primer_to_circ_cache[entry[1]] = circular_rna_id[0]
+                if entry[1] == "NA":
+                    continue
 
-            # only blast 2
-            elif entry[1] in blast_object_cache and not entry[2] in blast_object_cache:
-                blast_input_file += "\n>" + entry[2] + "\n" + entry[2]
-                blast_object_cache[entry[2]] = 1
-                primer_to_circ_cache[entry[2]] = circular_rna_id[0]
+                # only blast 1
+                elif entry[2] in blast_object_cache and not entry[1] in blast_object_cache:
+                    blast_input_file += "\n>" + entry[1] + "\n" + entry[1]
+                    blast_object_cache[entry[1]] = 1
+                    primer_to_circ_cache[entry[1]] = circular_rna_id[0]
 
-            # seen both already, skip
-            elif entry[1] in blast_object_cache and entry[2] in blast_object_cache:
-                continue
+                # only blast 2
+                elif entry[1] in blast_object_cache and not entry[2] in blast_object_cache:
+                    blast_input_file += "\n>" + entry[2] + "\n" + entry[2]
+                    blast_object_cache[entry[2]] = 1
+                    primer_to_circ_cache[entry[2]] = circular_rna_id[0]
 
-            # nothing seen yet, blast both
-            else:
-                blast_input_file += "\n>" + entry[1] + "\n" + entry[1] + "\n>" + entry[2] + "\n" + entry[2]
-                blast_object_cache[entry[1]] = 1
-                blast_object_cache[entry[2]] = 1
-                primer_to_circ_cache[entry[1]] = circular_rna_id[0]
-                primer_to_circ_cache[entry[2]] = circular_rna_id[0]
+                # seen both already, skip
+                elif entry[1] in blast_object_cache and entry[2] in blast_object_cache:
+                    continue
+
+                # nothing seen yet, blast both
+                else:
+                    blast_input_file += "\n>" + entry[1] + "\n" + entry[1] + "\n>" + entry[2] + "\n" + entry[2]
+                    blast_object_cache[entry[1]] = 1
+                    blast_object_cache[entry[2]] = 1
+                    primer_to_circ_cache[entry[1]] = circular_rna_id[0]
+                    primer_to_circ_cache[entry[2]] = circular_rna_id[0]
 
         # check if we have to blast
         if blast_input_file:
@@ -326,8 +328,8 @@ class Primex(circ_module.circ_template.CircTemplate):
                         blast_result_cache[blast_record.query].append(description.title)
 
         # if we encounter NAs nothing has been blasted, we manually set the values now
-        if entry[1] == "NA":
-            blast_result_cache["NA"] = ["Not blasted, no primer pair found"]
+
+        blast_result_cache["NA"] = ["Not blasted, no primer pair found"]
 
         primex_data_with_blast_results = ""
 
