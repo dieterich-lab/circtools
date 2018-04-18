@@ -58,6 +58,7 @@ color_palette <- rev(brewer.pal(n = 5, name = 'RdYlGn'))
 #default TM value
 default_tm_value <- 60
 default_gc_value <- 50
+default_product_value <- 100
 
 construct_color_column <- function(column, default_value, palette)
 {
@@ -114,6 +115,9 @@ data_table$left_tm_color   = construct_color_column(data_table$TM_left,default_t
 data_table$left_gc_color   = construct_color_column(data_table$GC_left,default_gc_value,color_palette)
 data_table$right_gc_color  = construct_color_column(data_table$GC_right,default_gc_value,color_palette)
 
+data_table$product_color  = construct_color_column(data_table$Product_size,default_product_value,color_palette)
+
+
 colnames_final <- c(        "Annotation",
                             "Chr",
                             "Start",
@@ -147,7 +151,7 @@ rownames(data_table) <- c()
 # main output table generation
 output_table <- data_table %>%
     mutate(
-    Product_size = color_bar('lightblue')(Product_size),
+    Product_size = color_bar(product_color)(Product_size),
 
     Forward <- cell_spec(escape = F, Left_, popover = spec_popover( title = "Graphical represensation of designed primers and annotated circRNA structure\"data-html=\"True\"", position = "left", content =ID ), background = ifelse(BLAST_left_count > high_count_number, "red", "darkgreen"),
     color = ifelse(BLAST_left_count > high_count_number, "white", "white")),
@@ -186,6 +190,7 @@ output_table <- data_table %>%
     select(- left_tm_color) %>%
     select(- right_gc_color) %>%
     select(- left_gc_color) %>%
+    select(- product_color) %>%
     select(Annotation, everything()) %>%
     kable("html", escape = F, col.names=colnames_final) %>%
     kable_styling(bootstrap_options = c("striped", "hover", "responsive"), full_width = T) %>%
