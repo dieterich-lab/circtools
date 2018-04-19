@@ -47,8 +47,10 @@ while (length(current_line <- readLines(con, n = 1, warn = FALSE)) > 0) {
 
     # left primer only in exon2, right primer only in exon1
     } else {
-        seqOpts$SEQUENCE_PRIMER_PAIR_OK_REGION_LIST <- paste(   1,nchar(line_column[[1]][3]),
-                                                                nchar(line_column[[1]][3])+1,nchar(line_column[[1]][2])-1,
+        seqOpts$SEQUENCE_PRIMER_PAIR_OK_REGION_LIST <- paste(   1,
+                                                                nchar(line_column[[1]][3]),
+                                                                nchar(line_column[[1]][3])+1,
+                                                                nchar(line_column[[1]][2])-1,
                                                                 sep=","
                                                             )
     }
