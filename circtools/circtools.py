@@ -441,7 +441,7 @@ class CircTools(object):
                            help="How should the samples be labeled? [Default: Sample]",
                            default="Sample"
                            )
-	
+
         group.add_argument("-L",
                            "--limit",
                            dest="range",
