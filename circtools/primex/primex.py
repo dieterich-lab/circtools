@@ -45,6 +45,7 @@ class Primex(circ_module.circ_template.CircTemplate):
         self.gene_list = self.cli_params.gene_list
         self.id_list = self.cli_params.id_list
         self.product_range = self.cli_params.product_size
+        self.junction = self.cli_params.junction
 
         if self.id_list and self.gene_list:
             print("Please specify either host genes via -G or circRNA IDs via -i.")
@@ -253,7 +254,8 @@ class Primex(circ_module.circ_template.CircTemplate):
 
         script_result = os.popen(primer_script + " " +
                                  exon_storage_tmp + " " +
-                                 str(self.product_range[0]) + "," + str(self.product_range[1])).read()
+                                 str(self.product_range[0]) + "," + str(self.product_range[1]) + " " +
+                                 self.junction).read()
 
         # this is the first time we look through the input file
         # we collect the primer sequences and unify everything in one blast query

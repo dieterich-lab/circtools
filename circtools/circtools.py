@@ -286,6 +286,15 @@ class CircTools(object):
                            required=False,
                            nargs='+'
                            )
+
+        group.add_argument("-j",
+                           "--junction",
+                           dest="junction",
+                           help="Should the forward [f] or reverse [r] primer be located on the BSJ? [Default: n]",
+                           choices=("r", "n", "f"),
+                           default="n"
+                           )
+
         args = parser.parse_args(sys.argv[2:])
 
         # start the primer module
