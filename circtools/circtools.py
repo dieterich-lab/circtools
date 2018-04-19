@@ -295,6 +295,15 @@ class CircTools(object):
                            default="n"
                            )
 
+        group.add_argument("-b",
+                           "--no-blast",
+                           dest="blast",
+                           help="Should primers be BLASTED? Even if selected yes here, not more than 50 primers will"
+                                "be sent to BLAST in any case.",
+                           default=False,
+                           action='store_true'
+                           )
+
         args = parser.parse_args(sys.argv[2:])
 
         # start the primer module

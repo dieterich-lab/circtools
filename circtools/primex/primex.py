@@ -46,6 +46,7 @@ class Primex(circ_module.circ_template.CircTemplate):
         self.id_list = self.cli_params.id_list
         self.product_range = self.cli_params.product_size
         self.junction = self.cli_params.junction
+        self.no_blast = self.cli_params.blast
 
         if self.id_list and self.gene_list:
             print("Please specify either host genes via -G or circRNA IDs via -i.")
@@ -265,7 +266,7 @@ class Primex(circ_module.circ_template.CircTemplate):
 
         blast_input_file = ""
 
-        if circ_rna_number < 3:
+        if circ_rna_number < 50:
 
             for line in script_result.splitlines():
                 entry = line.split('\t')
@@ -297,11 +298,16 @@ class Primex(circ_module.circ_template.CircTemplate):
                     blast_object_cache[entry[2]] = 1
                     primer_to_circ_cache[entry[1]] = circular_rna_id[0]
                     primer_to_circ_cache[entry[2]] = circular_rna_id[0]
+        else:
+            print("Too many circRNAs selected, skipping BLAST step.")
+
+        if self.no_blast:
+            print("User disabled BLAST search, skipping.")
 
         run_blast = 0
 
         # check if we have to blast
-        if blast_input_file:
+        if not self.no_blast and blast_input_file:
 
             try:
                 print("Sending " + str(len(blast_object_cache)) + " primers to BLAST")
