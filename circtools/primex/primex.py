@@ -148,7 +148,7 @@ class Primex(circ_module.circ_template.CircTemplate):
     def run_module(self):
 
         exons = self.read_annotation_file(self.gtf_file, entity="exon")
-        circ_rna_number = 1
+        circ_rna_number = 0
 
         # define temporary files
         exon_storage_tmp = self.temp_dir + "circtools_flanking_exons.tmp"
@@ -236,8 +236,8 @@ class Primex(circ_module.circ_template.CircTemplate):
                     exon1 = open(virtual_bed_file_start.seqfn).read().split("\n", 1)[1].rstrip()
                     exon2 = open(virtual_bed_file_stop.seqfn).read().split("\n", 1)[1].rstrip()
 
-                    print("extracting flanking exons for circRNA #", circ_rna_number, name, end="\n", flush=True)
                     circ_rna_number += 1
+                    print("extracting flanking exons for circRNA #", circ_rna_number, name, end="\n", flush=True)
 
                     exon_cache[name] = {1: exon1, 2: exon2}
 
