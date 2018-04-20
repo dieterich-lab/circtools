@@ -50,8 +50,8 @@ arg_grouping <- unlist(lapply(strsplit(args[5], ","), as.numeric)) # list of str
 arg_colour_mode <- args[6]
 arg_cleanup_string <- args[7]
 arg_starfolder_suffix <- args[8]
-
-
+arg_remove_last <- as.numeric(args[9])
+arg_remove_first <- as.numeric(args[10])
 
 # check colour mode
 if (arg_colour_mode != "colour" & arg_colour_mode != "bw" ) {
@@ -73,6 +73,32 @@ message("Parsing data")
 # remove DCC artifacts from columns names
 names(LinearCount)<-gsub(arg_cleanup_string,"",names(LinearCount))
 names(CircRNACount)<-gsub(arg_cleanup_string,"",names(CircRNACount))
+
+
+
+min_length = nchar(names(LinearCount[which.min(unlist(lapply(names(LinearCount[, - c(1 : 3)]), nchar)))+3]))
+
+if (min_length - arg_remove_first - arg_remove_last < 0){
+    message("Values specified via -L and -F would result in a least one too short sample name.
+    Please reduce the cuttoff values.")
+    q()
+}
+
+
+names(LinearCount)<-gsub(arg_cleanup_string,"",names(LinearCount))
+names(CircRNACount)<-gsub(arg_cleanup_string,"",names(CircRNACount))
+
+names(LinearCount) <- c(names(LinearCount[, c(1 : 3)]),
+strtrim(names(LinearCount[, - c(1 : 3)]), nchar(names(LinearCount[, - c(1 : 3)]))-arg_remove_last))
+
+names(CircRNACount) <- c(names(LinearCount[, c(1 : 3)]),
+strtrim(names(CircRNACount[, - c(1 : 3)]), nchar(names(CircRNACount[, - c(1 : 3)]))-arg_remove_last))
+
+names(LinearCount) <- c(names(LinearCount[, c(1 : 3)]),
+substring(names(LinearCount[, - c(1 : 3)]), arg_remove_first))
+
+names(CircRNACount) <- c(names(LinearCount[, c(1 : 3)]),
+substring(names(CircRNACount[, - c(1 : 3)]), arg_remove_first))
 
 # summing up counts per column (i.e. library)
 circ_counts_summed <- apply(CircRNACount[, - c(1 : 3)], 2, sum)

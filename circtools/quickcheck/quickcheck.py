@@ -85,6 +85,9 @@ class QuickCheck(circ_module.circ_template.CircTemplate):
                 self.log_entry("Error: group %s is no valid group index." % str(column))
                 exit(-1)
 
+        self.check_int_arguments([self.cli_params.remove_suffix_chars,
+                                  self.cli_params.remove_prefix_chars])
+
         # needed for Rscript decoupling
         import subprocess
 
@@ -117,8 +120,9 @@ class QuickCheck(circ_module.circ_template.CircTemplate):
                 self.cli_params.grouping,
                 self.cli_params.colour,
                 self.cli_params.cleanup,
-                self.cli_params.starfolder
-
+                self.cli_params.starfolder,
+                self.cli_params.remove_suffix_chars,
+                self.cli_params.remove_prefix_chars
         ]
 
         # ------------------------------------ run script and check output -----------------------

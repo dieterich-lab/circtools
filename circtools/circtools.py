@@ -572,6 +572,24 @@ class CircTools(object):
                                 "[Default: \"_STARmapping\"]",
                            default="_STARmapping"
                            )
+
+        group.add_argument("-L",
+                           "--remove-last",
+                           dest="remove_suffix_chars",
+                           help="Remove last N characters from each column name of the DCC input data "
+                                "[Default: 0]",
+                           type=int,
+                           default=0
+                           )
+
+        group.add_argument("-F",
+                           "--remove-first",
+                           dest="remove_prefix_chars",
+                           help="Remove first N characters from each column name of the DCC input data "
+                                "[Default: 0]",
+                           type=int,
+                           default=0
+                           )
         ######################################################
 
         args = parser.parse_args(sys.argv[2:])
