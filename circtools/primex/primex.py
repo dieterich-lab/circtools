@@ -411,7 +411,7 @@ class Primex(circ_module.circ_template.CircTemplate):
             gdt_features = gdd.new_track(1, greytrack=True, name="", )
             gds_features = gdt_features.new_set()
 
-            feature = SeqFeature(FeatureLocation(1, exon1_length), strand=+1)
+            feature = SeqFeature(FeatureLocation(0, exon1_length), strand=+1)
             gds_features.add_feature(feature, name="Exon 1", label=False, color="#ff6877", label_size=22)
             #
             feature = SeqFeature(FeatureLocation(circrna_length - exon2_length, circrna_length), strand=+1)
@@ -420,20 +420,64 @@ class Primex(circ_module.circ_template.CircTemplate):
             feature = SeqFeature(FeatureLocation(forward_primer_start, circrna_length), strand=-1)
             gds_features.add_feature(feature, name="Product", label=False, color="#6881ff")
 
-            feature = SeqFeature(FeatureLocation(1, reverse_primer_start), strand=-1)
+            feature = SeqFeature(FeatureLocation(0, reverse_primer_start), strand=-1)
             gds_features.add_feature(feature, name="Product: " + product_size + "bp", label=False, color="#6881ff",
                                      label_size=22, label_position="middle")
 
-            feature = SeqFeature(FeatureLocation(reverse_primer_start - reverse_primer_length, reverse_primer_start),
-                                 strand=-1)
-            gds_features.add_feature(feature, name="Reverse", label=False, sigil="BIGARROW", color="#75ff68",
-                                     arrowshaft_height=0.3, arrowhead_length=0.1, label_size=22)
+            if self.junction == "f":
 
-            feature = SeqFeature(FeatureLocation(forward_primer_start, forward_primer_start + forward_primer_length))
-            gds_features.add_feature(feature, name="Forward", label=False, sigil="BIGARROW", color="#75ff68",
-                                     arrowshaft_height=0.3, arrowhead_length=0.1, label_size=22)
+                feature = SeqFeature(FeatureLocation(reverse_primer_start - reverse_primer_length, reverse_primer_start),
+                                     strand=-1)
+                gds_features.add_feature(feature, name="Reverse", label=False, sigil="BIGARROW", color="#75ff68",
+                                         arrowshaft_height=0.3, arrowhead_length=0.1, label_size=22)
 
-            feature = SeqFeature(FeatureLocation(1, 1))
+                # the primer spans the BSJ, therefore we have to draw it in two pieces:
+                # piece 1: primer start to circRNA end
+                # piece 2: remaining primer portion beginning from 0
+
+                # piece 1:
+                feature = SeqFeature(FeatureLocation(forward_primer_start, circrna_length))
+                gds_features.add_feature(feature, name="Forward", label=False, sigil="BIGARROW", color="#75ff68",
+                                         arrowshaft_height=0.3, arrowhead_length=0.1, label_size=22)
+
+                # piece 2:
+                feature = SeqFeature(
+                    FeatureLocation(0, forward_primer_length - (circrna_length - forward_primer_start)))
+                gds_features.add_feature(feature, name="Forward", label=False, sigil="BIGARROW", color="#75ff68",
+                                         arrowshaft_height=0.3, arrowhead_length=0.1, label_size=22)
+            elif self.junction == "r":
+                # the primer spans the BSJ, therefore we have to draw it in two pieces:
+                # piece 1: primer start of circRNA to circRNA end
+                # piece 2: remaining primer portion beginning from 0
+
+                # piece 1:
+                feature = SeqFeature(FeatureLocation(circrna_length - reverse_primer_start, circrna_length), strand=-1)
+                gds_features.add_feature(feature, name="Reverse", label=False, sigil="BIGARROW", color="#75ff68",
+                                         arrowshaft_height=0.3, arrowhead_length=0.1, label_size=22)
+
+                # piece 2:
+                feature = SeqFeature(
+                    FeatureLocation(0, reverse_primer_start), strand=-1)
+                gds_features.add_feature(feature, name="Reverse", label=False, sigil="BIGARROW", color="#75ff68",
+                                         arrowshaft_height=0.3, arrowhead_length=0.1, label_size=22)
+
+                feature = SeqFeature(
+                    FeatureLocation(forward_primer_start, forward_primer_start + forward_primer_length))
+                gds_features.add_feature(feature, name="Forward", label=False, sigil="BIGARROW", color="#75ff68",
+                                         arrowshaft_height=0.3, arrowhead_length=0.1, label_size=22)
+            else:
+                feature = SeqFeature(
+                    FeatureLocation(reverse_primer_start - reverse_primer_length, reverse_primer_start),
+                    strand=-1)
+                gds_features.add_feature(feature, name="Reverse", label=False, sigil="BIGARROW", color="#75ff68",
+                                         arrowshaft_height=0.3, arrowhead_length=0.1, label_size=22)
+
+                feature = SeqFeature(
+                    FeatureLocation(forward_primer_start, forward_primer_start + forward_primer_length))
+                gds_features.add_feature(feature, name="Forward", label=False, sigil="BIGARROW", color="#75ff68",
+                                         arrowshaft_height=0.3, arrowhead_length=0.1, label_size=22)
+
+            feature = SeqFeature(FeatureLocation(0, 1))
             gds_features.add_feature(feature, name="BSJ", label=True, color="white", label_size=22)
 
             for exon in flanking_exon_cache[circular_rna_id]:
