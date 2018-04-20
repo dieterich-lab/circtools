@@ -109,7 +109,7 @@ class QuickCheck(circ_module.circ_template.CircTemplate):
         # ------------------------------------ need to call the correct R script here -----------------------
 
         # need to define path top R wrapper
-        quickcheck_script = 'circtools_quickcheck'
+        quickcheck_script = 'circtools_quickcheck_wrapper.R'
 
         # Variable number of args in a list
         args = [

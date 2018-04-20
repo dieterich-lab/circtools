@@ -234,7 +234,7 @@ setup(
             'scripts/circtools_detect_write_skip_tracks.pl',
             'scripts/circtools_enrich_visualization.R',
             'scripts/circtools_exon',
-            'scripts/circtools_quickcheck',
+            'scripts/circtools_quickcheck_wrapper.R',
             'scripts/circtools_reconstruct_visualization.R',
             'scripts/circtools_primex_wrapper.R',
             'scripts/circtools_primex_formatter.R',
