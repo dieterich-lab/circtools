@@ -57,7 +57,7 @@ Python packages
     * pybedtools>=0.7.10
     * statsmodels>=0.8.0
 
-- For circRNA detection
+- For circRNA primer design
     * BioPython>=1.71
 
 
