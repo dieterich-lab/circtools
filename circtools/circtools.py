@@ -23,6 +23,7 @@ import os.path
 version = "1.2.0-beta"
 program_name = "circtest"
 
+
 # samtools/git like parsing from http://chase-seibert.github.io/blog/2014/03/21/python-multilevel-argparse.html
 
 
@@ -49,7 +50,7 @@ class CircTools(object):
             Available commands:
 
                enrich:       circular RNA RBP enrichment scan
-               primer:       circular RNA primer design tool
+               primex:       circular RNA primer design tool
                detect:       circular RNA detection with DCC
                reconstruct:  circular RNA reconstruction with FUCHS
                circtest:     circular RNA statistical testing
@@ -76,7 +77,6 @@ class CircTools(object):
 
     @staticmethod
     def enrich():
-
         # build the argument list
         parser = argparse.ArgumentParser(
             description="circular RNA RBP enrichment tools")
@@ -723,6 +723,7 @@ class CircTools(object):
 
         import os
         os.system("FUCHS " + args.cli_params)
+
 
 if __name__ == "__main__":
     main()
