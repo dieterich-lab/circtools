@@ -69,7 +69,19 @@ class PostInstallCommand(install):
 
             print("")
 
-            # step 1: install DCC, FUCHS and primer design R module
+            # step 1: create .Renviron file
+            print("Should we update the R package location in order to install package as user?")
+
+            answer = query_yes_no("Update R_LIB in .Renviron")
+            if answer:
+                print("Running update script...")
+                subprocess.check_call(["bash", "scripts/install_create_r_environ.sh"])
+            else:
+                print("Okay. If the R library path is not writeable the installation will most probably fail.")
+
+            print("")
+
+            # step 2: install DCC, FUCHS and primer design R module
             print("We need to install two other programs of the Dieterich Lab circRNA suit, DCC and FUCHS, as well "
                   "as R package dependencies for other modules of circtools")
             print("We'll install everything for you from GitHub and CRAN for you.")
@@ -84,7 +96,7 @@ class PostInstallCommand(install):
             if answer:
                 subprocess.check_call(["bash", "scripts/install_external.sh"])
 
-                # step 2: update $PATH
+                # step 3: update $PATH
                 print("In order for circtools to be globally callable, we would add the installation"
                       " folder to the $PATH variable. Would you like us to do that?")
 
@@ -95,19 +107,6 @@ class PostInstallCommand(install):
                 else:
                     print("Okay. Please update the $PATH variable yourself, "
                           "otherwise you may not be able to run circtools.")
-                print("")
-
-                # step 3: create .Renviron file
-                print("In order for the circtools primer design module to run, we need to install some R modules.")
-                print("Please make sure R >= 3.3.3 is installed.")
-                print("Should we update the R package location in order to install package as user?")
-
-                answer = query_yes_no("Update R_LIB in .Renviron")
-                if answer:
-                    print("Running update script...")
-                    subprocess.check_call(["bash", "scripts/install_create_r_environ.sh"])
-                else:
-                    print("Okay. If the R library path is not writeable the installation will most probably fail.")
                 print("")
 
         install.run(self)
