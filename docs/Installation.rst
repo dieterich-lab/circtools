@@ -71,16 +71,24 @@ Getting the source code
 
     git clone git@github.com:dieterich-lab/circtools.git
 
+Installation
+^^^^^^^^^^^^
+
 **Step 2**: Install circtools using the provided installation script. The ``--user`` flag installs circtools in your home folder, thus making sure you do not require any administrative rights during the installation::
 
     cd circtools
     python3 setup.py install --verbose --user
 
+R environment
+^^^^^^^^^^^^
 
 **Step 3**: Setting up R environment. In order for the automatic installation of R packages to work we need to set the package directory to a user-writeable path. The setup can automatically set that path to /home/$USER/.R/::
 
     Should we update the R package location in order to install package as user?
     Update R_LIB in .Renviron [Y/n]
+
+Dependencies
+^^^^^^^^^^^^
 
 **Step 4**: The setup script is designed to guide you through the installation process and makes sure your enviroonment is setup correctly to run circtools. You will have to answer a few questions throughout this process::
 
@@ -96,6 +104,9 @@ Getting the source code
      [Y/n]
 
 Answer with "y" to automatically install `CircTest <https://github.com/dieterich-lab/CircTest>`_, `primex <https://github.com/dieterich-lab/primex>`_, `DCC <https://github.com/dieterich-lab/DCC>`_ and `FUCHS <https://github.com/dieterich-lab/FUCHS>`_. 
+
+Finishing up
+^^^^^^^^^^^^
 
 **Step 5**: Adding installation folder to $PATH. In order for circtools to find all exectuables, the setup will give you the possibility to add the folder ``/home/$USER/.local/bin/`` automatically to your ``.bashrc`` file::
 
