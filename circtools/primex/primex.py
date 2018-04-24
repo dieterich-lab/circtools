@@ -216,8 +216,6 @@ class Primex(circ_module.circ_template.CircTemplate):
                 for result_line in str(result).splitlines():
                     bed_feature = result_line.split('\t')
 
-                    print(result_line)
-
                     # this is a single-exon circRNA
                     if bed_feature[1] == current_line[1] and bed_feature[2] == current_line[2]:
                         fasta_bed_line_start += result_line + "\n"
