@@ -25,11 +25,20 @@ while (length(current_line <- readLines(con, n = 1, warn = FALSE)) > 0) {
     # split line by tab
     line_column <- (strsplit(current_line, "\t"))
 
+    # we split exon 2 in the middle and create 2 fake exons to continue with the process
+    # because we need to have the BSJ somehow in the sequence
+
+    if (line_column[[1]][3] == ""){
+        line_column[[1]][3] <- substr(line_column[[1]][2], 1, nchar(line_column[[1]][2])/2)
+        tmp <- substr(line_column[[1]][2], nchar(line_column[[1]][2])/2+1, nchar(line_column[[1]][2]))
+        line_column[[1]][2] <- tmp
+    }
+
     # set minimal information for primer design
     seqOpts <-  seqSettings(
-                        seqId = line_column[[1]][1],
-                        seq = c(line_column[[1]][3], line_column[[1]][2])
-                            )
+                    seqId = line_column[[1]][1],
+                    seq = c(line_column[[1]][3], line_column[[1]][2])
+                        )
 
     seqOpts <- productSize(seqOpts, c(product_size[1], product_size[2]))
 
