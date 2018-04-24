@@ -192,8 +192,6 @@ class Primex(circ_module.circ_template.CircTemplate):
                 if self.id_list and not self.gene_list and name not in self.id_list:
                     continue
 
-                print(line)
-
                 flanking_exon_cache[name] = {}
 
                 sep = "\t"
