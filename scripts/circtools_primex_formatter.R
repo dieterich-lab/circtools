@@ -90,7 +90,7 @@ data_file_name <- args[1]
 data_table <- read.csv(data_file_name, header = FALSE, sep = "\t")
 data_table$circid <- paste(data_table$V1,data_table$V2,data_table$V3,data_table$V4,data_table$V5,data_table$V6,sep="_")
 
-data_table$circid <- paste(sep="","<img src=/tmp/",data_table$circid,".svg>")
+data_table$circid <- paste(sep="","<img src=",data_table$circid,".svg>")
 
 # remove unused columns
 data_table <- data_table[-c(6,9,10)]
