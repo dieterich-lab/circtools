@@ -355,6 +355,7 @@ class Primex(circ_module.circ_template.CircTemplate):
 
             try:
                 print("Sending " + str(len(blast_object_cache)) + " primers to BLAST")
+                print("This may take a few minutes, please be patient.")
                 result_handle = self.call_blast(blast_input_file, self.organism)
                 run_blast = 1
             except Exception as exc:
