@@ -154,6 +154,12 @@ class Primex(circ_module.circ_template.CircTemplate):
                 lines = f.read().splitlines()
             self.id_list = lines
 
+        # let's first check if the temporary directory exists
+        if not (os.access(self.temp_dir, os.W_OK)):
+            print("Temporary directory %s not writable." % self.temp_dir)
+            # exit with -1 error if we can't use it
+            exit(-1)
+
         exons = self.read_annotation_file(self.gtf_file, entity="exon")
         circ_rna_number = 0
 
