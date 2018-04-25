@@ -47,6 +47,7 @@ class Primex(circ_module.circ_template.CircTemplate):
         self.product_range = self.cli_params.product_size
         self.junction = self.cli_params.junction
         self.no_blast = self.cli_params.blast
+        self.experiment_title = self.cli_params.experiment_title
 
         if self.id_list and self.gene_list:
             print("Please specify either host genes via -G or circRNA IDs via -i.")
@@ -161,7 +162,7 @@ class Primex(circ_module.circ_template.CircTemplate):
         blast_storage_tmp = self.temp_dir + "circtools_blast_results.tmp"
         blast_xml_tmp = self.temp_dir + "circtools_blast_results.xml"
 
-        output_html_file = self.output_dir + "circtools_primers.html"
+        output_html_file = self.output_dir + self.experiment_title.replace(" ", "_") + ".html"
 
         # erase old contents
         open(exon_storage_tmp, 'w').close()
@@ -410,10 +411,15 @@ class Primex(circ_module.circ_template.CircTemplate):
 
         # ------------------------------------ run script and check output -----------------------
 
-        primex_data_formatted = os.popen(primer_script + " " + blast_storage_tmp).read()
+        primex_data_formatted = os.popen(primer_script + " " +
+                                         blast_storage_tmp + " "
+                                         + "\"" + self.experiment_title + "\""
+                                         ).read()
 
         with open(output_html_file, 'w') as data_store:
             data_store.write(primex_data_formatted)
+
+        print("Writing results to "+output_html_file)
 
         # here we create the circular graphics for primer visualisation
         for line in primex_data_with_blast_results.splitlines():
