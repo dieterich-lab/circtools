@@ -249,6 +249,13 @@ class CircTools(object):
                            default="./"
                            )
 
+        group.add_argument("-T",
+                           "--title",
+                           dest="experiment_title",
+                           help="Title of the experiment for HTML output and file name",
+                           default="circtools_primer_design"
+                           )
+
         group = parser.add_argument_group("Additional options")
 
         group.add_argument("-t",

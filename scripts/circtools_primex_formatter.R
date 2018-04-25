@@ -12,6 +12,8 @@ high_count_number = 0
 
 args <- commandArgs(trailingOnly = TRUE)
 
+experiment_name <- args[2]
+
 # set output to HTML
 options(knitr.table.format = 'html')
 
@@ -48,8 +50,10 @@ $(document).ready(function(){
     </style>
 
 </head>
-<body>
-"
+<body>"
+
+html_header <- paste(html_header,"<h1>circtools primer design results for experiment ", experiment_name , "</h1>", sep="")
+
 #############################################################################################################
 
 # generate a divergent color scale with 11 shades
