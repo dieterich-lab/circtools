@@ -31,7 +31,7 @@ def check_input_files(input_file_list):
             sys.exit(message)
 
 
-def parse_bed_file(input_file, annotation, local_dict, min_coverage, allowed_wobble):
+def parse_bed_12_file(input_file, annotation, local_dict, min_coverage, allowed_wobble):
 
     with open(input_file) as fp:
 
@@ -65,6 +65,40 @@ def parse_bed_file(input_file, annotation, local_dict, min_coverage, allowed_wob
                         local_dict[location] = 1
                     else:
                         local_dict[location] += 1
+
+    return local_dict
+
+
+def parse_bed_6_file(input_file, annotation, local_dict, min_coverage, allowed_wobble):
+
+    with open(input_file) as fp:
+
+        for line in fp:
+
+            if line.startswith("#"):
+                continue
+
+            line = line.rstrip()
+
+            columns = line.split('\t')
+
+            start = 0
+            stop = 0
+
+            for wobble in range(-1*allowed_wobble, allowed_wobble):
+
+                if columns[0] + "_" + str(int(columns[1])+wobble) in annotation:
+                    start = 1
+
+                if columns[0] + "_" + str(int(columns[2])+wobble) in annotation:
+                    stop = 1
+
+            if start == 0 and stop == 0:
+                location = columns[0] + "\t" + str(columns[1]) + "\t" + str(columns[2])
+                if location not in local_dict:
+                    local_dict[location] = 1
+                else:
+                    local_dict[location] += 1
 
     return local_dict
 
@@ -171,6 +205,14 @@ group.add_argument("-m",
                    default=2000
                    )
 
+group.add_argument("-B",
+                   "--bed-type",
+                   dest="bed_type",
+                   help="Which BED file type: bed6 or bed12 [Default: bed6]",
+                   choices=("bed6", "bed12"),
+                   default="bed12"
+                   )
+
 
 args = parser.parse_args()
 
@@ -212,13 +254,21 @@ for file in range(0, num_files):
     else:
         assignment_dict[args.assignment[file]] += 1
 
-    global_dict[args.assignment[file]] = parse_bed_file(args.bed_files[file],
-                                                        gtf_input,
-                                                        global_dict[args.assignment[file]],
-                                                        args.min_coverage,
-                                                        args.wobble
-                                                        )
+    if args.bed_type == "bed6":
 
+        global_dict[args.assignment[file]] = parse_bed_6_file(args.bed_files[file],
+                                                              gtf_input,
+                                                              global_dict[args.assignment[file]],
+                                                              args.min_coverage,
+                                                              args.wobble
+                                                              )
+    else:
+        global_dict[args.assignment[file]] = parse_bed_12_file(args.bed_files[file],
+                                                               gtf_input,
+                                                               global_dict[args.assignment[file]],
+                                                               args.min_coverage,
+                                                               args.wobble
+                                                            )
 # remove non-stringent exons
 for sample in global_dict:
     final_dict[sample] = {}
