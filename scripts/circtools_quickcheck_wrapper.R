@@ -132,11 +132,11 @@ if (length(arg_grouping) < num_samples) {
     counts <- c(rep(0,num_samples))
   generated_sample_names <- unlist(lapply(seq(1, num_samples), function(x) {
       counts[arg_grouping[x]] <<- counts[arg_grouping[x]]+1
-    return(paste(arg_condition_list[arg_grouping[x]], "-", counts[arg_grouping[x]], sep = ""))
+    return(paste(arg_condition_list[arg_grouping[x]], counts[arg_grouping[x]], sep = " "))
   }))
 }
-# colnames(circ_counts_summed) <- generated_sample_names
-# colnames(linear_counts_summed) <- generated_sample_names
+# names(circ_counts_summed) <- generated_sample_names
+# names(linear_counts_summed) <- generated_sample_names
 
 # get unique mapping reads
 ## which star runs are in the DCC output?
