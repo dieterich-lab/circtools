@@ -597,6 +597,13 @@ class CircTools(object):
                            type=int,
                            default=0
                            )
+
+        group.add_argument("-R",
+                           "--remove-columns",
+                           dest="remove_columns",
+                           help="Comma-separated list of columns in the DCC data files to not includes in the check",
+                           default="0"
+                           )
         ######################################################
 
         args = parser.parse_args(sys.argv[2:])

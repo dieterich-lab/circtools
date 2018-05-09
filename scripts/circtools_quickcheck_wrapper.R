@@ -52,6 +52,7 @@ arg_cleanup_string <- args[7]
 arg_starfolder_suffix <- args[8]
 arg_remove_last <- as.numeric(args[9])
 arg_remove_first <- as.numeric(args[10])
+arg_remove_columns <- unlist(lapply(strsplit(args[11], ","), as.numeric))
 
 # check colour mode
 if (arg_colour_mode != "colour" & arg_colour_mode != "bw" ) {
@@ -68,6 +69,13 @@ CircRNACount <- read.delim(paste(arg_dcc_data, "CircRNACount", sep="/"), check.n
 
 message("Loading LinearRNACount")
 LinearCount <- read.delim(paste(arg_dcc_data, "LinearCount", sep="/"), check.names=FALSE, header = T)
+
+# check columns to remove
+if (arg_remove_columns != "0" && length(arg_remove_columns) > 0) {
+
+    LinearCount <- LinearCount[, -arg_remove_columns]
+    CircRNACount <- CircRNACount[, -arg_remove_columns]
+}
 
 message("Parsing data")
 # remove DCC artifacts from columns names
@@ -142,6 +150,12 @@ star_runs <- star_runs[endsWith(star_runs, arg_starfolder_suffix)]
 
 # only use the folders of full mappings (not the per-mate ones)
 star_runs <- star_runs[!grepl("*mate*", star_runs)]
+
+# check columns to remove
+if (arg_remove_columns != "0" && length(arg_remove_columns) > 0) {
+    star_runs <- star_runs[-(arg_remove_columns - 3)]
+}
+
 # new empty list
 uniquely_mapped_reads <- numeric();
 

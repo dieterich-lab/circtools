@@ -122,7 +122,8 @@ class QuickCheck(circ_module.circ_template.CircTemplate):
                 self.cli_params.cleanup,
                 self.cli_params.starfolder,
                 self.cli_params.remove_suffix_chars,
-                self.cli_params.remove_prefix_chars
+                self.cli_params.remove_prefix_chars,
+                self.cli_params.remove_columns
         ]
 
         # ------------------------------------ run script and check output -----------------------
