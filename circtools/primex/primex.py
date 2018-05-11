@@ -148,7 +148,7 @@ class Primex(circ_module.circ_template.CircTemplate):
 
     def run_module(self):
 
-        if os.access(self.id_list[0], os.R_OK):
+        if self.id_list and os.access(self.id_list[0], os.R_OK):
             print("Detected supplied circRNA ID file.")
             with open(self.id_list[0]) as f:
                 lines = f.read().splitlines()
