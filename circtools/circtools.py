@@ -240,6 +240,12 @@ class CircTools(object):
                            default="hs"
                            )
 
+        group.add_argument("-s",
+                           "--sequence",
+                           dest="sequence_file",
+                           help="FASTA file containing the circRNA sequence (exons and introns)"
+                           )
+
         group = parser.add_argument_group("Output options")
 
         group.add_argument("-o",

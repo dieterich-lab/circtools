@@ -48,6 +48,7 @@ class Primex(circ_module.circ_template.CircTemplate):
         self.junction = self.cli_params.junction
         self.no_blast = self.cli_params.blast
         self.experiment_title = self.cli_params.experiment_title
+        self.input_circRNA = self.cli_params.sequence_file
 
         if self.id_list and self.gene_list:
             print("Please specify either host genes via -G or circRNA IDs via -i.")
@@ -160,7 +161,6 @@ class Primex(circ_module.circ_template.CircTemplate):
             # exit with -1 error if we can't use it
             exit(-1)
 
-        exons = self.read_annotation_file(self.gtf_file, entity="exon")
         circ_rna_number = 0
 
         # define temporary files
@@ -178,115 +178,129 @@ class Primex(circ_module.circ_template.CircTemplate):
         flanking_exon_cache = {}
         primer_to_circ_cache = {}
 
-        with open(self.dcc_file) as fp:
+        if self.input_circRNA:
+            from Bio import SeqIO
+            with open(exon_storage_tmp, 'a') as data_store:
+                for record in SeqIO.parse(self.input_circRNA, "fasta"):
 
-            for line in fp:
+                    # from the FASTA file we cannot tell the coordinates of the circRNA
+                    name = str(record.id)+"_0_0_0_0"
 
-                # make sure we remove the header
-                if line.startswith('Chr\t'):
-                    continue
+                    data_store.write("\t".join([name, str(record.seq), "", "\n"]))
+                    exon_cache[name] = {1: str(record.seq), 2: ""}
 
-                line = line.rstrip()
-                current_line = line.split('\t')
+        else:
+            exons = self.read_annotation_file(self.gtf_file, entity="exon")
 
-                if current_line[3] == "not_annotated":
-                    continue
+            with open(self.dcc_file) as fp:
 
-                if self.gene_list and not self.id_list and current_line[3] not in self.gene_list:
-                    continue
+                for line in fp:
 
-                sep = "_"
-                name = sep.join([current_line[3],
-                                 current_line[0],
-                                 current_line[1],
-                                 current_line[2],
-                                 current_line[5]])
+                    # make sure we remove the header
+                    if line.startswith('Chr\t'):
+                        continue
 
-                if self.id_list and not self.gene_list and name not in self.id_list:
-                    continue
+                    line = line.rstrip()
+                    current_line = line.split('\t')
 
-                flanking_exon_cache[name] = {}
+                    if current_line[3] == "not_annotated":
+                        continue
 
-                sep = "\t"
-                bed_string = sep.join([current_line[0],
-                                       current_line[1],
-                                       current_line[2],
-                                       current_line[3],
-                                       str(0),
-                                       current_line[5]])
+                    if self.gene_list and not self.id_list and current_line[3] not in self.gene_list:
+                        continue
 
-                virtual_bed_file = pybedtools.BedTool(bed_string, from_string=True)
-                result = exons.intersect(virtual_bed_file, s=True)
+                    sep = "_"
+                    name = sep.join([current_line[3],
+                                     current_line[0],
+                                     current_line[1],
+                                     current_line[2],
+                                     current_line[5]])
 
-                fasta_bed_line_start = ""
-                fasta_bed_line_stop = ""
+                    if self.id_list and not self.gene_list and name not in self.id_list:
+                        continue
 
-                start = 0
-                stop = 0
+                    flanking_exon_cache[name] = {}
 
-                for result_line in str(result).splitlines():
-                    bed_feature = result_line.split('\t')
+                    sep = "\t"
+                    bed_string = sep.join([current_line[0],
+                                           current_line[1],
+                                           current_line[2],
+                                           current_line[3],
+                                           str(0),
+                                           current_line[5]])
 
-                    # this is a single-exon circRNA
-                    if bed_feature[1] == current_line[1] and bed_feature[2] == current_line[2]:
-                        fasta_bed_line_start += result_line + "\n"
-                        start = 1
-                        stop = 1
+                    virtual_bed_file = pybedtools.BedTool(bed_string, from_string=True)
+                    result = exons.intersect(virtual_bed_file, s=True)
 
-                    if bed_feature[1] == current_line[1] and start == 0:
-                        fasta_bed_line_start += result_line + "\n"
-                        start = 1
+                    fasta_bed_line_start = ""
+                    fasta_bed_line_stop = ""
 
-                    if bed_feature[2] == current_line[2] and stop == 0:
-                        fasta_bed_line_stop += result_line + "\n"
-                        stop = 1
+                    start = 0
+                    stop = 0
 
-                    # these exons are kept for correctly drawing the circRNAs later
-                    # not used for primer design
-                    if bed_feature[1] > current_line[1] and bed_feature[2] < current_line[2]:
-                        flanking_exon_cache[name][bed_feature[1] + "_" + bed_feature[2]] = 1
+                    for result_line in str(result).splitlines():
+                        bed_feature = result_line.split('\t')
 
-                virtual_bed_file_start = pybedtools.BedTool(fasta_bed_line_start, from_string=True)
-                virtual_bed_file_stop = pybedtools.BedTool(fasta_bed_line_stop, from_string=True)
+                        # this is a single-exon circRNA
+                        if bed_feature[1] == current_line[1] and bed_feature[2] == current_line[2]:
+                            fasta_bed_line_start += result_line + "\n"
+                            start = 1
+                            stop = 1
 
-                virtual_bed_file_start = virtual_bed_file_start.sequence(fi=self.fasta_file)
-                virtual_bed_file_stop = virtual_bed_file_stop.sequence(fi=self.fasta_file)
+                        if bed_feature[1] == current_line[1] and start == 0:
+                            fasta_bed_line_start += result_line + "\n"
+                            start = 1
 
-                if stop == 0 or start == 0:
-                    print("Could not identify the exact exon-border of the circRNA.")
-                    print("Will continue with non-annotated, manually extracted sequence.")
+                        if bed_feature[2] == current_line[2] and stop == 0:
+                            fasta_bed_line_stop += result_line + "\n"
+                            stop = 1
 
-                    # we have to manually reset the start position
+                        # these exons are kept for correctly drawing the circRNAs later
+                        # not used for primer design
+                        if bed_feature[1] > current_line[1] and bed_feature[2] < current_line[2]:
+                            flanking_exon_cache[name][bed_feature[1] + "_" + bed_feature[2]] = 1
 
-                    fasta_bed_line = "\t".join([current_line[0],
-                                                current_line[1],
-                                                current_line[2],
-                                                current_line[5]])
+                    virtual_bed_file_start = pybedtools.BedTool(fasta_bed_line_start, from_string=True)
+                    virtual_bed_file_stop = pybedtools.BedTool(fasta_bed_line_stop, from_string=True)
 
-                    virtual_bed_file_start = pybedtools.BedTool(fasta_bed_line, from_string=True)
                     virtual_bed_file_start = virtual_bed_file_start.sequence(fi=self.fasta_file)
-                    virtual_bed_file_stop = ""
+                    virtual_bed_file_stop = virtual_bed_file_stop.sequence(fi=self.fasta_file)
 
-                exon1 = ""
-                exon2 = ""
+                    if stop == 0 or start == 0:
+                        print("Could not identify the exact exon-border of the circRNA.")
+                        print("Will continue with non-annotated, manually extracted sequence.")
 
-                if virtual_bed_file_start:
-                    exon1 = open(virtual_bed_file_start.seqfn).read().split("\n", 1)[1].rstrip()
+                        # we have to manually reset the start position
 
-                if virtual_bed_file_stop:
-                    exon2 = open(virtual_bed_file_stop.seqfn).read().split("\n", 1)[1].rstrip()
+                        fasta_bed_line = "\t".join([current_line[0],
+                                                    current_line[1],
+                                                    current_line[2],
+                                                    current_line[5]])
 
-                circ_rna_number += 1
-                print("extracting flanking exons for circRNA #", circ_rna_number, name, end="\n", flush=True)
+                        virtual_bed_file_start = pybedtools.BedTool(fasta_bed_line, from_string=True)
+                        virtual_bed_file_start = virtual_bed_file_start.sequence(fi=self.fasta_file)
+                        virtual_bed_file_stop = ""
 
-                if exon2 and not exon1:
-                    exon1 = exon2
+                    exon1 = ""
                     exon2 = ""
 
-                exon_cache[name] = {1: exon1, 2: exon2}
+                    if virtual_bed_file_start:
+                        exon1 = open(virtual_bed_file_start.seqfn).read().split("\n", 1)[1].rstrip()
 
-                with open(exon_storage_tmp, 'a') as data_store:
-                    data_store.write("\t".join([name, exon1, exon2, "\n"]))
+                    if virtual_bed_file_stop:
+                        exon2 = open(virtual_bed_file_stop.seqfn).read().split("\n", 1)[1].rstrip()
+
+                    circ_rna_number += 1
+                    print("extracting flanking exons for circRNA #", circ_rna_number, name, end="\n", flush=True)
+
+                    if exon2 and not exon1:
+                        exon1 = exon2
+                        exon2 = ""
+
+                    exon_cache[name] = {1: exon1, 2: exon2}
+
+                    with open(exon_storage_tmp, 'a') as data_store:
+                        data_store.write("\t".join([name, exon1, exon2, "\n"]))
 
         if not exon_cache:
             print("Could not find any circRNAs matching your criteria, exiting.")
@@ -539,14 +553,15 @@ class Primex(circ_module.circ_template.CircTemplate):
                 feature = SeqFeature(FeatureLocation(0, 1))
                 gds_features.add_feature(feature, name="BSJ", label=True, color="white", label_size=22)
 
-                for exon in flanking_exon_cache[circular_rna_id]:
-                    exon_start, exon_stop = exon.split('_')
+                if circular_rna_id in flanking_exon_cache:
+                    for exon in flanking_exon_cache[circular_rna_id]:
+                        exon_start, exon_stop = exon.split('_')
 
-                    exon_start = int(exon_start) - int(entry[2])
-                    exon_stop = int(exon_stop) - int(entry[2])
+                        exon_start = int(exon_start) - int(entry[2])
+                        exon_stop = int(exon_stop) - int(entry[2])
 
-                    feature = SeqFeature(FeatureLocation(exon_start, exon_stop), strand=+1)
-                    gds_features.add_feature(feature, name="Exon", label=False, color="grey", label_size=22)
+                        feature = SeqFeature(FeatureLocation(exon_start, exon_stop), strand=+1)
+                        gds_features.add_feature(feature, name="Exon", label=False, color="grey", label_size=22)
 
                 gdd.draw(format='circular', pagesize=(600, 600), circle_core=0.6, track_size=0.3, tracklines=0, x=0.00,
                          y=0.00, start=0, end=circrna_length-1)
