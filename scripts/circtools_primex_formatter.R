@@ -72,10 +72,16 @@ construct_color_column <- function(column, default_value, palette)
     if (top_val > bottom_val){
         from <- default_value - top_val
         to <- default_value + top_val
+    } else if (top_val == bottom_val) {
+        from <- default_value - 1
+        to <- default_value + 1
     } else {
         from <- default_value - bottom_val
         to <- default_value + bottom_val
     }
+    print(from)
+        print(seq( from, to, length.out= length(palette)+1 ))
+
     return(as.character(cut(column,seq( from, to, length.out= length(palette)+1 ), labels=palette, include.lowest = T)))
 }
 
