@@ -399,7 +399,8 @@ class Primex(circ_module.circ_template.CircTemplate):
 
                     # filter out the host gene we're in now
                     # also filter out all "PREDICTED" stuff
-                    if description.title.find(primer_to_circ_cache[blast_record.query]) == -1:
+                    if description.title.find(primer_to_circ_cache[blast_record.query]) == -1 and\
+                            description.title.find("PREDICTED") == -1:
                         blast_result_cache[blast_record.query].append(description.title)
 
         # if we encounter NAs nothing has been blasted, we manually set the values now
