@@ -184,7 +184,7 @@ class Primex(circ_module.circ_template.CircTemplate):
                 for record in SeqIO.parse(self.input_circRNA, "fasta"):
 
                     # from the FASTA file we cannot tell the coordinates of the circRNA
-                    name = str(record.id)+"_0_0_0_0"
+                    name = str(record.id)+"_0_0_"+str(len(record.seq))+"_0"
 
                     data_store.write("\t".join([name, str(record.seq), "", "\n"]))
                     exon_cache[name] = {1: str(record.seq), 2: ""}

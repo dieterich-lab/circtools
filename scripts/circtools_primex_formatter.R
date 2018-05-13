@@ -152,7 +152,9 @@ data_table$BLAST_right <- gsub(";", "<br/><br/>", data_table$BLAST_right)
 # remove 0 entries from location columns for provided circRNA FASTA files
 data_table$Chr <- gsub("\\b0\\b", "", data_table$Chr )
 data_table$Start <- gsub("\\b0\\b", "", data_table$Start )
-data_table$Stop <- gsub("\\b0\\b", "", data_table$Stop )
+
+data_table$Stop  <- ifelse( data_table$Start == "" | data_table$Start != "", "", data_table$Stop )
+
 data_table$Strand<- gsub("\\b0\\b", "", data_table$Strand )
 
 # clean up rownames to hide them lateron
