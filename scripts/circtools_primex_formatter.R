@@ -79,8 +79,6 @@ construct_color_column <- function(column, default_value, palette)
         from <- default_value - bottom_val
         to <- default_value + bottom_val
     }
-    print(from)
-        print(seq( from, to, length.out= length(palette)+1 ))
 
     return(as.character(cut(column,seq( from, to, length.out= length(palette)+1 ), labels=palette, include.lowest = T)))
 }
