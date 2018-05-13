@@ -161,6 +161,12 @@ class Primex(circ_module.circ_template.CircTemplate):
             # exit with -1 error if we can't use it
             exit(-1)
 
+        # let's first check if the temporary directory exists
+        if not (os.access(self.output_dir, os.W_OK)):
+            print("Output directory %s not writable." % self.output_dir)
+            # exit with -1 error if we can't use it
+            exit(-1)
+
         circ_rna_number = 0
 
         # define temporary files
