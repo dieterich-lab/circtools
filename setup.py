@@ -230,7 +230,6 @@ setup(
     # this will be our main "executable"
     scripts=[
             'scripts/circtools',
-            'scripts/circtools_circtest',
             'scripts/circtools_detect_write_skip_tracks.pl',
             'scripts/circtools_enrich_visualization.R',
             'scripts/circtools_exon',
