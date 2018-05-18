@@ -58,10 +58,10 @@ class CircTest(circ_module.circ_template.CircTemplate):
 
         # check DCC files (only existence, not the content)
         self.check_input_files([
-                                self.cli_params.DCC_dir+"CircRNACount",
-                                self.cli_params.DCC_dir+"LinearCount",
-                                self.cli_params.DCC_dir+"CircCoordinates"
-                                ])
+            self.cli_params.DCC_dir + "CircRNACount",
+            self.cli_params.DCC_dir + "LinearCount",
+            self.cli_params.DCC_dir + "CircCoordinates"
+        ])
 
         # check sample names
         if len(self.cli_params.condition_list.split(",")) < 2:
@@ -92,16 +92,16 @@ class CircTest(circ_module.circ_template.CircTemplate):
         # check numeric arguments
 
         self.check_int_arguments([
-                                self.cli_params.num_replicates,
-                                self.cli_params.filter_sample,
-                                self.cli_params.filter_count,
-                                self.cli_params.max_plots,
-                                ])
+            self.cli_params.num_replicates,
+            self.cli_params.filter_sample,
+            self.cli_params.filter_count,
+            self.cli_params.max_plots,
+        ])
 
         self.check_float_arguments([self.cli_params.max_fdr,
-				    self.cli_params.percentage,
-				    self.cli_params.range
-				   ])
+                                    self.cli_params.percentage,
+                                    self.cli_params.range
+                                    ])
 
         if self.cli_params.max_fdr > 1 or self.cli_params.max_fdr < 0:
             self.log_entry("Error: FDR specified via -f has to be in the range >0 and <1.")
@@ -132,26 +132,26 @@ class CircTest(circ_module.circ_template.CircTemplate):
         # ------------------------------------ need to call the correct R script here -----------------------
 
         # need to define path top R wrapper
-        primer_script = 'circtools_circtest'
+        primer_script = 'circtools_circtest_wrapper.R'
 
         # Variable number of args in a list
         args = [
-                self.cli_params.DCC_dir,
-                self.cli_params.num_replicates,
-                self.cli_params.condition_list,
-                self.cli_params.condition_columns,
-                self.cli_params.output_directory+"/"+self.cli_params.output_name,
-                self.cli_params.max_fdr,
-                self.cli_params.max_plots,
-                self.cli_params.filter_sample,
-                self.cli_params.filter_count,
-                self.cli_params.grouping,
-                self.cli_params.label,
-                self.cli_params.percentage,
-                self.cli_params.only_negative,
-                self.cli_params.add_header,
-                self.cli_params.range,
-                self.cli_params.colour
+            self.cli_params.DCC_dir,
+            self.cli_params.num_replicates,
+            self.cli_params.condition_list,
+            self.cli_params.condition_columns,
+            self.cli_params.output_directory + "/" + self.cli_params.output_name,
+            self.cli_params.max_fdr,
+            self.cli_params.max_plots,
+            self.cli_params.filter_sample,
+            self.cli_params.filter_count,
+            self.cli_params.grouping,
+            self.cli_params.label,
+            self.cli_params.percentage,
+            self.cli_params.only_negative,
+            self.cli_params.add_header,
+            self.cli_params.range,
+            self.cli_params.colour
         ]
 
         # ------------------------------------ run script and check output -----------------------
