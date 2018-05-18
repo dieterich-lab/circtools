@@ -153,7 +153,8 @@ star_runs <- star_runs[!grepl("*mate*", star_runs)]
 
 # check columns to remove
 if (arg_remove_columns != "0" && length(arg_remove_columns) > 0) {
-    star_runs <- star_runs[-(arg_remove_columns - 3)]
+    tmp <- unlist(lapply(arg_remove_columns, function(x){x-3}))
+    star_runs <- star_runs[-tmp]
 }
 
 # new empty list
