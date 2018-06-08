@@ -8,10 +8,21 @@ The circtools quickcheck module is designed to equip the user with a fast way of
 Required tools and packages
 ----------------------------
 
-``quickcheck`` depends on R and two R packages, namely
+``circtools primer`` depends on R, several R packages, and BioPython:
 
-* ggplot2: general plotting
-* ggrepel: label assignment in plots
+R packages:
+
+* primex
+* formattable
+* kableExtra
+* dplyr
+* RColorBrewer
+* colortools
+
+Python libraries:
+
+* BioPython>=1.71
+
 
 
 
