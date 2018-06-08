@@ -1,9 +1,13 @@
 Primer design module
 ********************************************************
 
-The circtools quickcheck module is designed to equip the user with a fast way of assessing the quality of the circRNA library preparation and the success of the mapping process.
+The circtools primex module is a highly specialized primer design tool tailored specifically for circRNA experiments. 
 
-``circtools quickcheck`` requires sequencing reads have been mapped with STAR since internally the STAR log files are processed. CircRNA detection metrics are provided via ``circtools detect`` which has to be run prior to call the quickcheck module.
+``circtools primex`` is able to design primer pairs in batches of hundreds of circRNAs based on circRNAs detected with ``circtools detect``, but can also work on lists with specific circRNA isoforms or even entirely without any preliminary data purely based on the FASTA sequence of the circRNA.
+
+The ``circtools primex`` module is based on the equally named R package 
+
+`primex <https://github.com/dieterich-lab/primex>`_
 
 Required tools and packages
 ----------------------------
@@ -24,102 +28,87 @@ Python libraries:
 * BioPython>=1.71
 
 
-
-
 General usage
 --------------
 
-A call to ``circtools quickcheck --help`` shows all available command line flags:
+A call to ``circtools primex --help`` shows all available command line flags:
 
 .. code-block:: bash
 
-    usage: circtools [-h] -d DCC_DIR -s STAR_DIR -l CONDITION_LIST -g GROUPING
-                     [-o OUTPUT_DIRECTORY] [-n OUTPUT_NAME] [-c {colour,bw}]
-                     [-C CLEANUP] [-S STARFOLDER] [-L REMOVE_SUFFIX_CHARS]
-                     [-F REMOVE_PREFIX_CHARS] [-R REMOVE_COLUMNS]
+    usage: circtools [-h] -d DCC_FILE -g GTF_FILE -f FASTA_FILE [-O {mm,hs}]
+                     [-s SEQUENCE_FILE] [-o OUTPUT_DIR] [-T EXPERIMENT_TITLE]
+                     [-t GLOBAL_TEMP_DIR] [-G GENE_LIST [GENE_LIST ...]]
+                     [-p PRODUCT_SIZE [PRODUCT_SIZE ...]]
+                     [-i ID_LIST [ID_LIST ...]] [-j {r,n,f}] [-b]
     
-    circular RNA sequencing library quality assessment
+    circular RNA primer design
     
     optional arguments:
       -h, --help            show this help message and exit
     
-    Required:
-      -d DCC_DIR, --DCC DCC_DIR
-                            Path to the detect/DCC data directory
-      -s STAR_DIR, --star STAR_DIR
-                            Path to the base STAR data directory containing sub-
-                            folders with per-sample mappings
-      -l CONDITION_LIST, --condition-list CONDITION_LIST
-                            Comma-separated list of conditions which should be
-                            comparedE.g. "RNaseR +","RNaseR -"
-      -g GROUPING, --grouping GROUPING
-                            Comma-separated list describing the relation of the
-                            columns specified via -c to the sample names specified
-                            via -l; e.g. -g 1,2 and -r 3 would assign sample1 to
-                            each even column and sample 2 to each odd column
+    Input:
+      -d DCC_FILE, --dcc-file DCC_FILE
+                            CircCoordinates file from DCC / detect module
+      -g GTF_FILE, --gtf-file GTF_FILE
+                            GTF file of genome annotation e.g. ENSEMBL
+      -f FASTA_FILE, --fasta FASTA_FILE
+                            FASTA file with genome sequence (must match
+                            annotation)
+      -O {mm,hs}, --organism {mm,hs}
+                            Organism of the study (used for primer BLASTing), mm =
+                            Mus musculus, hs = Homo sapiens
+      -s SEQUENCE_FILE, --sequence SEQUENCE_FILE
+                            FASTA file containing the circRNA sequence (exons and
+                            introns)
     
     Output options:
-      -o OUTPUT_DIRECTORY, --output-directory OUTPUT_DIRECTORY
-                            The output directory for files created by circtest
-                            [Default: ./]
-      -n OUTPUT_NAME, --output-name OUTPUT_NAME
-                            The output name for files created by circtest
-                            [Default: quickcheck]
-      -c {colour,bw}, --colour {colour,bw}
-                            Can be set to bw to create grayscale graphs for
-                            manuscripts
-      -C CLEANUP, --cleanup CLEANUP
-                            String to be removed from each sample name [Default:
-                            "_STARmapping.*Chimeric.out.junction"]
-      -S STARFOLDER, --starfolder STARFOLDER
-                            Suffix string of the STAR folders[Default:
-                            "_STARmapping"]
-      -L REMOVE_SUFFIX_CHARS, --remove-last REMOVE_SUFFIX_CHARS
-                            Remove last N characters from each column name of the
-                            DCC input data [Default: 0]
-      -F REMOVE_PREFIX_CHARS, --remove-first REMOVE_PREFIX_CHARS
-                            Remove first N characters from each column name of the
-                            DCC input data [Default: 0]
-      -R REMOVE_COLUMNS, --remove-columns REMOVE_COLUMNS
-                            Comma-separated list of columns in the DCC data files
-                            to not includes in the check
+      -o OUTPUT_DIR, --output OUTPUT_DIR
+                            Output directory (must exist)
+      -T EXPERIMENT_TITLE, --title EXPERIMENT_TITLE
+                            Title of the experiment for HTML output and file name
+    
+    Additional options:
+      -t GLOBAL_TEMP_DIR, --temp GLOBAL_TEMP_DIR
+                            Temporary directory (must exist)
+      -G GENE_LIST [GENE_LIST ...], --genes GENE_LIST [GENE_LIST ...]
+                            Space-separated list of host gene names. Primers for
+                            CircRNAs of those genes will be designed.E.g. -G
+                            "CAMSAP1" "RYR2"
+      -p PRODUCT_SIZE [PRODUCT_SIZE ...], --product-size PRODUCT_SIZE [PRODUCT_SIZE ...]
+                            Space-separated range for the desired PCR product.
+                            E.g. -p 80 160 [default]
+      -i ID_LIST [ID_LIST ...], --id-list ID_LIST [ID_LIST ...]
+                            Space-separated list of circRNA IDs. E.g. -i
+                            "CAMSAP1_9_135850137_135850461_-"
+                            "CAMSAP1_9_135881633_135883078_-"
+      -j {r,n,f}, --junction {r,n,f}
+                            Should the forward [f] or reverse [r] primer be
+                            located on the BSJ? [Default: n]
+      -b, --no-blast        Should primers be BLASTED? Even if selected yes here,
+                            not more than 50 primers willbe sent to BLAST in any
+                            case.
+
 
 Sample call
 ^^^^^^^^^^^^
 .. code-block:: bash
 
-    circtools quickcheck -d DCC/ -s mapping/ -l HepG2-,HepG2+,K562-,K562+ -g 1,2,1,2,1,2,3,4,3,4,3,4
+    circtools primex -d DCC/CircCoordinates -f /mnt/big_data/genomes/GRCh38_85/GRCh38_85.fa -g /mnt/big_data/genomes/GRCh38_85/GRCh38_85.gtf -O hs -o /tmp/ -i N4BP2L2_13_32517857_32527532_-  -T "N4BP2L2 primer"  -b -j r
 
-Here we have the DCC data located in the folder ``DCC/``, the STAR mapping are stored in ``mapping/``, the experiment had 4 conditions, listed via ``-l HepG2-,HepG2+,K562-,K562+``, the samples in the DCC data file are sorted in the the order specified via ``-g 1,2,1,2,1,2,3,4,3,4,3,4``.
 
 .. code-block:: bash
 
-    Using R version 3.5.0 [/usr/bin/Rscript]
-    Loading CircRNACount
-    Loading LinearRNACount
-    Parsing data
-    Found 18 data columns in provided DCC data
-    4 different groups provided
-    Assuming (1,2),(1,2),(1,2),... sample grouping
-    plotting data
-    Done
+    Start parsing GTF file
+    Start merging GTF file
+    extracting flanking exons for circRNA # 1 N4BP2L2_13_32517857_32527532_-
+    Sending 7 primers to BLAST
+    This may take a few minutes, please be patient.
+    Writing results to /tmp/N4BP2L2_primer.html
 
-``circtools`` takes a few seconds to process the data.
+``circtools primex`` takes a few seconds to process the input data and sends the generated primers pairs to the web-based BLAST service of the NCBI in order to give the user hints about potential unwanted targets. The output is written to a HTML file which can be opened with any browser.
 
-Graphical output
-^^^^^^^^^^^^^^^^
+Sample of the HTML output generated by ``circtools primex``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Circular vs. linear read counts for all mapped libraries
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+.. image:: /img/primer_list_N4BP2L2.png
 
-.. image:: /img/quickcheck-0.png
-
-Number of mapped reads vs number of detected circRNAs for all mapped libraries
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
-.. image:: /img/quickcheck-1.png
-
-CircRNAs per million uniquely mapped reads
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
-.. image:: /img/quickcheck-2.png
