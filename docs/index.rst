@@ -25,7 +25,7 @@ Table of contents
 ==================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    Installation.rst
    Detect.rst
@@ -35,7 +35,6 @@ Table of contents
    Enrichment.rst
    Exon.rst
    Primer.rst
-   Visualisation.rst
 
 License
 ========
