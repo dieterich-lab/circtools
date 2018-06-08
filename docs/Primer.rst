@@ -1,4 +1,4 @@
-Quick check module
+Primer design module
 ********************************************************
 
 The circtools quickcheck module is designed to equip the user with a fast way of assessing the quality of the circRNA library preparation and the success of the mapping process.

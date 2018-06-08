@@ -34,7 +34,7 @@ Table of contents
    Circtest.rst
    Enrichment.rst
    Exon.rst
-   Primer.md
+   Primer.rst
    Visualisation.rst
 
 License
