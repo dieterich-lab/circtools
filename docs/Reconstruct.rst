@@ -304,37 +304,38 @@ circle_id               transcript_id   skipped_exon            intron          
 
 **Description of the data columns:**
 
-\*.hek293_exon_chain_inferred_12.bed
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+\*.sample_name.exon_chain_inferred_12.bed
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description of the data columns:**
 
 
-\*.hek293_exon_chain_inferred_6.bed
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+\*.sample_name.exon_chain_inferred_6.bed
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 **Description of the data columns:**
 
 
-sample/ [folder]
+sample [folder]
 ^^^^^^^^^^^^^^^^^^^^
-1_35358925_35361789_9reads.sorted.bam
-1_35358925_35361789_9reads.sorted.bam.bai
-1_20749723_20773610_4reads.sorted.bam
-1_20749723_20773610_4reads.sorted.bam.bai
+
+* 1_35358925_35361789_9reads.sorted.bam
+* 1_35358925_35361789_9reads.sorted.bam.bai
+* 1_20749723_20773610_4reads.sorted.bam
+* 1_20749723_20773610_4reads.sorted.bam.bai
 
 
-*\.coverage_pictures/ [folder]
+\*.coverage_pictures/ [folder]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-1_35358925_35361789_NM_005095.png
-1_20749723_20773610_NM_016287.png
-cluster_means_all_circles.png
+* 1_35358925_35361789_NM_005095.png
+* 1_20749723_20773610_NM_016287.png
+* cluster_means_all_circles.png
 
-*\.coverage_profiles/ [folder]
+\*\.coverage_profiles/ [folder]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-1_35358925_35361789.NM_005095.txt
-1_20749723_20773610.NM_016287.txt
-coverage.clusters.all_circles.pdf
-coverage_profiles.all_circles.pdf
+* 1_35358925_35361789.NM_005095.txt
+* 1_20749723_20773610.NM_016287.txt
+* coverage.clusters.all_circles.pdf
+* coverage_profiles.all_circles.pdf
