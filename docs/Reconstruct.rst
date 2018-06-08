@@ -128,7 +128,10 @@ The additional module ``denovo_circle_structure_parallel`` can be employed to ob
 Required input data
 --------------------
 
-**circIDs:**
+circRNA IDs
+^^^^^^^^^^^^
+
+CircRNA data data can be provided via a generic table with the structure found below:
 
 ==================== ==========================================================================================
  circID               read1,read2,read3
@@ -138,11 +141,17 @@ Required input data
 ==================== ==========================================================================================
 
 
-The first column contains the circle id formated as folllowed **chr:start|end**. The second column is a comma separated list of read names spanning the back-splice junction.
+The first column contains the circleRNA ID formated as folllowed **chr:start|end**. The second column is a comma separated list of read names spanning the back-splice junction.
 
-**bamfile:** Alignment file produced by any mapper. This file must contain all chimerically mapped reads and may contain also linearly mapped reads.
+BAM input files
+^^^^^^^^^^^^^^^^
 
-**bedfile:**
+Alignment files produced by any suitable read mapping tool. The files *have to* contain all chimerically mapped reads and *may* also contain linearly mapped reads.
+
+BED annotation file
+^^^^^^^^^^^^^^^^^^^^
+
+A BED file in BED6 format. The name should contain a gene name or gene ID and the exon_number. You can specify how the name should be processed using -p (platform), -s (character used to separate name and exon number) and -e (exon_index).
 
 ====   ===========    =============     ===================================   =======  ======
 Chr      Start            End               Name                               Score   Strand
@@ -152,15 +161,13 @@ Chr      Start            End               Name                               S
  1      67103237        67103382         NR_075077_exon_2_0_chr1_67103238_r     0       \-
 ====   ===========    =============     ===================================   =======  ======
 
-Normal BED file in BED6 format. The name should contain a gene name or gene ID and the exon_number. You can specify how the name should be processed using -p (platform), -s (character used to separate name and exon number) and -e (exon_index).
 
+Output produced by circtools reconstruct
+----------------------------------------
 
-Output produced by FUCHS
---------------------------
+***.alternative_splicing.txt:**
 
-**hek293.alternative_splicing.txt:**
-
-This file summarizes the relationship of different circRNAs derived from the same host-gene.
+This file summarizes the relationship of different circRNAs derived from the same host-gene. Sample file structure given below:
 
 =============  ============================================================    =========================================  =========   ===========  =============================================
 Transcript      circles                                                        same_start                                 same_end    overlapping  within
@@ -170,11 +177,13 @@ NM_005095	1:35358925-35361789,1:35381259-35389082,1:35381259-35390098    1:35381
 NM_001291940    1:236803428-236838599,1:236806144-236816543                    .                                           .          .            1:236803428-236838599|1:236806144-236816543,
 =============  ============================================================    =========================================  =========   ===========  =============================================
 
+**Description of the data columns:**
+
 | *Transcript*: Transcript name as defined by the bed-annotation file
 | *circles*: Comma-separated list of circRNA ids derived from this transcript
-| *same_start*: Comma-seprated list of circRNA pairs separated by |. Pairs in this column share the same start coordinates. A "." indicates that there are no circle pairs that share the same start coordinates.
+| *same_start*: Comma-seprated list of circRNA pairs separated by ``|``. Pairs in this column share the same start coordinates. A "." indicates that there are no circle pairs that share the same start coordinates.
 | *same_end*: Same as *same_start*, only now, circle pairs share the same end coordinates.
-| *overlapping*: Comma-seprated list of circRNA pairs separated by |. Pairs in this column share neither start nor end coordinates, but their relation is such that: start.x < start.y && end.x < end.y && start.y < end.x
+| *overlapping*: Comma-seprated list of circRNA pairs separated by ``|``. Pairs in this column share neither start nor end coordinates, but their relation is such that: start.x < start.y && end.x < end.y && start.y < end.x
 | *within*: Same as *overlapping*, only now, circle pairs have the follwoing relation: start.x < start.y && end.x > end.y
 |
 
