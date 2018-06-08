@@ -28,7 +28,6 @@ Table of contents
    :maxdepth: 2
 
    Installation.rst
-   Modules.md
    Detect.rst
    Reconstruct.rst
    Quickcheck.rst
