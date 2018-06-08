@@ -102,14 +102,14 @@ Graphical output
 Circular vs. linear read counts for all mapped libraries
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-.. image:: /img/quickcheck-0.png
+.. image:: img/quickcheck-0.png
 
 Number of mapped reads vs number of detected circRNAs for all mapped libraries
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-.. image:: /img/quickcheck-1.png
+.. image:: img/quickcheck-1.png
 
 CircRNAs per million uniquely mapped reads
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-.. image:: /img/quickcheck-2.png
+.. image:: img/quickcheck-2.png
