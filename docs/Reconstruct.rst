@@ -165,9 +165,10 @@ Chr      Start            End               Name                               S
 Output produced by circtools reconstruct
 ----------------------------------------
 
-***.alternative_splicing.txt:**
+\*.alternative_splicing.txt
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This file summarizes the relationship of different circRNAs derived from the same host-gene. Sample file structure given below:
+This file summarizes the relationship of different circRNAs derived from the same host-gene. A sample file structure given below:
 
 =============  ============================================================    =========================================  =========   ===========  =============================================
 Transcript      circles                                                        same_start                                 same_end    overlapping  within
@@ -181,14 +182,16 @@ NM_001291940    1:236803428-236838599,1:236806144-236816543                    .
 
 | *Transcript*: Transcript name as defined by the bed-annotation file
 | *circles*: Comma-separated list of circRNA ids derived from this transcript
-| *same_start*: Comma-seprated list of circRNA pairs separated by ``|``. Pairs in this column share the same start coordinates. A "." indicates that there are no circle pairs that share the same start coordinates.
+| *same_start*: Comma-separated list of circRNA pairs separated by ``|``. Pairs in this column share the same start coordinates. A "." indicates that there are no circle pairs that share the same start coordinates.
 | *same_end*: Same as *same_start*, only now, circle pairs share the same end coordinates.
-| *overlapping*: Comma-seprated list of circRNA pairs separated by ``|``. Pairs in this column share neither start nor end coordinates, but their relation is such that: start.x < start.y && end.x < end.y && start.y < end.x
-| *within*: Same as *overlapping*, only now, circle pairs have the follwoing relation: start.x < start.y && end.x > end.y
+| *overlapping*: Comma-separated list of circRNA pairs separated by ``|``. Pairs in this column share neither start nor end coordinates, but their relation is such that: start.x < start.y && end.x < end.y && start.y < end.x
+| *within*: Same as *overlapping*, but circRNA pairs have the following relation: start.x < start.y && end.x > end.y
 |
 
-**hek293.exon_counts.bed:**
-This file is a bed-formatted file that describes the exon-structure and can be loaded into any genome browser. Each line corresponds to a circRNA.
+\*.exon_counts.bed
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+These files are BED formatted and describe the exon-structure. The files can be loaded into any genome browser. Each line corresponds to a circRNA.
 
 =====  ============  =============    ============    =============    =======   ======== =========  ======= ===========  ==============  =====================
 Chr    Circle Start   Circle  End      Transcript     Num of Reads     Strand      Start   End        Color  Num of Exon  Exon Lengths     Relative Exon Starts
@@ -196,6 +199,8 @@ Chr    Circle Start   Circle  End      Transcript     Num of Reads     Strand   
 chr1    35358925        35361789        NM_005095       9               \+       35358925 35361789   0,255,0  3           521,61,170      0,2269,2694
 chr1    20749723        20773610        NM_016287       4               \-       20749723 20773610   0,255,0  4           159,90,143,159  0,7443,21207,23728
 =====  ============  =============    ============    =============    =======   ======== =========  ======= ===========  ==============  =====================
+
+**Description of the data columns:**
 
 | *Chr*: Chromosome of circRNA
 | *Circle Start*: The 5' site of the chimeric junction. This is relative to the reference strand, i.e. start < end! The location is 1-index based
@@ -207,11 +212,15 @@ chr1    20749723        20773610        NM_016287       4               \-      
 | *End*: Copied *Circle End* to stay conform with BED12 format
 | *Color*: pre defined color the exons will show up in the genome viewer (0,255,0 -> green)
 | *Num of Exon*: Number of exons in this circRNA consists of
-| *Exon Lengths*: Comma-seprated list of the length of each exon
+| *Exon Lengths*: Comma-separated list of the length of each exon
 | *Relative Exon Starts*: Comma-separated list of the relative starting positions of the exons within the circle boundaries.
 |
-**hek293.exon_counts.txt:**
-This file contains similar information as the previous file, just more detailed inforamtion on the exons. Each line corresponds to one exon.
+
+
+\*.exon_counts.txt
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+This file contains similar information as the previous file, just more detailed information on the exons. Each line corresponds to one exon.
+
 
 ======= =====================  ================ ============  ========== =====  ============   ============= ======= =============   ==============  ===========     ========= ========
 sample   circle_id               transcript_id   other_ids       exon_id chr     start           end          strand  exon_length     unique_reads    fragments       number\+ number\-
@@ -227,6 +236,8 @@ hek293   1:20749723-20773610     NM_016287       NM_016287       7       1      
 hek293   1:20749723-20773610     NM_016287       NM_016287       8       1       20773450        20773610        \-       160          4               4               4        0
 ======= =====================  ================ ============  ========== =====  ============   ============= ======= =============   ==============  ===========     ========= ========
 
+**Description of the data columns:**
+
 | *sample*: Sample name as specified by the user. This is useful if the user wants to merge files from different samples
 | *circle_id*: circRNA-ID. The circleID is formatted to be copy and pasted to a genome browser for easy access
 | *transcript_id*: Transcript name as defined by the bed-annotation file. This is the best fitting transcript. i.e. the splicing variants that contains the most exons that are actually covered
@@ -240,11 +251,13 @@ hek293   1:20749723-20773610     NM_016287       NM_016287       8       1      
 | *unique_reads*: Number of unique reads associated with the chimeric junction. When the data is paired end, then both ends are considered as separate reads.
 | *fragments*: Number of broken fragments aligning to the circle
 | *number\+*: Number of reads spanning the chimeric junction on the forward strand
-| *number\-*: Number of reads spanning the chimeric junction on the reverse strand (if reads are only from one strand, it could indicate, that there is a sequencing bias.)
+| *number\-*: Number of reads spanning the chimeric junction on the reverse strand (if reads are only from one strand, this may indicate that there is a sequencing bias.)
 |
 
-**hek293.mate_status.txt:**
-This output file contains the results of analysing the amount of how often each fragment spans a chimeric junction. A fragment can either span the chimeric junction once (single), only one end spans the junction,
+\*.mate_status.txt
+^^^^^^^^^^^^^^^^^^^
+
+This output file contains the results of analyzing the amount of how often each fragment spans a chimeric junction. A fragment can either span the chimeric junction once (single), only one end spans the junction,
 twice (double) both ends span the chimeric junction, or more than twice (undefined).
 
 =====================  ================ =============   ============   ============    ======= ======== ==========
@@ -253,6 +266,8 @@ circle_id               transcript_ids  num_reads       min_length      max_leng
 1_20749723_20773610     NM_016287       4               790              790             4       0       0
 1_35358925_35361789     NM_005095       9               754              754             9       0       0
 =====================  ================ =============   ============   ============    ======= ======== ==========
+
+**Description of the data columns:**
 
 | *circle_id*:
 | *transcript_ids*:
@@ -264,7 +279,8 @@ circle_id               transcript_ids  num_reads       min_length      max_leng
 | *undefined*:
 |
 
-**hek293.skipped_exons.bed:**
+\*.skipped_exons.bed
+^^^^^^^^^^^^^^^^^^^^^
 
 =====  ==============  ============    ==============  ======= ======= =============== ============   ========= ========== ============ =============
 Chr     Circle-Start    Circle-End      Transcript      Ratio  Strand   Intron-Start    Intron-End     Color    NumExon\-2 IntronLength RelativeStart
@@ -273,8 +289,11 @@ chr5    178885614       178931326       NM_030613       60.0    .       17891307
 chr6    161034259       161049979       NM_001291958    40.0    .       161049332       161049852      255,0,0  3          1,520,1      0,15073,15719
 =====  ==============  ============    ==============  ======= ======= =============== ============   ========= ========== ============ =============
 
+**Description of the data columns:**
 
-**hek293.skipped_exons.txt:**
+
+\*.skipped_exons.txt
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 =====================   ==============  ======================  =============================================   ======================================================================================================================================   =============   ===========
 circle_id               transcript_id   skipped_exon            intron                                          read_names                                                                                                                               splice_reads    exon_reads
@@ -283,35 +302,37 @@ circle_id               transcript_id   skipped_exon            intron          
 6_161034259_161049979   NM_001291958    6:161049332-161049852   set\(\[\(\'6\', 161049332, 161049852\)\]\)      MISEQ:136:000000000-ACBC6:1:1113:25288:9067,MISEQ:136:000000000-ACBC6:1:2116:11815:3530                                                  2               5
 =====================   ==============  ======================  =============================================   ======================================================================================================================================   =============   ===========
 
+**Description of the data columns:**
 
---------------------
+\*.hek293_exon_chain_inferred_12.bed
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**hek293_exon_chain_inferred_12.bed:**
+**Description of the data columns:**
 
---------------------
 
-**hek293_exon_chain_inferred_6.bed**
+\*.hek293_exon_chain_inferred_6.bed
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
---------------------
+**Description of the data columns:**
 
-**hek293:**
 
+sample/ [folder]
+^^^^^^^^^^^^^^^^^^^^
 1_35358925_35361789_9reads.sorted.bam
 1_35358925_35361789_9reads.sorted.bam.bai
 1_20749723_20773610_4reads.sorted.bam
 1_20749723_20773610_4reads.sorted.bam.bai
 
---------------------
 
-**hek293.coverage_pictures:**
+*\.coverage_pictures/ [folder]
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 1_35358925_35361789_NM_005095.png
 1_20749723_20773610_NM_016287.png
 cluster_means_all_circles.png
 
---------------------
-
-**hek293.coverage_profiles:**
+*\.coverage_profiles/ [folder]
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 1_35358925_35361789.NM_005095.txt
 1_20749723_20773610.NM_016287.txt
