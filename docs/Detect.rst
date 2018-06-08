@@ -1,85 +1,75 @@
 Detect module
 =========================================
 
-DCC is a python package intended to detect and quantify circRNAs with high specificity. DCC works with the STAR (Dobin et al., 2013) ``chimeric.out.junction`` files which contains chimerically aligned reads including circRNA junction spanning reads.
+The circRNA detection module f circtools is based on DCC, a Python 2.7-based tool built to detect and quantify circRNAs with high specificity. DCC works with the STAR (Dobin et al., 2013) ``chimeric.out.junction`` files which contains chimerically aligned reads including circRNA junction spanning reads.
 
-DCC depends on pysam, pandas, numpy, and HTSeq. The installation process of DCC will automatically check for the dependencies and install or update missing (Python) packages. Different installation options are available:
+DCC depends on pysam, pandas, numpy, and HTSeq. The installation process of circtools will normally automatically check for the dependencies, install or update missing Python packages and install the latest stable version of DCC.
 
-Manual Installation
---------------------
+Manual installation instructions
+--------------------------------
 
-* Option 1:  Download the latest stable `DCC release <https://github.com/dieterich-lab/DCC/releases>`_
+Option 1
+^^^^^^^^
 
-.. code-block:: bash
+Download of the latest stable `DCC release <https://github.com/dieterich-lab/DCC/releases>`_::
 
- $ tar -xvf DCC-<version>.tar.gz
+    $ tar -xvf DCC-<version>.tar.gz
+    $ cd DCC-<version>
+    $ python setup.py install --user
 
- $ cd DCC-<version>
+Option 2
+^^^^^^^^
 
- $ python setup.py install --user
+Cloning the source repository::
 
-* Option 1: git clone source repository
+    $ git clone https://github.com/dieterich-lab/DCC.git
+    $ cd DCC
+    $ python setup.py install --user
 
-.. code-block:: bash
+Verifying the installation::
 
-  $ git clone https://github.com/dieterich-lab/DCC.git
+    $ DCC --version
 
-  $ cd DCC
+If the Python installation binary path [e.g. `/$HOME/.local/bin` for Debian] is not included the $PATH, it is also possible run DCC directly::
 
-  $ python setup.py install --user
-
-Verify the installation:
-
-.. code-block:: bash
-
-  $ DCC --version
-
-If the Python installation binary path [e.g. `/$HOME/.local/bin` for Ubuntu] is not included in your path, it is also possible run DCC directly:
-
-.. code-block:: bash
-
-  $ python <DCC directory>/scripts/DCC <Options>
-
-  or even
-
-  $ python <DCC directory>/DCC/main.py <Options>
-
+    $ python <DCC directory>/scripts/DCC <Options>
+    # or even
+    $ python <DCC directory>/DCC/main.py <Options>
 
 Usage
 -----
 
-The detection of circRNAs from RNAseq data through DCC can be summarised in three steps:
+The detection of circRNAs from RNAseq data through the detection module can be summarized in a few steps:
 
-- Mapping of RNAseq data from quality checked fastq files. For paired-end (PE) data it is recommended to map the pair jointly and separately. The reason is that STAR does not output reads or read pairs that contain more than one chimeric junction.
+- Mapping of RNAseq data from quality checked fastq files. For paired-end (PE) data it is recommended to map the reads pairs jointly as well as separately because STAR does not output reads or read pairs that contain more than one chimeric junction.
 
-- Prepare the input files required by DCC. In summary, only one file is mandatory: ``samplesheet``, which specifies the locations for the ``chimeric.out.junction`` files (one relative or absolute path per line). [Command line flag: ``@samplesheet``]
+- Preparation of input files required by the detection module. In summary, only a ``samplesheet``, which specifies the locations for the ``chimeric.out.junction`` files is required (one relative or absolute path per line). [Command line flag: ``@samplesheet``]
 
-- A GTF format annotation of repetitive regions which is used to filter out circRNA candidates from repetitive regions. [Command line flag: ``-R your_repeat_file.gtf``]
+- A GTF formatted annotation of repetitive regions which is used to filter out circRNA candidates from repetitive regions is recommended. [Command line flag: ``-R repeat_file.gtf``]
 
-- For paired-end sequencing two files, e.g. ``mate1`` and ``mate2`` which contain the paths to the ``chimeric.out.junction`` files originating from the separate mate mapping step. [Command line flags: ``-m1 mate1file`` and ``-m2 mate2file``]
+- For paired-end sequencing two files, e.g. ``mate1`` and ``mate2`` which contain the paths to the ``chimeric.out.junction`` files originating from the separate mate mapping step are required. [Command line flags: ``-m1 mate1file`` and ``-m2 mate2file``]
 
-- You may specify the location of the BAM files via the -B flag otherwise DCC tries to guess their location based on the supplied ``chimeric.out.junction`` paths. [Command line flag: ``-B @bam_file_list``]
+- The locations of the BAM files can be specified via the -B flag. Otherwise the detection module tries to guess their location based on the supplied ``chimeric.out.junction`` paths. [Command line flag: ``-B @bam_file_list``]
 
-- DCC requires the ``SJ.out.tab`` files generated by STAR. DCC assumes they are located in the same folder as the BAM files and also retain their ``SJ.out.tab``.
+- The detection module requires the ``SJ.out.tab`` files generated by STAR. Circtools assumes that these are located in the same folder as the BAM files and also retain their ``SJ.out.tab`` name.
 
-- DCC can be used to process circular RNA detection and host gene expression detection either in a one-pass strategy or might be used for only one part of the analysis:
+- Circtools can be used to process circular RNA detection and host gene expression detection either in a one-pass strategy or only one part of the analysis:
 
- - Detect circRNAs and host gene expression: specify ``-D`` and ``-G`` option
- - Detect circRNAs only: ``-D``
- - Detect host gene expression only: ``-G``
-
+ - Detection of circRNAs and host gene expression:  ``-D`` and ``-G`` option have to be supplied
+ - Detection of circRNAs only: ``-D``
+ - Detection of host gene expression only: ``-G``
 
 
 Step by step tutorial
 ---------------------
 
-In this tutorial, we use the data set from  `Westholm et al. 2014 <http://www.sciencedirect.com/science/article/pii/S2211124714009310>`_  as an example. The data are paired-end, stranded RiboMinus RNAseq data from *Drosophila melanogaster*, consisting of samples of 3 developmental stages (1 day, 4 days, and 20 days) collected from the heads. You can download the data from the NCBI SRA (accession number `SRP001696 <http://www.ncbi.nlm.nih.gov/sra/?term=SRP001696>`_).
+In this tutorial, we use the data set from  `Westholm et al. 2014 <http://www.sciencedirect.com/science/article/pii/S2211124714009310>`_  as an example. The data are paired-end, stranded RiboMinus RNAseq data from *Drosophila melanogaster*, consisting of samples of three developmental stages (1 day, 4 days, and 20 days) collected from the heads. Data can be downloaded from the NCBI SRA (accession number `SRP001696 <http://www.ncbi.nlm.nih.gov/sra/?term=SRP001696>`_).
 
 
 Mapping of the fastq files with `STAR <https://github.com/alexdobin/STAR>`_
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Note: ``--alignSJoverhangMin`` and ``--chimJunctionOverhangMin`` should use the same value to make the circRNA expression and linear gene expression level comparable.
+.. note:: ``--alignSJoverhangMin`` and ``--chimJunctionOverhangMin`` should use the same values to make the circRNA expression and linear gene expression level comparable.
 
 * In a first step the paired-end data is mapped by using both mates. If the data is paired-end, an additional separate mate mapping is recommended (while not mandatory, this step will increase the sensitivity due to the the processing of small circular RNAs with only one chimeric junction point at each read mate). If the data is single-end, only this mapping step is required. In case of the Westholm data however, paired-end sequencing data is available.
 
@@ -162,17 +152,17 @@ Note: ``--alignSJoverhangMin`` and ``--chimJunctionOverhangMin`` should use the 
          --chimJunctionOverhangMin 15 \
 
 
-Detection of circular RNAs from ``chimeric.out.junction`` files with DCC
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Detection of circular RNAs from ``chimeric.out.junction`` files with circtools
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Acquiring suitable GTF files for repeat masking 
+Acquiring suitable GTF files for repeat masking
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - It is strongly recommended to specify a repetitive region file in GTF format for filtering. 
 
 - A suitable file can for example be obtained through the `UCSC table browser <http://genome.ucsc.edu/cgi-bin/hgTables>`_ . After choosing the genome, a group like **Repeats** or **Variation and Repeats** has to be selected. For the track, we recommend to choose **RepeatMasker** together with **Simple Repeats** and combine the results afterwards.
 
-- **Note**: the output file needs to comply with the GTF format specification. Additionally it may be the case that the names of chromosomes from different databases differ, e.g. **1** for chromosome 1 from ENSEMBL compared to **chr1** for chromosome 1 from UCSC. Since the chromosome names are important for the correct functionality of DCC a sample command for converting the identifiers may be:
+- **Note**: the output file needs to comply with the GTF format specification. Additionally it may be the case that the names of chromosomes from different databases differ, e.g. **1** for chromosome 1 from ENSEMBL compared to **chr1** for chromosome 1 from UCSC. Since the chromosome names are important for the correct functionality of circtools a sample command for converting the identifiers may be:
 
 .. code-block:: bash
 
@@ -221,16 +211,16 @@ Pre-mapped ``chimeric.out.junction`` files from Westholm et al. data set are par
   $ <DCC directory>/DCC/data/mate1 # mate2 independently mapped chimeric.junction.out files
 
 
-Runnning DCC
-------------
+Runnning circtools circRNA detection
+------------------------------------
 
-After performing all preparation steps DCC can now be started:
+After performing all preparation steps the detection module can now be started:
 
 .. code-block:: bash
 
-  # Run DCC to detect circRNAs, using Westholm data as example
+  # Run circtools detection to detect circRNAs, using Westholm data as example
 
-  $ DCC @samplesheet \ # @ is generally used to specify a file name
+  $ circtools detect @samplesheet \ # @ is generally used to specify a file name
         -mt1 @mate1 \ # mate1 file containing the mate1 independently mapped chimeric.junction.out files
         -mt2 @mate2 \ # mate2 file containing the mate1 independently mapped chimeric.junction.out files
         -D \ # run in circular RNA detection mode
@@ -245,15 +235,15 @@ After performing all preparation steps DCC can now be started:
         -A [Reference].fa \ # name of the fasta genome reference file; must be indexed, i.e. a .fai file must be present
 
   # For single end, non-stranded data:
-  $ DCC @samplesheet -D -R [Repeats].gtf -an [Annotation].gtf -F -M -Nr 5 6 -fg -G -A [Reference].fa
+  $ circtools detect @samplesheet -D -R [Repeats].gtf -an [Annotation].gtf -F -M -Nr 5 6 -fg -G -A [Reference].fa
 
-  $ DCC @samplesheet -mt1 @mate1 -mt2 @mate2 -D -S -R [Repeats].gtf -an [Annotation].gtf -Pi -F -M -Nr 5 6 -fg
+  $ circtools detect @samplesheet -mt1 @mate1 -mt2 @mate2 -D -S -R [Repeats].gtf -an [Annotation].gtf -Pi -F -M -Nr 5 6 -fg
 
-  # For details on the parameters please refer to the help page of DCC:
-  $ DCC -h
+  # For details on the parameters please refer to the help page of the detection module:
+  $ circtools detect -h
 
 
-.. note:: By default, DCC assumes that the data is stranded. For non-stranded data the ``-N`` flag should be used
+.. note:: By default, circtools assumes that the data is stranded. For non-stranded data the ``-N`` flag should be used
 
 .. note:: Although not mandatory, we strongly recommend to the ``-F`` filtering step  
 
@@ -261,7 +251,7 @@ After performing all preparation steps DCC can now be started:
 Output files
 ------------
 
-The output of DCC consists of the following four files: CircRNACount, CircCoordinates, LinearCount and CircSkipJunctions.
+The output of circtools detect consists of the following four files: CircRNACount, CircCoordinates, LinearCount and CircSkipJunctions.
 
 * **CircRNACount:** a table containing read counts for circRNAs detected. First three columns are chr, circRNA start, circRNA end. From fourth column on are the circRNA read counts, one sample per column, shown in the order given in your samplesheet.
 
@@ -275,5 +265,5 @@ Feedback
 --------
 
 * In case of any problems or feature requests please do not hesitate to open an issue on GitHub: `Create an issue <https://github.com/dieterich-lab/DCC/issues/new>`_
-* Please make sure to run DCC with the ``-k`` flag when reporting an error to keep temporary files important for debugging purposes
-* Please also always paste or include the DCC log file
+* Please make sure to run circtools detect with the ``-k`` flag when reporting an error to keep temporary files important for debugging purposes
+* Please also always paste or include the log file
