@@ -380,14 +380,31 @@ sample [folder]
 \*.coverage_pictures/ [folder]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* 1_35358925_35361789_NM_005095.png
-* 1_20749723_20773610_NM_016287.png
-* cluster_means_all_circles.png
+
 
 \*\.coverage_profiles/ [folder]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* 1_35358925_35361789.NM_005095.txt
-* 1_20749723_20773610.NM_016287.txt
-* coverage.clusters.all_circles.pdf
-* coverage_profiles.all_circles.pdf
+Circtools will accumulate all coverage profiles, normalize the profiles by circle length and cluster the circles based on their coverage profiles. The clustering is performed on all circles. Additionally, to avoid that the clustering will only group the circles based on their length, a group-wise clustering is performed. Here the circles are separated based on their length into small (<500 BP), medium (500–1,000 BP), and long (≥1,000 BP) circles. Based on correlation a K-means clustering is performed using the R package amap.
+
+
+All circles
+@@@@@@@@@@@@
+.. image:: img/coverage.clusters.all_circles-0.png
+
+Short circles
+@@@@@@@@@@@@@@
+.. image:: img/coverage.clusters.short_circles-0.png
+
+Medium circles
+@@@@@@@@@@@@@@
+.. image:: img/coverage.clusters.medium_circles-0.png
+
+Long circles
+@@@@@@@@@@@@@@
+.. image:: img/coverage.clusters.long_circles-0.png
+
+Profiles of all circles
+@@@@@@@@@@@@@@@@@@@@@@@@@
+.. image:: img/coverage_profiles.all_circles-0.png
+
