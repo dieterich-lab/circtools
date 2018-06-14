@@ -380,6 +380,11 @@ sample [folder]
 \*.coverage_pictures/ [folder]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Using R, circtools will generate a graphical representation of each circle’s coverage profile, preserving the exon information as coloured segments. The smoothed profiles are saved as PNGs in a separate folder for easy examination by eye.
+
+Sample circRNA coverage plot
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+.. image:: img/1_1223244_1223968_NM_016547.png
 
 
 \*\.coverage_profiles/ [folder]
