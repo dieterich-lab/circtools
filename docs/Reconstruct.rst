@@ -256,8 +256,7 @@ hek293   1:20749723-20773610     NM_016287       NM_016287       8       1      
 \*.mate_status.txt
 ^^^^^^^^^^^^^^^^^^^
 
-This output file contains the results of analyzing the amount of how often each fragment spans a chimeric junction. A fragment can either span the chimeric junction once (single), only one end spans the junction,
-twice (double) both ends span the chimeric junction, or more than twice (undefined).
+This output file contains the results of analyzing the amount of how often each fragment spans a chimeric junction. A fragment can either span the chimeric junction once (single), only one end spans the junction, twice (double) both ends span the chimeric junction, or more than twice (undefined).
 
 =====================  ================ =============   ============   ============    ======= ======== ==========
 circle_id               transcript_ids  num_reads       min_length      max_length      single  double  undefined
@@ -281,7 +280,7 @@ circle_id               transcript_ids  num_reads       min_length      max_leng
 ^^^^^^^^^^^^^^^^^^^^^
 
 =====  ==============  ============    ==============  ======= ======= =============== ============   ========= ========== ============ =============
-Chr     Circle-Start    Circle-End      Transcript      Ratio  Strand   Intron-Start    Intron-End     Color    NumExon\-2 IntronLength RelativeStart
+Chr     Circle-Start    Circle-End      Transcript      Ratio  Strand   Intron-Start    Intron-End     Color    NumExon    IntronLength RelativeStart
 =====  ==============  ============    ==============  ======= ======= =============== ============   ========= ========== ============ =============
 chr5    178885614       178931326       NM_030613       60.0    .       178913072       178931236      255,0,0  3          1,146,1      0,30950,45711
 chr6    161034259       161049979       NM_001291958    40.0    .       161049332       161049852      255,0,0  3          1,520,1      0,15073,15719
@@ -289,6 +288,18 @@ chr6    161034259       161049979       NM_001291958    40.0    .       16104933
 
 **Description of the data columns:**
 
+* *Chr*: Chromosome of circRNA
+* *Circle-Start*: The 5' site of the chimeric junction. This is relative to the reference strand, i.e. start < end! The location is 1-index based
+* *Cirlce-End*: The 3' site of the chimeric junction. This is relative to the reference strand, i.e. start < end! The location is 0-index based
+* *Transcript*: Transcript name as defined by the BED annotation file
+* *Ratio*: Ratio of reads of this skipped exon
+* *Strand*: Strand of the host-gene
+* *Intron-Start*: The 5' site of intron. This is relative to the reference strand, i.e. start < end! The location is 1-index based
+* *Intron-End*: The 3' site of the intron. This is relative to the reference strand, i.e. start < end! The location is 0-index based
+* *Color*: pre defined color the exons will show up in the genome viewer (0,255,0 -> green)
+* *Num of Exon*: Number of exons in this circRNA consists of
+* *IntronLengths*: Comma-separated list of the length of each intron
+* *RelativeStart*: Comma-separated list of the relative starting positions of the introns within the circle boundaries.
 
 \*.skipped_exons.txt
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -302,17 +313,60 @@ circle_id               transcript_id   skipped_exon            intron          
 
 **Description of the data columns:**
 
-\*.sample_name.exon_chain_inferred_12.bed
+* *Chr*: Chromosome of circRNA
+* *Transcript_id*: Transcript name as defined by the BED annotation file
+* *Skipped_exon*: Coordinates of the skipped exon
+* *Intron*: Set of introns
+* *read_names*: Unique read names identifying this skipped exon
+* *splice_reads*: Number of reads supporting the splice site
+* *exon_reads*: Number of reads supporting the exon
+
+
+\*.sample_name.exon_chain_6.bed
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+=====  ==============  ============    =========================== ======= =======
+Chr     Exon-Start       Exon-End         ID                        Ratio   Strand
+=====  ==============  ============    =========================== ======= =======
+11      33286413        33286525        11:33286413-33287511|0|0    5       .
+11      33287338        33287511        11:33286413-33287511|1|0    9       .
+=====  ==============  ============    =========================== ======= =======
 
 **Description of the data columns:**
 
+* *Chr*: Chromosome of circRNA
+* *Exon-Start*: The 5' site of the chimeric junction. This is relative to the reference strand, i.e. start < end! The location is 1-index based
+* *Exon-End*: The 3' site of the chimeric junction. This is relative to the reference strand, i.e. start < end! The location is 0-index based
+* *Name*: CircRNA ID, number of exon, coverage
+* *Ratio*: Coverage ratio
+* *Strand*: Strand not reported, always "."
 
-\*.sample_name.exon_chain_inferred_6.bed
+
+\*.sample_name.exon_chain_12.bed
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+=====  ==============  ============    ====================================== ======= ======== =============== ============ ========= ========== ============== =============
+Chr     Circle-Start    Circle-End      ID                                     #reads  Strand   Circle-Start    Circle-End    Color    #Exons     Exon lengths  Exon starts
+=====  ==============  ============    ====================================== ======= ======== =============== ============ ========= ========== ============== =============
+11      33286413        33287511       11:33286413-33287511|0|0.446265938069    7       .      33286413         33287511    255,0,0       2       112,173         0,925
+10      68959806        68960249       10:68959806-68960249|0|0.984198645598    5       .      68959806         68960249    255,0,0       2       146,290         0,153
+=====  ==============  ============    ====================================== ======= ======== =============== ============ ========= ========== ============== =============
+
 
 **Description of the data columns:**
 
+* *Chr*: Chromosome of circRNA
+* *Circle-Start*: The 5' site of the chimeric junction. This is relative to the reference strand, i.e. start < end! The location is 1-index based
+* *Cirlce-End*: The 3' site of the chimeric junction. This is relative to the reference strand, i.e. start < end! The location is 0-index based
+* *ID*: CircRNA ID, running number, coverage
+* *#reads*: Number of reads covering the circRNA
+* *Strand*: Strand (always ".")
+* *Circle-Start*: See above
+* *Circle-End*: See above
+* *Color*: pre defined color the exons will show up in the genome viewer (0,255,0 -> green)
+* *Num of Exon*: Number of exons in this circRNA consists of
+* *Exon lengths*: Comma-separated list of the length of each exon
+* *Exon Starts*: Comma-separated list of the relative starting positions of the exon within the circle boundaries.
 
 sample [folder]
 ^^^^^^^^^^^^^^^^^^^^
