@@ -26,6 +26,7 @@ Cloning of the repository:
 
 Installation of FUCHS
 ^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: bash
 
   $ python setup.py install --user
 
