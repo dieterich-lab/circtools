@@ -1,81 +1,154 @@
-*******************************************************************************************************************
 CircTest module
-*******************************************************************************************************************
-
-Prerequisites:
-
-- The `CircTest <https://github.com/dieterich-lab/CircTest>`_ package must be installed
+********************************************************
 
 
-Import of DCC output files into R:
-==================================
+The CircTest module of circtools allows to test the variation of circRNAs in respect to host genes. It is recommended to work with the output of the ``circtools detect`` module, but can also run on custom count tables. Required are one table with circular RNA counts and one table containing with host-gene counts. These tables have to have the same order, i.e. ``circ[i,j]`` and ``linear[i,j]`` are read-counts for the same circRNA in the same sample.
 
-Using user-generated data
----------------------------
+The ``circtools circtest`` module is based on the equally named R package `CircTest <https://github.com/dieterich-lab/CircTest>`_
 
-.. code-block:: R
+Required tools and packages
+----------------------------
 
-  library(CircTest)
+``circtools circtest`` depends on R and the following R packages:
 
-  CircRNACount <- read.delim('CircRNACount',header=T)
-  LinearCount <- read.delim('LinearCount',header=T)
-  CircCoordinates <- read.delim('CircCoordinates',header=T)
+* aod
+* ggplot2
+* plyr
 
-  CircRNACount_filtered <- Circ.filter(circ = CircRNACount,
-                                       linear = LinearCount,
-                                       Nreplicates = 6,
-                                       filter.sample = 6,
-                                       filter.count = 5,
-                                       percentage = 0.1
-                                      )
+The ``CircTest`` R package as well as all dependencies are installed during the circtools installation procedure.
 
-  CircCoordinates_filtered <- CircCoordinates[rownames(CircRNACount_filtered),]
-  LinearCount_filtered <- LinearCount[rownames(CircRNACount_filtered),]
+Manual installation instructions
+--------------------------------
 
-Alternatively, the pre-processed Westholm et al. data from CircTest package may be used:
------------------------------------------------------------------------------------------
+The following commands have to be performed within an R shell::
 
-.. code-block:: R
+    > install.packages("devtools")
+    > require(devtools)
+    > install_github('dieterich-lab/CircTest')
+    > library(CircTest)
 
-  library(CircTest)
+Usage
+------
 
-  data(Circ)
-  CircRNACount_filtered <- Circ
-  data(Coordinates)
-  CircCoordinates_filtered <- Coordinates
-  data(Linear)
-  LinearCount_filtered <- Linear
+With ``circtools detect`` data
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Test for host-independently regulated circRNAs
-====================================================================
+A call to ``circtools primex --help`` shows all available command line flags:
 
-Execute the test  
--------------------------------------------------------------------
+.. code-block:: bash
 
-.. code-block:: R
+    usage: circtools [-h] -d DCC_DIR -l CONDITION_LIST -c CONDITION_COLUMNS -g
+                     GROUPING [-r NUM_REPLICATES] [-f MAX_FDR] [-p PERCENTAGE]
+                     [-s FILTER_SAMPLE] [-C FILTER_COUNT] [-o OUTPUT_DIRECTORY]
+                     [-n OUTPUT_NAME] [-m MAX_PLOTS] [-a LABEL] [-L RANGE]
+                     [-O ONLY_NEGATIVE] [-H ADD_HEADER] [-M {colour,bw}]
+    
+    circular RNA statistical testing - Interface to https://github.com/dieterich-lab/CircTest
+    
+    optional arguments:
+      -h, --help            show this help message and exit
+    
+    Required:
+      -d DCC_DIR, --DCC DCC_DIR
+                            Path to the detect/DCC data directory
+      -l CONDITION_LIST, --condition-list CONDITION_LIST
+                            Comma-separated list of conditions which should be
+                            comparedE.g. "RNaseR +","RNaseR -"
+      -c CONDITION_COLUMNS, --condition-columns CONDITION_COLUMNS
+                            Comma-separated list of 1-based column numbers in the
+                            detect/DCC output which should be compared; e.g.
+                            10,11,12,13,14,15
+      -g GROUPING, --grouping GROUPING
+                            Comma-separated list describing the relation of the
+                            columns specified via -c to the sample names specified
+                            via -l; e.g. -g 1,2 and -r 3 would assign sample1 to
+                            each even column and sample 2 to each odd column
+    
+    Processing options:
+      -r NUM_REPLICATES, --replicates NUM_REPLICATES
+                            Number of replicates used for the circRNA experiment
+                            [Default: 3]
+      -f MAX_FDR, --max-fdr MAX_FDR
+                            Cut-off value for the FDR [Default: 0.05]
+      -p PERCENTAGE, --percentage PERCENTAGE
+                            The minimum percentage of circRNAs account for the
+                            total transcripts in at least one group. [Default:
+                            0.01]
+      -s FILTER_SAMPLE, --filter-sample FILTER_SAMPLE
+                            Number of samples that need to contain the amount of
+                            reads specified via -C [Default: 3]
+      -C FILTER_COUNT, --filter-count FILTER_COUNT
+                            Number of CircRNA reads that each sample specified via
+                            -s has to contain [Default: 5]
+    
+    Output options:
+      -o OUTPUT_DIRECTORY, --output-directory OUTPUT_DIRECTORY
+                            The output directory for files created by circtest
+                            [Default: .]
+      -n OUTPUT_NAME, --output-name OUTPUT_NAME
+                            The output name for files created by circtest
+                            [Default: circtest]
+      -m MAX_PLOTS, --max-plots MAX_PLOTS
+                            How many of candidates should be plotted as bar chart?
+                            [Default: 50]
+      -a LABEL, --label LABEL
+                            How should the samples be labeled? [Default: Sample]
+      -L RANGE, --limit RANGE
+                            How should the samples be labeled? [Default: Sample]
+      -O ONLY_NEGATIVE, --only-negative-direction ONLY_NEGATIVE
+                            Only print entries with negative direction indicator
+                            [Default: False]
+      -H ADD_HEADER, --add-header ADD_HEADER
+                            Add header to CSV output [Default: False]
+      -M {colour,bw}, --colour {colour,bw}
+                            Can be set to bw to create grayscale graphs for
+                            manuscripts
 
- test = Circ.test(CircRNACount_filtered,
-                  LinearCount_filtered,
-                  CircCoordinates_filtered,
-                  group=c(rep(1,6),rep(2,6),rep(3,6))
-                  )
 
- # Significant result may be shown in a summary table
- View(test$summary_table)
 
-Visualisation of significantly, host-independently regulated circRNAs
------------------------------------------------------------------------
+Sample call
+^^^^^^^^^^^^
+.. code-block:: bash
 
-.. code-block:: R
+     circtools circtest -d DCC/ -l Iso,Ctrl -c 4,5,6,7,8,9,10,11,12 -g 1,1,1,1,1,1,2,2,2 -n RNaseR_iso_vs_RNAseR_ctrl -o output_dir/ -m 50
 
- for (i in rownames(test$summary_table))  {
-  Circ.ratioplot(CircRNACount_filtered,
-                 LinearCount_filtered,
-                 CircCoordinates_filtered,
-                 plotrow=i,
-                 groupindicator1=c(rep('1days',6),rep('4days',6),rep('20days',6)),
-                 lab_legend='Ages'
-                 )
- }
+Here we have the DCC data located in the folder ``DCC/``, the experiment had 2 conditions, listed via ``-l Iso,Ctrl``, the samples in the DCC data file are sorted in the the order specified via ``-g 1,1,1,1,1,1,2,2,2``, i.e. there are 6 ``Iso`` samples and 3 ``Ctrl`` samples. These ``6+3=9`` columns are found in the DCC data file in the columns specified via ``-c 4,5,6,7,8,9,10,11,12``.
 
-For further details on the usage of CircTest please refer to the corresponding GitHub project.
+
+
+Using external count data
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Your table may have many columns describing the circle or just one column containing the circle ID followed by many columns of read counts.
+
+
+Example count table for back-spliced reads:
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+================== =============== ============== ============== ================ ================ ================
+**CircID**         **Control_1**   **Control_2**  **Control_3**  **Treatment_1**  **Treatment_2**  **Treatment_3**
+================== =============== ============== ============== ================ ================ ================
+chr1:100|800        0               2               1                   5           4              0
+chr1:1050|10080     20              22              21                  10          13             0
+chr2: 600|1000      0               1               0                   10          0              1
+chr10:4100|5400     55              54              52                  56          53             50
+chr11:600|1500      3               0               1                   2           2              3
+================== =============== ============== ============== ================ ================ ================
+
+
+Example table for host-gene reads:
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+================== =============== ============== ============== ================ ================ ================
+
+**CircID**         **Control_1**   **Control_2**  **Control_3**  **Treatment_1**  **Treatment_2**  **Treatment_3**
+================== =============== ============== ============== ================ ================ ================
+chr1:100|800        10               11               12                   9           10              10
+chr1:1050|10080     80               281              83                   45          48              46
+chr2: 600|1000      5                5                2                    12          8               7
+chr10:4100|5400     101              110              106                  150         160             153
+chr11:600|1500      20               21               18                   19          20              20
+================== =============== ============== ============== ================ ================ ================
+
+
+This will procude three files. Please use the junction_reads.txt as Circ, the non_junction_reads.txt as Linear, and change **circle_description = c(1:6)**
