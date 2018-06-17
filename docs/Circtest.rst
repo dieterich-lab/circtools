@@ -113,6 +113,14 @@ Sample call
 Here we have the DCC data located in the folder ``DCC/``, the experiment had 2 conditions, listed via ``-l Iso,Ctrl``, the samples in the DCC data file are sorted in the the order specified via ``-g 1,1,1,1,1,1,2,2,2``, i.e. there are 6 ``Iso`` samples and 3 ``Ctrl`` samples. These ``6+3=9`` columns are found in the DCC data file in the columns specified via ``-c 4,5,6,7,8,9,10,11,12``.
 
 
+Output files
+@@@@@@@@@@@@@
+
+The ``circtest`` module creates an .xlsx file that contains all circRNA candidates passing the statistical test with the given values, as well as the raw data files. Additionally a .pdf file is generated that contains a graphical representation of the top significant circRNAs (see sample picture).
+
+.. image:: img/circtest_sample_plot.png
+
+
 Usage with  external count data
 -------------------------------------
 
@@ -185,11 +193,7 @@ To model expression data using the beta binomial distribution and testing for di
   # 2 chr1:1050|10080        80        81        83          45          48          46
   # 4 chr10:4100|5400       101       110       106         150         160         153
 
-2. Perform the actual testing
-
-
-
-3) Test for changes
+3. Test for changes
 
 **Circ.test** uses the beta binomial distribution to model the data and performs an ANOVA to identify circles which differ in their relative expression between the groups.  
 It is important that the grouping is correct (**group**) and the non-read-count columuns are specified (**circle_description**).
@@ -215,18 +219,24 @@ It is important that the grouping is correct (**group**) and the non-read-count 
   [1] 0.01747407
 
 
+4. Visualize data
+
+The CircTest library features a built-in plotting functions to view significantly different genes. Sample code for visualizing the ratio as barplot might be something like:
+
+.. code-block:: R
+
+  for (i in rownames(test$summary_table))  { 
+    Circ.ratioplot(Circ_filtered, Linear_filtered, plotrow=i, groupindicator1=c(rep('Control',3),rep('Treatment',3)), 
+		   lab_legend='Condition', circle_description = 1 )
+  }
 
 
+In order to visualize the abundance of host-gene and circle separately in a line plot try
 
 
+.. code-block:: R
 
-
-
-
-
-
-
-
-
-
-This will produce three files. Please use the junction_reads.txt as Circ, the non_junction_reads.txt as Linear, and change **circle_description = c(1:6)**
+  for (i in rownames(test$summary_table))  {
+    Circ.lineplot(Circ_filtered, Linear_filtered, plotrow=i, groupindicator1=c(rep('Control',3),rep('Treatment',3)),
+		  circle_description = 1 )
+ }
