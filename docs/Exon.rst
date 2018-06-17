@@ -1,7 +1,7 @@
 Alternative exon module
 ********************************************************
 
-The circtools exon usage module was implemented to detect and analyze differential exon usage in circRNA data sets. As an example, the module may list exons as significant differentially expressed in RNaseR treated sample compared to untreated samples, thus pointing out exons that may be part of a circRNA. 
+The circtools exon usage module was implemented to detect and analyze differential exon usage in circRNA data sets. As an example, the module may list exons as significant differentially spliced in RNaseR treated sample compared to untreated samples, thus pointing out exons that may be part of a circRNA. 
 
 ``circtools exon`` requires mapped sequencing reads that are passed to `StringTie <https://ccb.jhu.edu/software/stringtie/>`_ in order to generate data readable by the `ballgown <https://bioconductor.org/packages/release/bioc/html/ballgown.html>`_ R package. 
 
@@ -126,22 +126,39 @@ Here we have the DCC data located in the folder ``DCC/``, the STAR mapping are s
 ``circtools`` takes some time to process the data and prints out information on its progress.
 
 
-Output produced by circtools reconstruct
-----------------------------------------
+Output produced by ``circtools exon``
+-----------------------------------------
 
-Circular vs. linear read counts for all mapped libraries
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+exon_analysis_bsj_enrichment.csv
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+circRNA-centric view of the exon results in CSV format. Shown are significantly enriched circRNAs merged with the results from the ballgown package.
 
-.. image:: /img/quickcheck-0.png
+exon_analysis_exon_enrichment.csv
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Exon-centric view of the exon results in CSV format. Shown are differentially spliced exons merged with the circRNA detection and circtest step.
 
-Number of mapped reads vs number of detected circRNAs for all mapped libraries
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+exon_analysis_diff_exon_enrichment.xlsx
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+An xlsx Excel file containing 4 work sheets:
 
-.. image:: /img/quickcheck-1.png
+* Exon FDR 1% (ballgown): differentially spliced exons, 1% FDR
+* enriched BSJ FDR 1% (CircTest): enriched circRNAs, 1% FDR
+* Other BSJ FDR 1%: non-annotated circRNAs
+* Exon events: all exons 
 
-CircRNAs per million uniquely mapped reads
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+exon_analysis_dcc_bsj_enriched_track.bed
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+A BED file with containing *only* circRNAs predicted by the ``circtools detect`` module that **also** pass the `circtools circtest`` statistical test. Can be displayed in all common visualization tools like IGV. 
 
-.. image:: /img/quickcheck-2.png
+exon_analysis_dcc_predictions_track.bed
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+A BED file with containing *all* circRNAs predicted by the ``circtools detect`` module. Can be displayed in all common visualization tools like IGV. 
 
+exon_analysis_exon_fc_track.bedgraph
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+A BEDgraph file with fold changes of all differentially spliced exons. Can be displayed in all common visualization tools like IGV. 
+
+exon_analysis_exon_pval_track.bedgraph
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+A BEDgraph file with p-values of all differentially spliced exons. Can be displayed in all common visualization tools like IGV. 
 
