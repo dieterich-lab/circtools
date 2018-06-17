@@ -27,11 +27,8 @@ The following commands have to be performed within an R shell::
     > install_github('dieterich-lab/CircTest')
     > library(CircTest)
 
-Usage
-------
-
-With ``circtools detect`` data
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Usage with ``circtools detect`` data
+-------------------------------------
 
 A call to ``circtools primex --help`` shows all available command line flags:
 
@@ -107,7 +104,8 @@ A call to ``circtools primex --help`` shows all available command line flags:
 
 
 Sample call
-^^^^^^^^^^^^
+@@@@@@@@@@@
+
 .. code-block:: bash
 
      circtools circtest -d DCC/ -l Iso,Ctrl -c 4,5,6,7,8,9,10,11,12 -g 1,1,1,1,1,1,2,2,2 -n RNaseR_iso_vs_RNAseR_ctrl -o output_dir/ -m 50
@@ -115,15 +113,14 @@ Sample call
 Here we have the DCC data located in the folder ``DCC/``, the experiment had 2 conditions, listed via ``-l Iso,Ctrl``, the samples in the DCC data file are sorted in the the order specified via ``-g 1,1,1,1,1,1,2,2,2``, i.e. there are 6 ``Iso`` samples and 3 ``Ctrl`` samples. These ``6+3=9`` columns are found in the DCC data file in the columns specified via ``-c 4,5,6,7,8,9,10,11,12``.
 
 
+Usage with  external count data
+-------------------------------------
 
-Using external count data
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Your table may have many columns describing the circle or just one column containing the circle ID followed by many columns of read counts.
+Additional to the built-in functionality to use directly use the data files produced by ``circtools detect`` it is also possible to use generic count tables. In this case however, the underlying R package ``CircTest`` has to be used directly. The input tables may have many columns describing the circle or just one column containing the circle ID followed by many columns of read counts.
 
 
-Example count table for back-spliced reads:
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+Example count table for back-spliced reads ``(Circular.csv)``
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 ================== =============== ============== ============== ================ ================ ================
 **CircID**         **Control_1**   **Control_2**  **Control_3**  **Treatment_1**  **Treatment_2**  **Treatment_3**
@@ -136,8 +133,8 @@ chr11:600|1500      3               0               1                   2       
 ================== =============== ============== ============== ================ ================ ================
 
 
-Example table for host-gene reads:
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+Example table for host-gene reads ``(Linear.csv)``
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 ================== =============== ============== ============== ================ ================ ================
 
@@ -151,4 +148,85 @@ chr11:600|1500      20               21               18                   19   
 ================== =============== ============== ============== ================ ================ ================
 
 
-This will procude three files. Please use the junction_reads.txt as Circ, the non_junction_reads.txt as Linear, and change **circle_description = c(1:6)**
+Sample R calls to work with generic data
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+1. Read in tables
+
+.. code-block:: R
+
+  Circ <- read.delim('Circ.csv', header = T, as.is = T)
+  Linear <- read.delim('Linear.csv', header = T, as.is = T)
+
+2. Filter tables
+ 
+To model expression data using the beta binomial distribution and testing for differences in groups, it is beneficial to only test well supported circles. Users may use the package's function ``Circ.filter()`` to filter the input data. The function has the following parameters:
+
+* ``Nreplicates``: specifies the number of replicates in each condition
+* ``filter.sample``: specifies the number of samples the circle has to have enough circular reads in to be considered.  
+* ``filter.count``: specifies the circular read count threshold.  
+* ``percentage``: specifies the minimum circle to host-gene ratio.  
+* ``circle_description``: tells the function which columns are NOT filled with read counts but the circle's annotation.  
+
+.. code-block:: R
+
+  # filter circles by read counts
+  Circ_filtered <- Circ.filter(circ = Circ, linear = Linear, Nreplicates = 3, filter.sample = 3, filter.count = 5, percentage = 0.1, circle_description = 1)
+
+  #            CircID Control_1 Control_2 Control_3 Treatment_1 Treatment_2 Treatment_3
+  # 2 chr1:1050|10080        20        22        21          10          13           0
+  # 4 chr10:4100|5400        55        54        52          56          53          50
+
+
+  # filter linear table by remaining circles
+  Linear_filtered <- Linear[rownames(Circ_filtered),]
+
+  #            CircID Control_1 Control_2 Control_3 Treatment_1 Treatment_2 Treatment_3
+  # 2 chr1:1050|10080        80        81        83          45          48          46
+  # 4 chr10:4100|5400       101       110       106         150         160         153
+
+2. Perform the actual testing
+
+
+
+3) Test for changes
+
+**Circ.test** uses the beta binomial distribution to model the data and performs an ANOVA to identify circles which differ in their relative expression between the groups.  
+It is important that the grouping is correct (**group**) and the non-read-count columuns are specified (**circle_description**).
+
+.. code-block:: R
+
+  test <- Circ.test(Circ_filtered, Linear_filtered, group=c(rep(1,3),rep(2,3)), circle_description = 1)
+  $summary_table
+             CircID      sig_p
+  4 chr10:4100|5400 0.01747407
+
+  # $sig.dat
+  #            CircID Control_1 Control_2 Control_3 Treatment_1 Treatment_2 Treatment_3
+  # 4 chr10:4100|5400        55        54        52          56          53          50
+
+  $p.val
+  [1] 0.153464107 0.008737037
+
+  $p.adj
+  [1] 0.15346411 0.01747407
+
+  $sig_p
+  [1] 0.01747407
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+This will produce three files. Please use the junction_reads.txt as Circ, the non_junction_reads.txt as Linear, and change **circle_description = c(1:6)**
