@@ -85,10 +85,9 @@ Sample call
 ^^^^^^^^^^^^
 .. code-block:: bash
 
-    circtools exon -d /home/tjakobi/work/projects/circRNA/encode_paper/DCC_CD_07_2017/ -r 1,1,2,2,3,3 -l M,P,M,P,M,P -c 10,11,12,13,14,15 -g1,2,1,2,1,2 -C /home/tjakobi/work/projects/circRNA/encode_paper/circtest/fdr_0.05_default/k562_enrichment_total.csv -b /mnt/misc/stringtie_latest/ -G /mnt/big_data/genomes/GRCh38_85/GRCh38.85.gtf -o /home/tjakobi/work/projects/circRNA/encode_paper/circtools_exon/new_06_2018/k562/
+    circtools exon -d DCC/ -r 1,1,2,2,3,3 -l M,P,M,P,M,P -c 10,11,12,13,14,15 -g 1,2,1,2,1,2 -C k562_enrichment_total.csv -b stringtie/ -G GRCh38.85.gtf -o k562/
 
-
-Here we have the DCC data located in the folder ``DCC/``, the STAR mapping are stored in ``mapping/``, the experiment had 4 conditions, listed via ``-l HepG2-,HepG2+,K562-,K562+``, the samples in the DCC data file are sorted in the the order specified via ``-g 1,2,1,2,1,2,3,4,3,4,3,4``.
+Here we have the DCC data located in the folder ``DCC/``, the STAR mapping are stored in ``mapping/``, the experiment had 2 conditions, listed alternating via ``-l M,P,M,P,M,P``, the samples in the DCC data file are sorted in the the order specified via ``-g 1,2,1,2,1,2,3,4,3,4,3,4`` and columns 10-15 are used for the analysis, as specified via ``-c 10,11,12,13,14,15``. The stringtie data directory is supplied via ``-b stringtie/``, the genome annotation has to be supplied with the ``-G GRCh38.85.gtf`` flag. Significantly enriched circRNAs from the ``circtest`` module have to be passed via ``-C k562_enrichment_total.csv`, the o
 
 .. code-block:: bash
 
