@@ -1,9 +1,9 @@
 Alternative exon module
 ********************************************************
 
-The circtools exon usage module was implemented to detect and analyze differential exon usage in circRNA data sets. As an example, the module may list exons as significant differentially spliced in RNaseR treated sample compared to untreated samples, thus pointing out exons that may be part of a circRNA. 
+The circtools exon usage module was implemented to detect and analyze differential exon usage in circRNA data sets. As an example, the module may list exons as significant differentially spliced in RNaseR treated sample compared to untreated samples, thus pointing out exons that may be part of a circRNA.
 
-``circtools exon`` requires mapped sequencing reads that are passed to `StringTie <https://ccb.jhu.edu/software/stringtie/>`_ in order to generate data readable by the `ballgown <https://bioconductor.org/packages/release/bioc/html/ballgown.html>`_ R package. 
+``circtools exon`` requires mapped sequencing reads that are passed to `StringTie <https://ccb.jhu.edu/software/stringtie/>`_ in order to generate data readable by the `ballgown <https://bioconductor.org/packages/release/bioc/html/ballgown.html>`_ R package.
 
 
 Required tools and packages
@@ -33,12 +33,12 @@ A call to ``circtools exon --help`` shows all available command line flags:
                      GROUPING -r REPLICATES -b BALLGOWN_DATA -G GTF_FILE -C
                      CIRCTEST_FILE [-H HAS_HEADER] [-o OUTPUT_DIRECTORY]
                      [-n OUTPUT_PREFIX]
-    
+
     circular RNA exon usage analysis
-    
+
     optional arguments:
       -h, --help            show this help message and exit
-    
+
     Required:
       -d DCC_DIR, --DCC DCC_DIR
                             Path to the detect/DCC data directory
@@ -67,19 +67,19 @@ A call to ``circtools exon --help`` shows all available command line flags:
       -C CIRCTEST_FILE, --circtest-output CIRCTEST_FILE
                             Path to the CircTest CSV file containing the CircTest
                             results
-    
+
     Additional options:
       -H HAS_HEADER, --has-header HAS_HEADER
                             Do the CircTest result files have a header? [Default:
                             No]
-    
+
     Output options:
       -o OUTPUT_DIRECTORY, --output-directory OUTPUT_DIRECTORY
                             The output directory for files created by circtest
                             [Default: .]
       -n OUTPUT_PREFIX, --output-prefix OUTPUT_PREFIX
                             The output name (prefix) for files created by circtest
-                   
+
 
 Sample call
 ^^^^^^^^^^^^
@@ -87,7 +87,7 @@ Sample call
 
     circtools exon -d DCC/ -r 1,1,2,2,3,3 -l M,P,M,P,M,P -c 10,11,12,13,14,15 -g 1,2,1,2,1,2 -C k562_enrichment_total.csv -b stringtie/ -G GRCh38.85.gtf -o k562/
 
-Here we have the DCC data located in the folder ``DCC/``, the STAR mapping are stored in ``mapping/``, the experiment had 2 conditions, listed alternating via ``-l M,P,M,P,M,P``, the samples in the DCC data file are sorted in the the order specified via ``-g 1,2,1,2,1,2,3,4,3,4,3,4`` and columns 10-15 are used for the analysis, as specified via ``-c 10,11,12,13,14,15``. The stringtie data directory is supplied via ``-b stringtie/``, the genome annotation has to be supplied with the ``-G GRCh38.85.gtf`` flag. Significantly enriched circRNAs from the ``circtest`` module have to be passed via ``-C k562_enrichment_total.csv`, the o
+Here we have the DCC data located in the folder ``DCC/``, the STAR mapping are stored in ``mapping/``, the experiment had 2 conditions, listed alternating via ``-l M,P,M,P,M,P``, the samples in the DCC data file are sorted in the the order specified via ``-g 1,2,1,2,1,2,3,4,3,4,3,4`` and columns 10-15 are used for the analysis, as specified via ``-c 10,11,12,13,14,15``. The stringtie data directory is supplied via ``-b stringtie/``, the genome annotation has to be supplied with the ``-G GRCh38.85.gtf`` flag. Significantly enriched circRNAs from the ``circtest`` module have to be passed via ``-C k562_enrichment_total.csv``, the output of the module will be stored in the folder ``-o k562/``.
 
 .. code-block:: bash
 
@@ -143,21 +143,20 @@ An xlsx Excel file containing 4 work sheets:
 * Exon FDR 1% (ballgown): differentially spliced exons, 1% FDR
 * enriched BSJ FDR 1% (CircTest): enriched circRNAs, 1% FDR
 * Other BSJ FDR 1%: non-annotated circRNAs
-* Exon events: all exons 
+* Exon events: all exons
 
 exon_analysis_dcc_bsj_enriched_track.bed
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-A BED file with containing *only* circRNAs predicted by the ``circtools detect`` module that **also** pass the `circtools circtest`` statistical test. Can be displayed in all common visualization tools like IGV. 
+A BED file with containing *only* circRNAs predicted by the ``circtools detect`` module that **also** pass the `circtools circtest`` statistical test. Can be displayed in all common visualization tools like IGV.
 
 exon_analysis_dcc_predictions_track.bed
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-A BED file with containing *all* circRNAs predicted by the ``circtools detect`` module. Can be displayed in all common visualization tools like IGV. 
+A BED file with containing *all* circRNAs predicted by the ``circtools detect`` module. Can be displayed in all common visualization tools like IGV.
 
 exon_analysis_exon_fc_track.bedgraph
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-A BEDgraph file with fold changes of all differentially spliced exons. Can be displayed in all common visualization tools like IGV. 
+A BEDgraph file with fold changes of all differentially spliced exons. Can be displayed in all common visualization tools like IGV.
 
 exon_analysis_exon_pval_track.bedgraph
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-A BEDgraph file with p-values of all differentially spliced exons. Can be displayed in all common visualization tools like IGV. 
-
+A BEDgraph file with p-values of all differentially spliced exons. Can be displayed in all common visualization tools like IGV.
