@@ -137,26 +137,26 @@ Output produced by ``circtools enrich``
 
 The generated CSV file is the main output of ``circtools enrich``. It contains the data generated during the run and has the following fields:
 
-* *circRNA_host_gene*:
-* *chr*:
-* *start*:
-* *stop*:
-* *strand*:
-* *p-val_circular*:
-* *raw_count_circ_rna*:
-* *observed_input_peaks_circ_rna*:
-* *length_circ_rna*:
-* *length_normalized_count_circ_rna*:
-* *number_of_features_intersecting_circ*:
-* *circ_rna_confidence_interval_0.05*:
-* *p-val_linear*:
-* *raw_count_host_gene*:
-* *observed_input_peaks_host_gene*:
-* *length_host_gene_without_circ_rna*:
-* *length_normalized_count_host_gene*:
-* *number_of_features_intersecting_linear*:
-* *host_gene_confidence_interval_0.05*:
-* *distance_normalized_counts*:
+* *circRNA_host_gene*: Name of the circRNA host gene
+* *chr*: Chromsome location of the circRNA
+* *start*: Absolute circRNA start location
+* *stop*: Absolute circRNA end location
+* *strand*: Strand of the circRNA
+* *p-val_circular*: p-value for the enrichment of peaks within the given circRNA
+* *raw_count_circ_rna*: How many simulated peaks have been counted
+* *observed_input_peaks_circ_rna*: How many real, experimental peaks have been observed
+* *length_circ_rna*: Length of the circRNA
+* *length_normalized_count_circ_rna*: Lengt-normalized count of observed peaks
+* *number_of_features_intersecting_circ*: How many featured are interesecting the circRNA (only ``-i``)
+* *circ_rna_confidence_interval_0.05*: 0.05% confidence interval for the circRNA test
+* *p-val_linear*: p-value for the enrichment of peaks within the linear host gene *excluding* the circRNA portion
+* *raw_count_host_gene*: How many simulated peaks have been counted
+* *observed_input_peaks_host_gene*: How many real, experimental peaks have been observed
+* *length_host_gene_without_circ_rna*: Length of the host gene minus the circRNA length
+* *length_normalized_count_host_gene*: Lengt-normalized count of observed peaks
+* *number_of_features_intersecting_linear*:  How many featured are interesecting the host gene (only ``-i``)
+* *host_gene_confidence_interval_0.05*: 0.05% confidence interval for the linear test
+* *distance_normalized_counts*: Distance between the length-normalized counts of linear host gene and circRNA
 
 +---------------------+-----+---------+---------+--------+-----------------+-----------------------+-----------------------------------+-------------------+--------------------------------------+------------------------------------------+------------------------------------------------+---------------+------------------------+------------------------------------+----------------------------------------+---------------------------------------+--------------------------------------------+----------------------------------------+------------------------------+
 | circRNA_host_gene   | chr | start   | stop    | strand | p-val_circular  | raw_count_circ_rna    | observed_input_peaks_circ_rna     | length_circ_rna   | length_normalized_count_circ_rna     | number_of_features_intersecting_circ     | circ_rna_confidence_interval_0.05              | p-val_linear  | raw_count_host_gene    | observed_input_peaks_host_gene     | length_host_gene_without_circ_rna      | length_normalized_count_host_gene     | number_of_features_intersecting_linear     | host_gene_confidence_interval_0.05     | distance_normalized_counts   |
