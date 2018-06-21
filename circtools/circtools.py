@@ -20,7 +20,7 @@ import sys
 import os.path
 
 # global settings
-version = "1.2.0-beta"
+version = "1.1.0-beta"
 program_name = "circtest"
 
 
