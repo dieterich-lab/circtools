@@ -314,10 +314,27 @@ message("Writing DCC prediction BED file")
 
 #Print bed file, read counts
 write(paste("track name=\"DCC_predictions\" description=\"Predictions ",
-          "over all data sets\" color=\"red\"", sep=""),
+          "over all data sets\" itemRgb=\"on\"", sep=""),
            file=paste(baseDir,"dcc_predictions_track.bed",sep=""));
 
-write.table(  dccDF,
+# create new data frame for improved visualisation
+# only take useful columns from DCC DF
+
+new_df <- data.frame(dccDF[,c(1,2,3,4)])
+new_df$score <- 0
+new_df$strand <- dccDF[,6]
+new_df$tstart <- dccDF[,2]+as.integer(((dccDF[,3]-dccDF[,2])*0.10))
+new_df$tstop <- dccDF[,3]-as.integer(((dccDF[,3]-dccDF[,2])*0.10))
+new_df$rgb <- paste(0,sep=",")
+new_df$blocks <- 2
+new_df$bsize <- paste(as.integer(((dccDF[,3]-dccDF[,2])*0.05)),as.integer(((dccDF[,3]-dccDF[,2])*0.05)),",", sep=",")
+new_df$bstart <- paste(as.integer(dccDF[,2]+as.integer(((dccDF[,3]-dccDF[,2])*0.10))),(dccDF[,3]-as.integer(((dccDF[,3]-dccDF[,2])*0.10))-as.integer(((dccDF[,3]-dccDF[,2])*0.05))) ,sep=",")
+
+# new_df = as.matrix(new_df)
+
+
+
+write.table(new_df,
             file=paste(baseDir,"dcc_predictions_track.bed",sep=""),
             quote=F,
             sep="\t",
