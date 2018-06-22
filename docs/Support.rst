@@ -15,8 +15,8 @@ There are different options file an issues with out circRNA related software. Wh
 * Sample data files in order to reproduce the error
 * Temporary files that may contain pointers to fix the issues
 
-Via mail
-^^^^^^^^^^^
+Via GitHub
+^^^^^^^^^^
 
 Please use the following GitHub projects to file your issues:
 
@@ -26,7 +26,7 @@ Please use the following GitHub projects to file your issues:
 * `FUCHS <https://github.com/dieterich-lab/FUCHS/issues>`_: for issues related to the circtools circtest reconstruct module / FUCHS
 * `primex <https://github.com/dieterich-lab/primex/issues>`_: for issues related to the circtools primex module / the primex library
 
-Via GitHub
+Via Mail
 ^^^^^^^^^^^
 
 If you do not have a GitHub account you can also reach use via mail: `circtools@dieterichlab.org <mailto:circtools@dieterichlab.org>`_
@@ -34,10 +34,15 @@ If you do not have a GitHub account you can also reach use via mail: `circtools@
 
 Literature
 ----------
-Jun Cheng, Franziska Metge, Christoph Dieterich; Specific identification and quantification of circular RNAs from sequencing data, Bioinformatics, Volume 32, Issue 7, 1 April 2016, Pages 1094–1096
+* circRNA analysis workflow: `Jakobi, T. and Dieterich, C., 2018. Deep Computational Circular RNA Analytics from RNA-seq Data. In Circular RNAs (pp. 9-25). Humana Press, New York, NY. <https://link.springer.com/protocol/10.1007/978-1-4939-7562-4_2>`_
+
+* ``circtools reconstruct`` / FUCHS: `Metge, F., Czaja-Hasse, L.F., Reinhardt, R. and Dieterich, C., 2017. FUCHS—towards full circular RNA characterization using RNAseq. PeerJ, 5, p.e2934. <https://peerj.com/articles/2934/>`_
+
+* ``circtools detect`` / DCC: `Cheng, J., Metge, F. and Dieterich, C., 2015. Specific identification and quantification of circular RNAs from sequencing data. Bioinformatics, 32(7), pp.1094-1096. <https://academic.oup.com/bioinformatics/article-abstract/32/7/1094/1743588>`_
 
 
-Metge, Franziska et al. “FUCHS—towards Full Circular RNA Characterization Using RNAseq.” Ed. Korbinian Schneeberger. PeerJ 5 (2017): e2934. PMC. Web. 8 Sept. 2017.
 
 
-Jakobi, Tobias, and Christoph Dieterich. "Deep Computational Circular RNA Analytics from RNA-seq Data." Circular RNAs. Humana Press, New York, NY, 2018. 9-25.
+
+
+
