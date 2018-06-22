@@ -1,5 +1,5 @@
 Installation
-=============
+********************************************************
 
 
 **circtools** is written in Python3 (>=3.4). The tool has a number of external dependencies, mostly standard bioinformatics tools and packages. The installation will, by default, try to install all required dependencies.
@@ -12,7 +12,9 @@ Installation is performed via `python3 setup.py install`. No sudo access is requ
 Quick 3-line installation
 --------------------------
 
-The default installation requires running python on the command line and will install everything needed to run circtools *except bedtools and R* (see below)::
+The default installation requires running python on the command line and will install everything needed to run circtools *except bedtools and R* (see below):
+
+.. code-block:: bash
 
     git clone git@github.com:dieterich-lab/circtools.git
     cd circtools
@@ -67,22 +69,28 @@ Detailed installation
 Getting the source code
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-**Step 1**: Clone source code from GitHub::
+**Step 1**: Clone source code from GitHub:
+
+.. code-block:: bash
 
     git clone git@github.com:dieterich-lab/circtools.git
 
 Installation
 ^^^^^^^^^^^^
 
-**Step 2**: Install circtools using the provided installation script. The ``--user`` flag installs circtools in your home folder, thus making sure you do not require any administrative rights during the installation::
+**Step 2**: Install circtools using the provided installation script. The ``--user`` flag installs circtools in your home folder, thus making sure you do not require any administrative rights during the installation:
+
+.. code-block:: bash
 
     cd circtools
     python3 setup.py install --verbose --user
 
 R environment
-^^^^^^^^^^^^
+^^^^^^^^^^^^^^
 
-**Step 3**: Setting up R environment. In order for the automatic installation of R packages to work we need to set the package directory to a user-writeable path. The setup can automatically set that path to /home/$USER/.R/::
+**Step 3**: Setting up R environment. In order for the automatic installation of R packages to work we need to set the package directory to a user-writeable path. The setup can automatically set that path to /home/$USER/.R/:
+
+.. code-block:: bash
 
     Should we update the R package location in order to install package as user?
     Update R_LIB in .Renviron [Y/n]
@@ -90,7 +98,9 @@ R environment
 Dependencies
 ^^^^^^^^^^^^
 
-**Step 4**: The setup script is designed to guide you through the installation process and makes sure your enviroonment is setup correctly to run circtools. You will have to answer a few questions throughout this process::
+**Step 4**: The setup script is designed to guide you through the installation process and makes sure your enviroonment is setup correctly to run circtools. You will have to answer a few questions throughout this process:
+
+.. code-block:: bash
 
     We need to install two other programs of the Dieterich Lab circRNA suit, DCC and FUCHS, as well as R package dependencies for other modules of circtools
     We'll install everything for you from GitHub and CRAN for you.
@@ -108,12 +118,16 @@ Answer with "y" to automatically install `CircTest <https://github.com/dieterich
 Finishing up
 ^^^^^^^^^^^^
 
-**Step 5**: Adding installation folder to $PATH. In order for circtools to find all exectuables, the setup will give you the possibility to add the folder ``/home/$USER/.local/bin/`` automatically to your ``.bashrc`` file::
+**Step 5**: Adding installation folder to $PATH. In order for circtools to find all exectuables, the setup will give you the possibility to add the folder ``/home/$USER/.local/bin/`` automatically to your ``.bashrc`` file
+
+.. code-block:: bash
 
     In order for circtools to be globally callable, we would add the installation folder to the $PATH variable. Would you like us to do that?
     Update $PATH in .bashrc? [Y/n]
 
-This closes the circtools installation. To verify that circtools has been correctly installed, try to call circtools for the first time::
+This closes the circtools installation. To verify that circtools has been correctly installed, try to call circtools for the first time:
+
+.. code-block:: bash
 
     $> circtools --help
     usage: circtools [-V] <command> [<args>]
