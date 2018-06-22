@@ -84,6 +84,8 @@ html_theme = 'sphinx_rtd_theme'
 
 html_logo = 'img/circtools_150px.png'
 
+html_favicon = 'img/favicon-32x32.png'
+
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
