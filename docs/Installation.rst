@@ -131,6 +131,3 @@ This closes the circtools installation. To verify that circtools has been correc
 
     $> circtools --help
     usage: circtools [-V] <command> [<args>]
-
-Getting support
------------------

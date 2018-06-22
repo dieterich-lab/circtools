@@ -35,6 +35,8 @@ Table of contents
    Enrichment.rst
    Exon.rst
    Primer.rst
+   Support.rst
+
 
 License
 ========
