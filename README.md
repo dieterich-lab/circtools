@@ -4,7 +4,7 @@
 
 ## Documentation
 
-Read the Docs: [![Documentation Status](https://readthedocs.org/projects/circtools/badge/?version=1.2-dev)](http://circtools.readthedocs.io/en/latest/?badge=1.2-dev) or just click [here](http://circtools.readthedocs.io/en/1.2-dev/) to access the complete documentation.
+Read the Docs: [![Documentation Status](https://readthedocs.org/projects/circtools/badge/?version=latest)](http://circtools.readthedocs.io/en/latest/?badge=latest) or just click [here](http://circtools.readthedocs.io/en/latest/) to access the complete documentation.
 
 ## Installation
 
