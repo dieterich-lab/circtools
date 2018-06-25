@@ -53,7 +53,6 @@ class PostDevelopCommand(develop):
     """Post-installation for development mode."""
 
     def run(self):
-
         develop.run(self)
 
 
@@ -156,11 +155,11 @@ setup(
         'Development Status :: 4 - Beta',
 
         # Indicate who your project is intended for
-        'Intended Audience :: Science/Research', 
-	'Topic :: Scientific/Engineering :: Bio-Informatics',
+        'Intended Audience :: Science/Research',
+        'Topic :: Scientific/Engineering :: Bio-Informatics',
 
         # Pick your license as you wish (should match "license" above)
-	'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
 
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
@@ -229,21 +228,21 @@ setup(
 
     # this will be our main "executable"
     scripts=[
-            'scripts/circtools',
-            'scripts/circtools_detect_write_skip_tracks.pl',
-            'scripts/circtools_enrich_visualization.R',
-            'scripts/circtools_exon',
-            'scripts/circtools_quickcheck_wrapper.R',
-            'scripts/circtools_reconstruct_visualization.R',
-            'scripts/circtools_primex_wrapper.R',
-            'scripts/circtools_primex_formatter.R',
-            'scripts/circtools_circtest_wrapper.R',
-            'scripts/create_igv_script_from_gene_names.py',
-            'scripts/create_igv_script_from_position_list.py',
-            'scripts/create_igv_script.py',
-            'scripts/detect_new_exons_from_fuchs_data.py',
-            'scripts/generate_flanking_introns_from_DCC.py',
-            'scripts/get_introns_from_ensembl.pl'
+        'scripts/circtools',
+        'scripts/circtools_detect_write_skip_tracks.pl',
+        'scripts/circtools_enrich_visualization.R',
+        'scripts/circtools_exon',
+        'scripts/circtools_quickcheck_wrapper.R',
+        'scripts/circtools_reconstruct_visualization.R',
+        'scripts/circtools_primex_wrapper.R',
+        'scripts/circtools_primex_formatter.R',
+        'scripts/circtools_circtest_wrapper.R',
+        'scripts/create_igv_script_from_gene_names.py',
+        'scripts/create_igv_script_from_position_list.py',
+        'scripts/create_igv_script.py',
+        'scripts/detect_new_exons_from_fuchs_data.py',
+        'scripts/generate_flanking_introns_from_DCC.py',
+        'scripts/get_introns_from_ensembl.pl'
     ],
 
     # adding support for post install scripts from
