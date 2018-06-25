@@ -4,4 +4,4 @@ python:
   - "3.5"
   - "3.6"
 script:
-    - circtools --help
+    - python circtools.py --help
