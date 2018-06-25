@@ -11,9 +11,12 @@ Introduction
 
 Circular RNAs (circRNAs) originate through back-splicing events from linear primary transcripts, are resistant to exonucleases, typically not polyadenylated, and have been shown to be highly specific for cell type and developmental stage. Although few circular RNA molecules have been shown to exhibit miRNA sponge function, for the vast majority of circRNAs however, their function is yet to be determined.
 
-The prediction of circular RNAs is a multi-stage bioinformatics process starting with raw sequencing data and usually ending with a list of potential circRNA candidates which, depending on tissue and condition may contain hundreds to thousands of potential circRNAs. While there already exist a number of tools for the prediction process (e.g. DCC and circTest), publicly available downstream analysis tools are rare.
+The prediction of circular RNAs is a multi-stage bioinformatics process starting with raw sequencing data and usually ending with a list of potential circRNA candidates which, depending on tissue and condition may contain hundreds to thousands of potential circRNAs. While there already exist a number of tools for the prediction process (e.g. `DCC <https://github.com/dieterich-lab/DCC>`__ and `CircTest <https://github.com/dieterich-lab/CircTest>`__), publicly available downstream analysis tools are rare.
 
-We developed **circtools**, a modular, Python3-based framework for circRNA-related tools that unifies several functionalities in single command line driven software. The command line follows the `circtools subcommand` standard that is employed in samtools or bedtools. Circtools includes modules for RBP enrichment screenings, circRNA primer design, as well as interfaces to the processing tools FUCHS and DCC; miRNA seed analysis and differential exon usage will we available in the upcoming release.
+We developed **circtools**, a modular, Python3-based framework for circRNA-related tools that unifies several functionalities in single command line driven software. The command line follows the `circtools subcommand` standard that is employed in samtools or bedtools. Currently, circtools includes modules for detecting and reconstructing circRNAs,
+a quick check of circRNA mapping results, RBP enrichment screenings, circRNA primer design, statistical testing, and an exon usage module.
+
+
 
 Documentation
 -------------
@@ -26,7 +29,7 @@ Installation
 This package is written in python3 (3.4). It only a small number of
 external dependencies, namely standard bioinformatics tools:
 
--  `bedtools (>= 2.27.1) <http://bedtools.readthedocs.io/en/latest/content/installation.html>`__
+-  `bedtools (>= 2.27.1) <https://bedtools.readthedocs.io/en/latest/content/installation.html>`__
    [RBP enrichment module, installed automatically]
 -  `R (>= 3.3) <https://www.digitalocean.com/community/tutorials/how-to-install-r-on-ubuntu-16-04-2>`__
    [Data visualization and data processing]
@@ -54,12 +57,10 @@ The installation procedure will automatically install two dependencies:
 module as well as the exon analysis and circRNA testing module require a
 working installation of `R <https://cran.r-project.org/>`__ with
 `BioConductor <https://www.bioconductor.org/install/>`__. All R packages
-required are automatically installed during the setup. Please see
-`Installing
-circtools <https://circtools.readthedocs.io/en/latest/Installation.html>`__
-for more detailed installation instructions. A more detailed
-introduction to circtools can be found `on the readthedocs
-pages <https://circtools.readthedocs.io/en/latest/index.html>`__
+required are automatically installed during the setup. Please see the
+`"Installing
+circtools" <https://circtools.readthedocs.io/en/latest/Installation.html>`__
+chapter of the main circtools documentation for more detailed installation instructions.
 
 Modules
 -------
@@ -126,7 +127,7 @@ processed
 data. For K526 and HepG2 cell lines plenty of this data is available
 through the
 `ENCODE <https://www.encodeproject.org/search/?type=Experiment&assay_title=eCLIP>`__
-project. The enrich module understands the following options:
+project.
 
 primer `(detailed documentation) <https://circtools.readthedocs.io/en/latest/primer.html>`__
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
