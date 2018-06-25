@@ -1,7 +1,7 @@
 **circtools** - a one-stop software solution for circular RNA research
 ======================================================================
 
-.. figure:: docs/img/circtools_500px.png
+.. figure:: https://raw.githubusercontent.com/dieterich-lab/circtools/master/docs/img/circtools_500px.png
    :alt: circtools
 
 |docs|
