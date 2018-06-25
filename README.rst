@@ -6,12 +6,19 @@
 
 |docs|
 
+Introduction
+-------------
+
+Circular RNAs (circRNAs) originate through back-splicing events from linear primary transcripts, are resistant to exonucleases, typically not polyadenylated, and have been shown to be highly specific for cell type and developmental stage. Although few circular RNA molecules have been shown to exhibit miRNA sponge function, for the vast majority of circRNAs however, their function is yet to be determined.
+
+The prediction of circular RNAs is a multi-stage bioinformatics process starting with raw sequencing data and usually ending with a list of potential circRNA candidates which, depending on tissue and condition may contain hundreds to thousands of potential circRNAs. While there already exist a number of tools for the prediction process (e.g. DCC and circTest), publicly available downstream analysis tools are rare.
+
+We developed **circtools**, a modular, Python3-based framework for circRNA-related tools that unifies several functionalities in single command line driven software. The command line follows the `circtools subcommand` standard that is employed in samtools or bedtools. Circtools includes modules for RBP enrichment screenings, circRNA primer design, as well as interfaces to the processing tools FUCHS and DCC; miRNA seed analysis and differential exon usage will we available in the upcoming release.
+
 Documentation
 -------------
 
-Read the Docs:  or just click
-`here <https://circtools.readthedocs.io/en/latest/>`__ to access the
-complete documentation.
+Click `here <https://circtools.readthedocs.io/en/latest/>`__ to access the complete documentation on Read the Docs.
 
 Installation
 ------------
@@ -19,11 +26,9 @@ Installation
 This package is written in python3 (3.4). It only a small number of
 external dependencies, namely standard bioinformatics tools:
 
--  `bedtools (>=
-   2.27.1) <http://bedtools.readthedocs.io/en/latest/content/installation.html>`__
+-  `bedtools (>= 2.27.1) <http://bedtools.readthedocs.io/en/latest/content/installation.html>`__
    [RBP enrichment module, installed automatically]
--  `R (>=
-   3.3) <https://www.digitalocean.com/community/tutorials/how-to-install-r-on-ubuntu-16-04-2>`__
+-  `R (>= 3.3) <https://www.digitalocean.com/community/tutorials/how-to-install-r-on-ubuntu-16-04-2>`__
    [Data visualization and data processing]
 
 Installation is managed through ``python3 setup.py install``. No sudo
