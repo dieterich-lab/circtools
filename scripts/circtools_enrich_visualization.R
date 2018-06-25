@@ -224,17 +224,17 @@ rbp_simple_plot <- ggplot(data=total) +
                             rbp_simple_plot <- rbp_simple_plot + scale_fill_grey(start = 0, end = .9)
                         }
                         rbp_simple_plot <- rbp_simple_plot +
-                        labs(   title = paste(arg_label_sample_1, ": Number of circular RNAs per repeat", sep=""),
-                                subtitle = paste("Counting circular RNAs (including different isoforms) with significantly enriched repeats ( p <",
+                        labs(   title = paste(arg_label_sample_1, ": Number of circular RNAs per RBP", sep=""),
+                                subtitle = paste("Counting circular RNAs (including different isoforms) with significantly enriched RBPs ( p <",
                                 arg_pval, ")")) +
                         labs(y = "Number of circular RNAs") +
-                        labs(x = "Repeat") +
+                        labs(x = "RNA binding protein") +
                         scale_y_continuous(labels = commapos) +
                         labs(caption = paste(   "based on data from ",
                                                 length(unique(rbp_data_file_1$RBP)),
-                                                " repeats, showing top ",
+                                                " RBPs, showing top ",
                                                 arg_max_rbps,
-                                                " repeats: ",
+                                                " RBPs: ",
                                                 date(),
                                                 "",
                                                 sep="")) +
@@ -300,16 +300,16 @@ circ_simple_plot <- ggplot(data = circ_rna_selection) +
     }
 
     # geom_bar(aes(x = reorder(circRNA, - total_sum), y = - B, fill = RBP), , stat = "identity", size = 0.0, colour = "black") +
-    circ_simple_plot <- circ_simple_plot +  labs(title = paste(arg_label_sample_1, ": Top CircRNAs (by repeats hits)", sep=""),
-    subtitle = paste("plotting colour-coded repeats per circRNA, ordered by number of (distinct) repeat hits ( p <",
+    circ_simple_plot <- circ_simple_plot +  labs(title = paste(arg_label_sample_1, ": Top CircRNAs (by RBP hits)", sep=""),
+    subtitle = paste("plotting colour-coded RBPs per circRNA, ordered by number of (distinct) RBP hits ( p <",
     arg_pval, ")")) +
-    labs(y = "Number of different repeats found for circRNA") +
+    labs(y = "Number of different RBPs found for circRNA") +
     labs(x = "CircRNA") +
     labs(caption = paste("based on data from ",
     num_circs,
     " circRNAs and ",
     num_rbps,
-    " repeats, showing top ",
+    " RBPs, showing top ",
     arg_max_circRNAs,
     " circRNAs: ",
     date(),
@@ -398,11 +398,11 @@ if (print_isoforms == 1){
                         scale_y_continuous() +
                         coord_polar() +
                         theme(legend.position = "none", axis.text.y = element_blank(), axis.ticks = element_blank()) +
-                        labs(title = paste(sample_names[sample], ":\nComposition of repeat landscape for circRNA", tmp_frame[1, 2]),
+                        labs(title = paste(sample_names[sample], ":\nComposition of RBP landscape for circRNA", tmp_frame[1, 2]),
                         subtitle = paste("Isoform ", circ_isoform, ": Chromsome ", tmp_frame[1, 3], ", ", commapos(as.integer(tmp_frame[1, 4])), "->", commapos(as.integer(tmp_frame[1, 5])), sep = "")) +
-                        labs(y = "Accumulated repeats number observed per repeat and circRNA") +
+                        labs(y = "Accumulated eCLIP peak number observed per RBP and circRNA") +
                         labs(x = "") +
-                        labs(caption = paste("Top circRNAs enriched for repeats ( p <",
+                        labs(caption = paste("Top circRNAs enriched for RBP peaks compared to their host gene ( p <",
                         arg_pval, ")"))
             }
 
@@ -489,17 +489,17 @@ circ_simple_plot <- ggplot(data = total) +
     }
 
     # geom_bar(aes(x = reorder(circRNA, - total_sum), y = - B, fill = RBP), , stat = "identity", size = 0.0, colour = "black") +
-    circ_simple_plot <- circ_simple_plot +  labs(title = paste(arg_label_sample_1, ": Assignment of repeats to circRNAs", sep=""),
+    circ_simple_plot <- circ_simple_plot +  labs(title = paste(arg_label_sample_1, ": Assignment of RBP CLIP peaks to circRNAs", sep=""),
 
-    subtitle = paste("plotting colour-coded repeats per circRNA, ordered by number of accumulated repeat positions ( p <",
+    subtitle = paste("plotting colour-coded RBPs per circRNA, ordered by number of accumulated RBP eCLIP peaks ( p <",
     arg_pval, ")")) +
-    labs(y = "Number of enriched repeats detected in the data set") +
+    labs(y = "Number of enriched RBP binding sites detected in the CLIP data set") +
     labs(x = "CircRNA") +
     labs(caption = paste("based on data from ",
     num_circs,
     " circRNAs and ",
     num_rbps,
-    " repeats, showing top ",
+    " RBPs, showing top ",
     arg_max_circRNAs,
     " circRNAs: ",
     date(),
