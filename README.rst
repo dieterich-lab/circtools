@@ -6,7 +6,7 @@
 .. figure:: https://raw.githubusercontent.com/dieterich-lab/circtools/master/docs/img/circtools_200px.png
    :alt: circtools
 
-|docs|
+|docs| |build|
 
 Introduction
 -------------
@@ -141,3 +141,8 @@ for follow up wet lab experiments to verify circRNA candidates.
     :alt: Documentation Status
     :scale: 100%
     :target: https://circtools.readthedocs.io/en/latest/?badge=latest
+
+.. |build| image:: https://travis-ci.org/dieterich-lab/circtools.svg?branch=master
+    :alt: Build Status
+    :scale: 100%
+    :target: https://travis-ci.org/dieterich-lab/circtools
