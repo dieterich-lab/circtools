@@ -1,7 +1,24 @@
+sudo: true
+
 language: python
+
+os:
+  - linux
+
+env:
+  -  READTHEDOCS="True"
+
 python:
   - "3.4"
-#  - "3.5"
-#  - "3.6"
+  - "3.5"
+  - "3.6"
+
+before_install:
+  - sudo apt-get install bedtools
+
+install:
+
+  - python setup.py install
+
 script:
-    - echo $PATH
+    - circtools --help
