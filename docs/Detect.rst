@@ -97,6 +97,9 @@ Mapping of the fastq files with `STAR <https://github.com/alexdobin/STAR>`_
          --chimJunctionOverhangMin 15 \
 
 
+
+.. warning:: Starting with version 2.6.0 of STAR, the chimeric output format changed. In order to be compliant with the circtools work flow the old output mode has to be selected via  ``--chimOutType Junctions SeparateSAMold``
+
 * *This step may be skipped when single-end data is used.* Separate per-mate mapping. The naming of mate1 and mate2 has to be consistent with the order of the reads from the joint mapping performed above. In this case, SamplePairedRead_1.fastq.gz is the first mate since it was referenced at the first position in the joint mapping.
 
 .. code-block:: bash
@@ -123,6 +126,8 @@ Mapping of the fastq files with `STAR <https://github.com/alexdobin/STAR>`_
          --chimScoreMin 15 \
          --chimScoreSeparation 10 \
          --chimJunctionOverhangMin 15 \
+
+.. warning:: Starting with version 2.6.0 of STAR, the chimeric output format changed. In order to be compliant with the circtools work flow the old output mode has to be selected via  ``--chimOutType Junctions SeparateSAMold``
 
 * The process is repeated for the second mate:
 
@@ -151,6 +156,7 @@ Mapping of the fastq files with `STAR <https://github.com/alexdobin/STAR>`_
          --chimScoreSeparation 10 \
          --chimJunctionOverhangMin 15 \
 
+.. warning:: Starting with version 2.6.0 of STAR, the chimeric output format changed. In order to be compliant with the circtools work flow the old output mode has to be selected via  ``--chimOutType Junctions SeparateSAMold``
 
 Detection of circular RNAs from ``chimeric.out.junction`` files with circtools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
