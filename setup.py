@@ -66,8 +66,6 @@ class PostInstallCommand(install):
 
         if not os.environ.get('READTHEDOCS') == 'True':
 
-            print("")
-
             # step 1: create .Renviron file
             print("Should we update the R package location in order to install package as user?")
 
@@ -187,7 +185,6 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        'numpy>=1.14.5',
         'pybedtools>=0.7.10',
         'statsmodels>=0.8.0',
         'biopython >= 1.71'
@@ -257,6 +254,8 @@ setup(
     project_urls={  # Optional
         'Bug Reports': 'https://github.com/dieterich-lab/circtools/issues',
         'Dieterich Lab': 'https://dieterichlab.org',
-        'Source': 'https://github.com/dieterich-lab/circtools'
-    },
+        'Source': 'https://github.com/dieterich-lab/circtools',
+        'Short-URL': 'https://circ.tools',
+        'Documentation': 'http://docs.circ.tools'
+},
 )
