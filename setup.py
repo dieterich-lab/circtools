@@ -13,8 +13,6 @@ from setuptools.command.develop import develop
 from setuptools.command.install import install
 from setuptools import setup, find_packages
 
-import sys
-
 
 def query_yes_no(question, default="yes"):
     """Ask a yes/no question via raw_input() and return their answer.
@@ -46,7 +44,7 @@ def query_yes_no(question, default="yes"):
             return valid[choice]
         else:
             print("Please respond with 'yes' or 'no' "
-                             "(or 'y' or 'n').\n")
+                  "(or 'y' or 'n').\n")
 
 
 class PostDevelopCommand(develop):
@@ -67,6 +65,22 @@ class PostInstallCommand(install):
         if not os.environ.get('READTHEDOCS') == 'True':
 
             # step 1: create .Renviron file
+
+            print("       _                             _       ")
+            print("      (_)             _             | |      ")
+            print("  ____ _  ____ ____ _| |_ ___   ___ | |  ___ ")
+            print(" / ___) |/ ___) ___|_   _) _ \ / _ \| | /___)")
+            print("( (___| | |  ( (___  | || |_| | |_| | ||___ |")
+            print(" \____)_|_|   \____)  \__)___/ \___/ \_|___/ ")
+            print("                                             ")
+            print("")
+            print("=======================================")
+            print("")
+            print("Following are a a few questions finalize the setup of circtools on this machine.")
+            print("")
+            print("=======================================")
+            print("")
+
             print("Should we update the R package location in order to install package as user?")
 
             answer = query_yes_no("Update R_LIB in .Renviron")
@@ -186,7 +200,7 @@ setup(
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
         'pybedtools>=0.7.10',
-        'statsmodels>=0.8.0',
+        # 'statsmodels>=0.8.0',
         'biopython >= 1.71'
     ],
 
