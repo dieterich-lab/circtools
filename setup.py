@@ -38,14 +38,14 @@ def query_yes_no(question, default="yes"):
         raise ValueError("invalid default answer: '%s'" % default)
 
     while True:
-        sys.stdout.write(question + prompt)
+        print(question + prompt)
         choice = input().lower()
         if default is not None and choice == '':
             return valid[default]
         elif choice in valid:
             return valid[choice]
         else:
-            sys.stdout.write("Please respond with 'yes' or 'no' "
+            print("Please respond with 'yes' or 'no' "
                              "(or 'y' or 'n').\n")
 
 
