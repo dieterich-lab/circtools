@@ -187,6 +187,7 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
+        'numpy>=1.14.5',
         'pybedtools>=0.7.10',
         'statsmodels>=0.8.0',
         'biopython >= 1.71'
