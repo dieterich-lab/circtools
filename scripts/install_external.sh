@@ -28,6 +28,10 @@ function install_bedtools {
     rm /tmp/bedtools2 -rf
 }
 
+# install statsmodels first, does not work in setup.py due to
+# https://github.com/dieterich-lab/circtools/issues/55
+pip3 install statsmodels
+
 # install dependencies for R first
 Rscript scripts/install_R_dependencies.R
 
@@ -64,17 +68,34 @@ else
     fi
 fi
 
-# install DCC
-cd /tmp/
-git clone https://github.com/dieterich-lab/DCC.git
-cd DCC
-python setup.py install --user
+# are we running in an virtual environment?
+if [ $VIRTUAL_ENV ]; then
 
-# install FUCHS
-cd ..
-git clone https://github.com/dieterich-lab/FUCHS.git
-cd FUCHS
-python setup.py install --user
+    # install DCC
+    cd /tmp/
+    git clone https://github.com/dieterich-lab/DCC.git
+    cd DCC
+    python setup.py install
+
+    # install FUCHS
+    cd ..
+    git clone https://github.com/dieterich-lab/FUCHS.git
+    cd FUCHS
+    python setup.py install
+
+else
+    # install DCC
+    cd /tmp/
+    git clone https://github.com/dieterich-lab/DCC.git
+    cd DCC
+    python setup.py install --user
+
+    # install FUCHS
+    cd ..
+    git clone https://github.com/dieterich-lab/FUCHS.git
+    cd FUCHS
+    python setup.py install --user
+fi
 
 # remove all temporary files
 rm /tmp/FUCHS/ -rf
