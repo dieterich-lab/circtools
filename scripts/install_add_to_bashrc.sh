@@ -17,4 +17,10 @@
 
 # we append the local user python path to the $PATH variable
 # this make circtools callable for the user
-echo "export PATH=\$PATH:~/.local/bin" >> ~/.bashrc
+
+# are we running in an virtual environment?
+if [ $VIRTUAL_ENV ]; then
+    echo "export PATH=\$PATH:$VIRTUAL_ENV/bin" >> ~/.bashrc
+else
+    echo "export PATH=\$PATH:~/.local/bin" >> ~/.bashrc
+fi
