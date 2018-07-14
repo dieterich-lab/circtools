@@ -23,7 +23,7 @@ a quick check of circRNA mapping results, RBP enrichment screenings, circRNA pri
 Documentation
 -------------
 
-Click `here <https://circtools.readthedocs.io/en/latest/>`__ to access the complete documentation on Read the Docs.
+Click `here <http://docs.circ.tools/>`__ to access the complete documentation on Read the Docs.
 
 Installation
 ------------
@@ -60,8 +60,7 @@ module as well as the exon analysis and circRNA testing module require a
 working installation of `R <https://cran.r-project.org/>`__ with
 `BioConductor <https://www.bioconductor.org/install/>`__. All R packages
 required are automatically installed during the setup. Please see the
-`"Installing
-circtools" <https://circtools.readthedocs.io/en/latest/Installation.html>`__
+`"Installing circtools" <http://docs.circ.tools/en/latest/Installation.html>`__
 chapter of the main circtools documentation for more detailed installation instructions.
 
 Modules
