@@ -61,11 +61,13 @@ class PostInstallCommand(install):
 
         import subprocess
         import os
+        import time
 
         if not os.environ.get('READTHEDOCS') == 'True':
 
             # step 1: create .Renviron file
 
+            print("==============================================")
             print("       _                             _       ")
             print("      (_)             _             | |      ")
             print("  ____ _  ____ ____ _| |_ ___   ___ | |  ___ ")
@@ -73,12 +75,11 @@ class PostInstallCommand(install):
             print("( (___| | |  ( (___  | || |_| | |_| | ||___ |")
             print(" \____)_|_|   \____)  \__)___/ \___/ \_|___/ ")
             print("                                             ")
+            print("==============================================")
             print("")
-            print("=======================================")
+            print("Following are a few questions finalize the setup of circtools on this machine.")
             print("")
-            print("Following are a a few questions finalize the setup of circtools on this machine.")
-            print("")
-            print("=======================================")
+            print("==============================================")
             print("")
 
             print("Should we update the R package location in order to install package as user?")
@@ -105,6 +106,13 @@ class PostInstallCommand(install):
                                   "-> \"n\" will only install the circtools base package\n"
                                   "-> CTRL-C will abort the installation\n")
             if answer:
+
+                print("Installing DCC, FUCHS, bedtools and R packages.")
+                print("This might take a few minutes.")
+                print("You might to get a coffee or tee.", flush=True)
+                time.sleep(5)
+                print("Starting now.", flush=True)
+
                 subprocess.check_call(["bash", "scripts/install_external.sh"])
 
                 # step 3: update $PATH
@@ -199,8 +207,8 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
+        'numpy>=1.14.5',
         'pybedtools>=0.7.10',
-        # 'statsmodels>=0.8.0',
         'biopython >= 1.71'
     ],
 
