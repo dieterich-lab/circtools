@@ -168,11 +168,11 @@ setup(
         # Development Status :: 2 - Pre-Alpha
         # Development Status :: 3 - Alpha
         # Development Status :: 4 - Beta
-        # Development Status :: 5 - Production/Stable
+        'Development Status :: 5 - Production/Stable',
         # Development Status :: 6 - Mature
         # Development Status :: 7 - Inactive
 
-        'Development Status :: 4 - Beta',
+        # 'Development Status :: 4 - Beta',
 
         # Indicate who your project is intended for
         'Intended Audience :: Science/Research',
@@ -277,7 +277,6 @@ setup(
         'Bug Reports': 'https://github.com/dieterich-lab/circtools/issues',
         'Dieterich Lab': 'https://dieterichlab.org',
         'Source': 'https://github.com/dieterich-lab/circtools',
-        'Short-URL': 'https://circ.tools',
         'Documentation': 'http://docs.circ.tools'
 },
 )
