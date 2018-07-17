@@ -13,6 +13,8 @@ from setuptools.command.develop import develop
 from setuptools.command.install import install
 from setuptools import setup, find_packages
 
+import sys
+
 
 def query_yes_no(question, default="yes"):
     """Ask a yes/no question via raw_input() and return their answer.
@@ -60,73 +62,10 @@ class PostInstallCommand(install):
     def run(self):
 
         import subprocess
-        import os
-        import time
 
-        if not os.environ.get('READTHEDOCS') == 'True':
-
-            # step 1: create .Renviron file
-
-            print("==============================================")
-            print("       _                             _       ")
-            print("      (_)             _             | |      ")
-            print("  ____ _  ____ ____ _| |_ ___   ___ | |  ___ ")
-            print(" / ___) |/ ___) ___|_   _) _ \ / _ \| | /___)")
-            print("( (___| | |  ( (___  | || |_| | |_| | ||___ |")
-            print(" \____)_|_|   \____)  \__)___/ \___/ \_|___/ ")
-            print("                                             ")
-            print("==============================================")
-            print("")
-            print("Following are a few questions finalize the setup of circtools on this machine.")
-            print("")
-            print("==============================================")
-            print("")
-
-            print("Should we update the R package location in order to install package as user?")
-
-            answer = query_yes_no("Update R_LIB in .Renviron")
-            if answer:
-                print("Running update script...")
-                subprocess.check_call(["bash", "scripts/install_create_r_environ.sh"])
-            else:
-                print("Okay. If the R library path is not writeable the installation will most probably fail.")
-
-            print("")
-
-            # step 2: install DCC, FUCHS and primer design R module
-            print("We need to install two other programs of the Dieterich Lab circRNA suit, DCC and FUCHS, as well "
-                  "as R package dependencies for other modules of circtools")
-            print("We'll install everything for you from GitHub and CRAN for you.")
-            print("")
-            print("In order for the circtools primer design module to run, we need to install some R modules.")
-            print("Please make sure R >= 3.3.3 is installed and your R library path is writeable .")
-            print("")
-
-            answer = query_yes_no("Do you want to continue the automatic dependency installation?\n"
-                                  "-> \"n\" will only install the circtools base package\n"
-                                  "-> CTRL-C will abort the installation\n")
-            if answer:
-
-                print("Installing DCC, FUCHS, bedtools and R packages.")
-                print("This might take a few minutes.")
-                print("You might to get a coffee or tee.", flush=True)
-                time.sleep(5)
-                print("Starting now.", flush=True)
-
-                subprocess.check_call(["bash", "scripts/install_external.sh"])
-
-                # step 3: update $PATH
-                print("In order for circtools to be globally callable, we would add the installation"
-                      " folder to the $PATH variable. Would you like us to do that?")
-
-                answer = query_yes_no("Update $PATH in .bashrc?")
-                if answer:
-                    print("Running update script...")
-                    subprocess.check_call(["bash", "scripts/install_add_to_bashrc.sh"])
-                else:
-                    print("Okay. Please update the $PATH variable yourself, "
-                          "otherwise you may not be able to run circtools.")
-                print("")
+        subprocess.check_call(["bash", "scripts/install_create_r_environ.sh"])
+        subprocess.check_call(["bash", "scripts/install_external.sh"])
+        subprocess.check_call(["bash", "scripts/install_add_to_bashrc.sh"])
 
         install.run(self)
         # place for post install commands
@@ -134,8 +73,17 @@ class PostInstallCommand(install):
 
 here = path.abspath(path.dirname(__file__))
 
+if sys.version_info.major < 3:
+    sys.exit('\n'
+             'Sorry, Python 2 is not supported\n'
+             'Did you run pip install circtools?\n'
+             'Try \'pip3 install circtools\'')
+
+elif sys.version_info.minor < 4:
+    sys.exit('\nSorry, Python < 3.4 is not supported\n')
+
 # Get the long description from the relevant file
-with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
+with open(path.join(here, 'README.rst')) as f:
     long_description = f.read()
 
 setup(
@@ -144,7 +92,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='1.1.0-beta',
+    version='1.1.0',
 
     description='circtools - a circular RNA toolbox',
     long_description=long_description,
@@ -211,6 +159,8 @@ setup(
         'pybedtools>=0.7.10',
         'biopython >= 1.71'
     ],
+
+    python_requires='>=3.4',
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,

@@ -25,7 +25,7 @@ function install_bedtools {
     cp -av bin/* $HOME/.local/bin/
     # mkdir -p  $HOME/.local/share/bedtools/
     # cp genomes -av $HOME/.local/share/bedtools/
-    rm /tmp/bedtools2 -rf
+    # rm /tmp/bedtools2 -rf
 }
 
 # install statsmodels first, does not work in setup.py due to
@@ -44,60 +44,26 @@ if [ $BEDTOOLS ]; then
 
     # we want to have >= 27 in order to work correctly
     if [ "$VERSION" -lt "27"  ]; then
-        echo "bedtools major version is < 26. Installation of bedtools >= 2.27 recommended."
-        read -p "Install now [Y/N]" -n 1 -r
-        echo    # (optional) move to a new line
-        if [[ ! $REPLY =~ ^[Yy]$ ]]
-        then
-            [[ "$0" = "$BASH_SOURCE" ]] || return 1 # handle exits from shell or function but don't exit interactive shell
-        else
-            install_bedtools
-        fi
-    else
-        echo "Found recent bedtools version, skipping installation"
-        [[ "$0" = "$BASH_SOURCE" ]] || return 1
-    fi
-else
-    read -p "No installation of bedtools found in \$PATH. Install now? [Y/N]" -n 1 -r
-    echo    # (optional) move to a new line
-    if [[ ! $REPLY =~ ^[Yy]$ ]]
-    then
-        [[ "$0" = "$BASH_SOURCE" ]] || return 1 # handle exits from shell or function but don't exit interactive shell
-    else
         install_bedtools
     fi
-fi
-
-# are we running in an virtual environment?
-if [ $VIRTUAL_ENV ]; then
-
-    # install DCC
-    cd /tmp/
-    git clone https://github.com/dieterich-lab/DCC.git
-    cd DCC
-    python setup.py install
-
-    # install FUCHS
-    cd ..
-    git clone https://github.com/dieterich-lab/FUCHS.git
-    cd FUCHS
-    python setup.py install
-
 else
-    # install DCC
-    cd /tmp/
-    git clone https://github.com/dieterich-lab/DCC.git
-    cd DCC
-    python setup.py install --user
-
-    # install FUCHS
-    cd ..
-    git clone https://github.com/dieterich-lab/FUCHS.git
-    cd FUCHS
-    python setup.py install --user
+     install_bedtools
 fi
+
+# install DCC
+cd /tmp/
+git clone https://github.com/dieterich-lab/DCC.git
+cd DCC
+python2 setup.py install --user
+
+# install FUCHS
+cd ..
+git clone https://github.com/dieterich-lab/FUCHS.git
+cd FUCHS
+python2 setup.py install --user
+
 
 # remove all temporary files
-rm /tmp/FUCHS/ -rf
-rm /tmp/DCC/ -rf
+#rm /tmp/FUCHS/ -rf
+#rm /tmp/DCC/ -rf
 

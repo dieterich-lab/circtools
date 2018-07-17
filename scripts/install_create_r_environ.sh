@@ -16,4 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # this is a workaround in order to be able to install R packages as regular user
-echo "R_LIBS=~/.R/" >> ~/.Renviron
+
+if [ ! -f ~/.Renviron ]; then
+    echo "R_LIBS=~/.R/" >> ~/.Renviron
+fi
