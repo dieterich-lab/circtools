@@ -30,8 +30,10 @@ while (length(current_line <- readLines(con, n = 1, warn = FALSE)) > 0) {
 
     if (line_column[[1]][3] == ""){
         line_column[[1]][3] <- substr(line_column[[1]][2], 1, nchar(line_column[[1]][2])/2)
-        tmp <- substr(line_column[[1]][2], nchar(line_column[[1]][2])/2+1, nchar(line_column[[1]][2]))
-        line_column[[1]][2] <- tmp
+        tmp1 <- substr(line_column[[1]][2], 1, nchar(line_column[[1]][2])/2)
+        tmp2 <- substr(line_column[[1]][2], nchar(line_column[[1]][2])/2+1, nchar(line_column[[1]][2]))
+        line_column[[1]][2] <- tmp1
+        line_column[[1]][3] <- tmp2
     }
 
     # set minimal information for primer design
