@@ -15,6 +15,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+function detect_os {
+    unameOut="$(uname -s)"
+    case "${unameOut}" in
+        Linux*)     machine=Linux;;
+        Darwin*)    machine=Mac;;
+        CYGWIN*)    machine=Cygwin;;
+        MINGW*)     machine=MinGw;;
+        *)          machine="UNKNOWN:${unameOut}"
+    esac
+    return ${machine}
+}
+
 function install_bedtools {
     cd /tmp/
     wget https://github.com/arq5x/bedtools2/releases/download/v2.27.1/bedtools-2.27.1.tar.gz
@@ -54,16 +66,23 @@ fi
 cd /tmp/
 git clone https://github.com/dieterich-lab/DCC.git
 cd DCC
-python2 setup.py install --user
+if [ "$OS" = "Mac" ]; then
+  python2 setup.py install
+else
+  python2 setup.py install --user
+fi
 
 # install FUCHS
 cd ..
 git clone https://github.com/dieterich-lab/FUCHS.git
 cd FUCHS
-python2 setup.py install --user
 
+if [ "$OS" = "Mac" ]; then
+  python2 setup.py install
+else
+  python2 setup.py install --user
+fi
 
 # remove all temporary files
 #rm /tmp/FUCHS/ -rf
 #rm /tmp/DCC/ -rf
-
