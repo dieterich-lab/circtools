@@ -63,9 +63,13 @@ class PostInstallCommand(install):
 
         import subprocess
 
-        subprocess.check_call(["bash", "scripts/install_create_r_environ.sh"])
-        subprocess.check_call(["bash", "scripts/install_external.sh"])
-        subprocess.check_call(["bash", "scripts/install_add_to_bashrc.sh"])
+        import os
+        # read the docs does not need any further dependencies, just the doc code
+        if not os.environ.get('READTHEDOCS') == 'True':
+
+            subprocess.check_call(["bash", "scripts/install_create_r_environ.sh"])
+            subprocess.check_call(["bash", "scripts/install_external.sh"])
+            subprocess.check_call(["bash", "scripts/install_add_to_bashrc.sh"])
 
         install.run(self)
         # place for post install commands
