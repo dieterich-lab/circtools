@@ -24,7 +24,7 @@ function detect_os {
         MINGW*)     machine=MinGw;;
         *)          machine="UNKNOWN:${unameOut}"
     esac
-    return ${machine}
+    echo ${machine}
 }
 
 function install_bedtools {
@@ -48,6 +48,11 @@ pip3 install statsmodels
 Rscript scripts/install_R_dependencies.R
 
 BEDTOOLS=`which bedtools`
+OS=`detect_os`
+
+if [ "$OS" = "Mac" ]; then
+  brew install libgit2
+fi
 
 if [ $BEDTOOLS ]; then
 
@@ -67,6 +72,7 @@ cd /tmp/
 git clone https://github.com/dieterich-lab/DCC.git
 cd DCC
 if [ "$OS" = "Mac" ]; then
+  echo "mac"
   python2 setup.py install
 else
   python2 setup.py install --user
