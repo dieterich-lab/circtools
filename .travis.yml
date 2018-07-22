@@ -2,24 +2,43 @@ sudo: true
 
 language: python
 
-os:
-  - linux
-  - osx
+matrix:
+    include:
+        # Use the built in venv for linux builds
+        - os: linux
+          sudo: required
+          python: "3.4"
+          dist: trusty
+
+        - os: linux
+          sudo: required
+          python: "3.5"
+          dist: trusty
+
+        - os: linux
+          sudo: required
+          python: "3.6"
+          dist: trusty
+
+        # Use generic language for osx
+        - os: osx
+          language: generic
+          python: "3.4"
+
+        - os: osx
+          language: generic
+          python: "3.5"
+
+        - os: osx
+          language: generic
+          python: "3.6"
 
 env:
   -  TRAVISBUILD="True"
 
-python:
-  - "3.4"
-  - "3.5"
-  - "3.6"
-
-# before_install:
-#   - sudo apt-get install bedtools
-
 install:
 
-  - python setup.py install
+  - python3 setup.py install
 
 script:
     - circtools --help
