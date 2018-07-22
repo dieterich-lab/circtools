@@ -24,14 +24,16 @@ matrix:
         - os: osx
           language: generic
           python: "3.4"
+          before_install:
+            - brew update && brew install python3
 
-        - os: osx
-          language: generic
-          python: "3.5"
-
-        - os: osx
-          language: generic
-          python: "3.6"
+        # - os: osx
+        #   language: generic
+        #   python: "3.5"
+        #
+        # - os: osx
+        #   language: generic
+        #   python: "3.6"
 
 env:
   -  TRAVISBUILD="True"
