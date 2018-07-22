@@ -4,6 +4,7 @@ language: python
 
 os:
   - linux
+  - osx
 
 env:
   -  TRAVISBUILD="True"
