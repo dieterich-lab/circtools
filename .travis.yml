@@ -23,25 +23,25 @@ matrix:
         # Use generic language for osx
         # find correct python formula via
         # https://github.com/Homebrew/homebrew-core/commits/master/Formula/python.rb
-        - os: osx
-          language: generic
-          python: "3.4"
-          before_install:
-            - brew upgrade https://raw.githubusercontent.com/Homebrew/homebrew-core/bd43f59bd50bb49242259f327cb6ac7a8dd59478/Formula/python3.rb
-            - brew install python@2
-
-        - os: osx
-          language: generic
-          python: "3.5"
-          before_install:
-            - brew upgrade https://raw.githubusercontent.com/Homebrew/homebrew-core/ec545d45d4512ace3570782283df4ecda6bb0044/Formula/python3.rb
-            - brew install python@2
+        # - os: osx
+        #   language: generic
+        #   python: "3.4"
+        #   before_install:
+        #     - brew upgrade https://raw.githubusercontent.com/Homebrew/homebrew-core/bd43f59bd50bb49242259f327cb6ac7a8dd59478/Formula/python3.rb
+        #     - brew install python@2
+        #
+        # - os: osx
+        #   language: generic
+        #   python: "3.5"
+        #   before_install:
+        #     - brew upgrade https://raw.githubusercontent.com/Homebrew/homebrew-core/ec545d45d4512ace3570782283df4ecda6bb0044/Formula/python3.rb
+        #     - brew install python@2
 
         - os: osx
           language: generic
           python: "3.6"
           before_install:
-            - brew upgrade https://github.com/Homebrew/homebrew-core/blob/f2a764ef944b1080be64bd88dca9a1d80130c558/Formula/python.rb
+            - brew upgrade https://raw.githubusercontent.com/Homebrew/homebrew-core/f2a764ef944b1080be64bd88dca9a1d80130c558/Formula/python.rb
             - brew install python@2
 
 env:
