@@ -25,7 +25,7 @@ matrix:
           language: generic
           python: "3.4"
           before_install:
-            - brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/f2a764ef944b1080be64bd88dca9a1d80130c558/Formula/python.rb
+            - brew upgrade https://raw.githubusercontent.com/Homebrew/homebrew-core/f2a764ef944b1080be64bd88dca9a1d80130c558/Formula/python.rb
 
         # - os: osx
         #   language: generic
