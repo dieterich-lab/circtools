@@ -17,7 +17,7 @@
 
 
 # set mirrors
-source("https://bioconductor.org/biocLite.R")
+source("http://bioconductor.org/biocLite.R")
 options(repos = c(CRAN = "https://cran.uni-muenster.de/"))
 biocLite()
 
