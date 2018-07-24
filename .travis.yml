@@ -1,6 +1,12 @@
 sudo: true
 
-language: python
+language: r
+
+addons:
+  apt:
+    packages:
+      - libxml2-dev
+      - libssl1.0.0
 
 matrix:
     include:
