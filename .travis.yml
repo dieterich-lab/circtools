@@ -11,7 +11,7 @@ matrix:
           dist: trusty
           r: bioc-release
           before_install:
-            - apt-get install R
+            -sudo  apt-get install R
 
         - os: linux
           sudo: required
@@ -19,7 +19,7 @@ matrix:
           dist: trusty
           r: bioc-release
           before_install:
-            - apt-get install R
+            - sudo apt-get install R
 
         - os: linux
           sudo: required
@@ -27,8 +27,8 @@ matrix:
           dist: trusty
           r: bioc-release
           before_install:
-            - apt-get install R
-            
+            - sudo apt-get install R
+
         # Use generic language for osx
         # find correct python formula via
         # disabled: old formula does not work anymore
