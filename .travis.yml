@@ -78,4 +78,5 @@ install:
   - python3 setup.py install
 
 script:
-    - circtools --help
+    - circtools --version
+    - ./tests/01_test_dcc.sh
