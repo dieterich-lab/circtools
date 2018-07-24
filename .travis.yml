@@ -11,7 +11,7 @@ matrix:
           dist: trusty
           r: bioc-release
           before_install:
-            - sudo apt-get install r-base
+            - sudo apt-get install r-base libssl1.0.0
 
         - os: linux
           sudo: required
@@ -19,7 +19,7 @@ matrix:
           dist: trusty
           r: bioc-release
           before_install:
-            - sudo apt-get install r-base
+            - sudo apt-get install r-base libssl1.0.0
 
         - os: linux
           sudo: required
@@ -27,7 +27,7 @@ matrix:
           dist: trusty
           r: bioc-release
           before_install:
-            - sudo apt-get install r-base
+            - sudo apt-get install r-base libssl1.0.0
 
         # Use generic language for osx
         # find correct python formula via
