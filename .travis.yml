@@ -10,19 +10,25 @@ matrix:
           python: "3.4"
           dist: trusty
           r: bioc-release
+          before_install:
+            - apt-get install R
 
         - os: linux
           sudo: required
           python: "3.5"
           dist: trusty
           r: bioc-release
+          before_install:
+            - apt-get install R
 
         - os: linux
           sudo: required
           python: "3.6"
           dist: trusty
           r: bioc-release
-
+          before_install:
+            - apt-get install R
+            
         # Use generic language for osx
         # find correct python formula via
         # disabled: old formula does not work anymore
