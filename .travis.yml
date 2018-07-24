@@ -1,6 +1,6 @@
 sudo: true
 
-language: python r
+language: python
 
 matrix:
     include:
@@ -9,7 +9,6 @@ matrix:
           sudo: required
           python: "3.4"
           dist: trusty
-          r: bioc-release
           before_install:
             - sudo apt-get install r-base libssl1.0.0
 
