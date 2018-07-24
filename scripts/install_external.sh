@@ -45,7 +45,11 @@ function install_bedtools {
 pip3 install statsmodels
 
 # install dependencies for R first
-Rscript scripts/install_R_dependencies.R
+if [ "$TRAVISBUILD" ]; then
+  Rscript dieterich-lab/circtools/scripts/install_R_dependencies.R
+else
+  Rscript scripts/install_R_dependencies.R
+fi
 
 BEDTOOLS=`which bedtools`
 OS=`detect_os`
