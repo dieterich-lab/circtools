@@ -1,6 +1,6 @@
 sudo: true
 
-language: python
+language: python r
 
 matrix:
     include:
