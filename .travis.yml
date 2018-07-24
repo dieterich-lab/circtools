@@ -11,7 +11,7 @@ matrix:
           dist: trusty
           r: bioc-release
           before_install:
-            -sudo  apt-get install R
+            - sudo apt-get install R
 
         - os: linux
           sudo: required
