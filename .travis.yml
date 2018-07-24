@@ -9,16 +9,19 @@ matrix:
           sudo: required
           python: "3.4"
           dist: trusty
+          r: bioc-release
 
         - os: linux
           sudo: required
           python: "3.5"
           dist: trusty
+          r: bioc-release
 
         - os: linux
           sudo: required
           python: "3.6"
           dist: trusty
+          r: bioc-release
 
         # Use generic language for osx
         # find correct python formula via
@@ -47,7 +50,7 @@ matrix:
             - brew install python@2
             - brew cask uninstall oclint
             - brew install R
-            
+
 env:
   -  TRAVISBUILD="True"
 
