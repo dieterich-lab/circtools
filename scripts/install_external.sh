@@ -67,12 +67,37 @@ else
      install_bedtools
 fi
 
+if [ "$OS" = "Mac" ]; then
+
+  echo "checking for libgit2"
+  if ! [[ `brew ls --versions libgit2` ]]; then
+    brew install libgit2
+  fi
+
+  echo "checking for R"
+  if ! [[ `brew ls --versions R` ]]; then
+    brew install R
+  fi
+
+  echo "checking for python3"
+  if ! [[ `brew ls --versions python@3` ]]; then
+    # this is the formula for python 3.6
+    # python 3.7 currently does not work with pysam
+    brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/f2a764ef944b1080be64bd88dca9a1d80130c558/Formula/python.rb
+  fi
+
+  echo "checking for python2"
+  if ! [[ `brew ls --versions python@2` ]]; then
+    brew install python@2
+  fi
+
+fi
+
 # install DCC
 cd /tmp/
 git clone https://github.com/dieterich-lab/DCC.git
 cd DCC
 if [ "$OS" = "Mac" ]; then
-  echo "mac"
   python2 setup.py install
 else
   python2 setup.py install --user

@@ -22,6 +22,7 @@ matrix:
 
         # Use generic language for osx
         # find correct python formula via
+        # disabled: old formula does not work anymore
         # https://github.com/Homebrew/homebrew-core/commits/master/Formula/python.rb
         # - os: osx
         #   language: generic
@@ -30,6 +31,7 @@ matrix:
         #     - brew upgrade https://raw.githubusercontent.com/Homebrew/homebrew-core/bd43f59bd50bb49242259f327cb6ac7a8dd59478/Formula/python3.rb
         #     - brew install python@2
         #
+        # disabled: old formula does not work anymore
         # - os: osx
         #   language: generic
         #   python: "3.5"
