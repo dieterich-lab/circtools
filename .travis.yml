@@ -58,7 +58,8 @@ matrix:
             - brew install R
 
 env:
-  -  TRAVISBUILD="True"
+  - TRAVISBUILD="True"
+  - R_LIBS_USER="~/.R/"
 
 install:
 
