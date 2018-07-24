@@ -15,8 +15,8 @@ matrix:
             - gpg --keyserver keyserver.ubuntu.com --recv-key E084DAB9
             - gpg -a --export E084DAB9 | sudo apt-key add -
             - sudo apt-get update -qq
-            - sudo apt-get -y --no-install-recommends install r-base build-essential gcc g++ libblas-dev liblapack-dev libncurses5-dev libreadline-dev libjpeg-dev libpcre3-dev libpng-dev zlib1g-dev libbz2-dev liblzma-dev
-            
+            - sudo apt-get -y --no-install-recommends install r-base build-essential gcc g++ gfortran libblas-dev liblapack-dev libncurses5-dev libreadline-dev libjpeg-dev libpcre3-dev libpng-dev zlib1g-dev libbz2-dev liblzma-dev
+
         # - os: linux
         #   sudo: required
         #   python: "3.5"
