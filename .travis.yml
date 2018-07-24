@@ -59,7 +59,7 @@ matrix:
 
 
 env:
-  - TRAVISBUILD="True" R_LIBS_USER="~/.R/"
+  - TRAVISBUILD="True" R_LIBS_USER=~/.R/
 
 install:
 
