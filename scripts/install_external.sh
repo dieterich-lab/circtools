@@ -46,6 +46,7 @@ pip3 install statsmodels
 
 # install dependencies for R first
 if [ "$TRAVISBUILD" ]; then
+  pwd
   Rscript dieterich-lab/circtools/scripts/install_R_dependencies.R
 else
   Rscript scripts/install_R_dependencies.R
