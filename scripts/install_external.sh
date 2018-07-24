@@ -46,9 +46,9 @@ pip3 install statsmodels
 
 # install dependencies for R first
 if [ "$TRAVISBUILD" ]; then
-  # echo "R_LIBS_USER=~/.R/" > ~/.Renviron
-  # cat  ~/.Renviron
-  sudo Rscript scripts/install_R_dependencies.R
+  if [ "$INSTALL_R_PACKAGES" ]; then
+    sudo Rscript scripts/install_R_dependencies.R
+  fi
 else
   Rscript scripts/install_R_dependencies.R
 fi
