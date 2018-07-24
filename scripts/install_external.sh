@@ -46,8 +46,7 @@ pip3 install statsmodels
 
 # install dependencies for R first
 if [ "$TRAVISBUILD" ]; then
-  pwd
-  Rscript scripts/install_R_dependencies.R
+  sudo Rscript scripts/install_R_dependencies.R
 else
   Rscript scripts/install_R_dependencies.R
 fi
