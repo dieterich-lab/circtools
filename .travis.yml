@@ -57,9 +57,11 @@ matrix:
             - brew cask uninstall oclint
             - brew install R
 
+
 env:
-  - TRAVISBUILD="True"
-  - R_LIBS_USER="~/.R/"
+  global:
+    - TRAVISBUILD="True"
+    - R_LIBS_USER="~/.R/"
 
 install:
 
