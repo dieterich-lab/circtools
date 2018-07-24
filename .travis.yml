@@ -13,21 +13,21 @@ matrix:
           before_install:
             - sudo apt-get install r-base libssl1.0.0
 
-        - os: linux
-          sudo: required
-          python: "3.5"
-          dist: trusty
-          r: bioc-release
-          before_install:
-            - sudo apt-get install r-base libssl1.0.0
-
-        - os: linux
-          sudo: required
-          python: "3.6"
-          dist: trusty
-          r: bioc-release
-          before_install:
-            - sudo apt-get install r-base libssl1.0.0
+        # - os: linux
+        #   sudo: required
+        #   python: "3.5"
+        #   dist: trusty
+        #   r: bioc-release
+        #   before_install:
+        #     - sudo apt-get install r-base libssl1.0.0
+        #
+        # - os: linux
+        #   sudo: required
+        #   python: "3.6"
+        #   dist: trusty
+        #   r: bioc-release
+        #   before_install:
+        #     - sudo apt-get install r-base libssl1.0.0
 
         # Use generic language for osx
         # find correct python formula via
@@ -48,14 +48,14 @@ matrix:
         #     - brew upgrade https://raw.githubusercontent.com/Homebrew/homebrew-core/ec545d45d4512ace3570782283df4ecda6bb0044/Formula/python3.rb
         #     - brew install python@2
 
-        - os: osx
-          language: generic
-          python: "3.6"
-          before_install:
-            - brew upgrade https://raw.githubusercontent.com/Homebrew/homebrew-core/f2a764ef944b1080be64bd88dca9a1d80130c558/Formula/python.rb
-            - brew install python@2
-            - brew cask uninstall oclint
-            - brew install R
+        # - os: osx
+        #   language: generic
+        #   python: "3.6"
+        #   before_install:
+        #     - brew upgrade https://raw.githubusercontent.com/Homebrew/homebrew-core/f2a764ef944b1080be64bd88dca9a1d80130c558/Formula/python.rb
+        #     - brew install python@2
+        #     - brew cask uninstall oclint
+        #     - brew install R
 
 
 env:
