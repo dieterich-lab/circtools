@@ -47,6 +47,7 @@ function install_bedtools {
 # install dependencies for R first
 if [ "$TRAVISBUILD" ]; then
   echo "R_LIBS_USER=~/.R/" > ~/.Renviron
+  cat  ~/.Renviron
   Rscript scripts/install_R_dependencies.R
 else
   Rscript scripts/install_R_dependencies.R
