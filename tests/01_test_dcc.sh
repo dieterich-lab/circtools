@@ -29,6 +29,12 @@ function detect_os {
 
 OS=`detect_os`
 
+DCC=`which DCC`
+
+cat $DCC
+
+exit
+
 # get basic test data (humane genome)
 wget https://data.dieterichlab.org/s/eikQFHKFstSgbrp/download -O 00_base.tar.bz2
 tar jxvf 00_base.tar.bz2
