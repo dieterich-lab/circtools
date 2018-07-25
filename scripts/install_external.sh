@@ -70,7 +70,7 @@ if [ $BEDTOOLS ]; then
         install_bedtools
     fi
 else
-     #install_bedtools
+     echo "install_bedtools"
 fi
 
 if [ "$OS" = "Mac" ]; then
