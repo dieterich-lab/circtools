@@ -15,6 +15,20 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+function detect_os {
+    unameOut="$(uname -s)"
+    case "${unameOut}" in
+        Linux*)     machine=Linux;;
+        Darwin*)    machine=Mac;;
+        CYGWIN*)    machine=Cygwin;;
+        MINGW*)     machine=MinGw;;
+        *)          machine="UNKNOWN:${unameOut}"
+    esac
+    echo ${machine}
+}
+
+OS=`detect_os`
+
 # get basic test data (humane genome)
 wget https://data.dieterichlab.org/s/eikQFHKFstSgbrp/download -O 00_base.tar.bz2
 tar jxvf 00_base.tar.bz2
