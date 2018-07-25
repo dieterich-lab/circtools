@@ -99,6 +99,10 @@ if [ "$OS" = "Mac" ]; then
 
 fi
 
+which python1
+which python3
+which python2
+
 # install DCC
 cd /tmp/
 git clone https://github.com/dieterich-lab/DCC.git
