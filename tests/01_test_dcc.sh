@@ -25,8 +25,7 @@ tar jxvf 01_dcc.tar.bz2
 
 # get basic test data (humane genome)
 wget https://data.dieterichlab.org/s/emNDzztToQoyerz -O chr1.gtf.bz2
-tar jxvf chr1.gtf.bz2
-
+bunzip chr1.gtf.bz2
 
 # change into working dir
 cd 01_dcc/
