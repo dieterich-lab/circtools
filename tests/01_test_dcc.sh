@@ -31,6 +31,6 @@ bunzip2 chr1.gtf.bz2
 cd 01_dcc/
 
 # execute DCC
-/usr/bin/time -v DCC @samplesheet -ss -T 2 -D -an ../chr1.gtf.bz2 -A ../00_base/GRCh38_85.fa -R ../00_base/GRCh38_85_repeatmasker.gtf -B @bam_files.txt -M -Nr 2 2 -fg -G -t /tmp/ -F -L 20 -k -O output
+/usr/bin/time -v DCC @samplesheet -ss -T 2 -D -an ../chr1.gtf -A ../00_base/GRCh38_85.fa -R ../00_base/GRCh38_85_repeatmasker.gtf -B @bam_files.txt -M -Nr 2 2 -fg -G -t /tmp/ -F -L 20 -k -O output
 
 md5sum output/*
