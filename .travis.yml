@@ -79,4 +79,4 @@ install:
 
 script:
     - circtools --version
-    - ./tests/01_test_dcc.sh
+    - travis_wait 30 ./tests/01_test_dcc.sh
