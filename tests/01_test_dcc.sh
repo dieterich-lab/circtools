@@ -23,10 +23,15 @@ tar jxvf 00_base.tar.bz2
 wget https://data.dieterichlab.org/s/pn7QHoQJmtD44Fo/download -O 01_dcc.tar.bz2
 tar jxvf 01_dcc.tar.bz2
 
+# get basic test data (humane genome)
+wget https://data.dieterichlab.org/s/emNDzztToQoyerz -O chr1.gtf.bz2
+tar jxvf chr1.gtf.bz2
+
+
 # change into working dir
 cd 01_dcc/
 
 # execute DCC
-/usr/bin/time -v DCC @samplesheet -ss -T 2 -D -an ../00_base/GRCh38.85.gtf -A ../00_base/GRCh38_85.fa -R ../00_base/GRCh38_85_repeatmasker.gtf -B @bam_files.txt -M -Nr 2 2 -fg -G -t /tmp/ -F -L 20 -k -O output
+/usr/bin/time -v DCC @samplesheet -ss -T 2 -D -an ../chr1.gtf.bz2 -A ../00_base/GRCh38_85.fa -R ../00_base/GRCh38_85_repeatmasker.gtf -B @bam_files.txt -M -Nr 2 2 -fg -G -t /tmp/ -F -L 20 -k -O output
 
 md5sum output/*
