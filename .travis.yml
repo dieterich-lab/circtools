@@ -1,14 +1,14 @@
-sudo: true
+sudo:                      true
 
-language: python
+language:                  python
 
 matrix:
     include:
         # Use the built in venv for linux builds
-         - os: linux
-           sudo: required
-           python: "3.4"
-           dist: trusty
+         - os:             linux
+           sudo:           required
+           python:         "3.4"
+           dist:           trusty
            before_install:
              - sudo apt-get install libssl1.0.0
              - sudo sh -c 'echo "deb http://cran.rstudio.com/bin/linux/ubuntu trusty/" >> /etc/apt/sources.list'
@@ -17,10 +17,10 @@ matrix:
              - sudo apt-get update -qq
              - sudo apt-get -y --no-install-recommends install r-base build-essential gcc g++ gfortran libblas-dev liblapack-dev libncurses5-dev libreadline-dev libjpeg-dev libpcre3-dev libpng-dev zlib1g-dev libbz2-dev liblzma-dev libgit2-dev libssh2-1-dev
 
-         - os: linux
-           sudo: required
-           python: "3.5"
-           dist: trusty
+         - os:             linux
+           sudo:           required
+           python:         "3.5"
+           dist:           trusty
            before_install:
              - sudo apt-get install libssl1.0.0
              - sudo sh -c 'echo "deb http://cran.rstudio.com/bin/linux/ubuntu trusty/" >> /etc/apt/sources.list'
@@ -29,10 +29,10 @@ matrix:
              - sudo apt-get update -qq
              - sudo apt-get -y --no-install-recommends install r-base build-essential gcc g++ gfortran libblas-dev liblapack-dev libncurses5-dev libreadline-dev libjpeg-dev libpcre3-dev libpng-dev zlib1g-dev libbz2-dev liblzma-dev libgit2-dev libssh2-1-dev
 
-         - os: linux
-           sudo: required
-           python: "3.6"
-           dist: trusty
+         - os:             linux
+           sudo:           required
+           python:         "3.6"
+           dist:           trusty
            before_install:
              - sudo apt-get install libssl1.0.0
              - sudo sh -c 'echo "deb http://cran.rstudio.com/bin/linux/ubuntu trusty/" >> /etc/apt/sources.list'
@@ -41,35 +41,16 @@ matrix:
              - sudo apt-get update -qq
              - sudo apt-get -y --no-install-recommends install r-base build-essential gcc g++ gfortran libblas-dev liblapack-dev libncurses5-dev libreadline-dev libjpeg-dev libpcre3-dev libpng-dev zlib1g-dev libbz2-dev liblzma-dev libgit2-dev libssh2-1-dev
 
-        # Use generic language for osx
-        # find correct python formula via
-        # disabled: old formula does not work anymore
-        # https://github.com/Homebrew/homebrew-core/commits/master/Formula/python.rb
-        # - os: osx
-        #   language: generic
-        #   python: "3.4"
-        #   before_install:
-        #     - brew upgrade https://raw.githubusercontent.com/Homebrew/homebrew-core/bd43f59bd50bb49242259f327cb6ac7a8dd59478/Formula/python3.rb
-        #     - brew install python@2
-        #
-        # disabled: old formula does not work anymore
-        # - os: osx
-        #   language: generic
-        #   python: "3.5"
-        #   before_install:
-        #     - brew upgrade https://raw.githubusercontent.com/Homebrew/homebrew-core/ec545d45d4512ace3570782283df4ecda6bb0044/Formula/python3.rb
-        #     - brew install python@2
-
-        - os: osx
-          language: generic
-          python: "3.6"
-          before_install:
-          # below the formula for python 3.6
-            - brew upgrade https://raw.githubusercontent.com/Homebrew/homebrew-core/f2a764ef944b1080be64bd88dca9a1d80130c558/Formula/python.rb
-            - brew install python@2
-            - brew cask uninstall oclint
-            - brew install R
-            - brew install md5sha1sum
+         - os:             osx
+           language:       generic
+           python:         "3.6"
+           before_install:
+           # below the formula for python 3.6
+             - brew upgrade https://raw.githubusercontent.com/Homebrew/homebrew-core/f2a764ef944b1080be64bd88dca9a1d80130c558/Formula/python.rb
+             - brew install python@2
+             - brew cask uninstall oclint
+             - brew install R
+             - brew install md5sha1sum
 
 
 env:
