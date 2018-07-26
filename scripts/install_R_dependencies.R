@@ -17,8 +17,8 @@
 
 
 # set mirrors
-source("https://bioconductor.statistik.tu-dortmund.de/biocLite.R")
-options(repos = c(CRAN = "https://cran.uni-muenster.de/"))
+source("http://bioconductor.org/biocLite.R")
+options(repos = c(CRAN = "http://cran.uni-muenster.de/"))
 biocLite()
 
 pkgs <- c(

@@ -15,6 +15,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+function detect_os {
+    unameOut="$(uname -s)"
+    case "${unameOut}" in
+        Linux*)     machine=Linux;;
+        Darwin*)    machine=Mac;;
+        CYGWIN*)    machine=Cygwin;;
+        MINGW*)     machine=MinGw;;
+        *)          machine="UNKNOWN:${unameOut}"
+    esac
+    echo ${machine}
+}
+
 function install_bedtools {
     cd /tmp/
     wget https://github.com/arq5x/bedtools2/releases/download/v2.27.1/bedtools-2.27.1.tar.gz
@@ -30,12 +42,24 @@ function install_bedtools {
 
 # install statsmodels first, does not work in setup.py due to
 # https://github.com/dieterich-lab/circtools/issues/55
-pip3 install statsmodels
+# pip3 install statsmodels
+pip install pysam==0.13.0
 
 # install dependencies for R first
-Rscript scripts/install_R_dependencies.R
+if [ "$TRAVISBUILD" ]; then
+  if [ "$INSTALL_R_PACKAGES" ]; then
+    sudo Rscript scripts/install_R_dependencies.R
+  fi
+else
+  Rscript scripts/install_R_dependencies.R
+fi
 
 BEDTOOLS=`which bedtools`
+OS=`detect_os`
+
+if [ "$OS" = "Mac" ]; then
+  brew install libgit2
+fi
 
 if [ $BEDTOOLS ]; then
 
@@ -47,23 +71,60 @@ if [ $BEDTOOLS ]; then
         install_bedtools
     fi
 else
-     install_bedtools
+     echo "install_bedtools"
 fi
+
+if [ "$OS" = "Mac" ]; then
+
+  echo "checking for libgit2"
+  if ! [[ `brew ls --versions libgit2` ]]; then
+    brew install libgit2
+  fi
+
+  echo "checking for R"
+  if ! [[ `brew ls --versions R` ]]; then
+    brew install R
+  fi
+
+  echo "checking for python3"
+  if ! [[ `brew ls --versions python@3` ]]; then
+    # this is the formula for python 3.6
+    # python 3.7 currently does not work with pysam
+    brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/f2a764ef944b1080be64bd88dca9a1d80130c558/Formula/python.rb
+  fi
+
+  echo "checking for python2"
+  if ! [[ `brew ls --versions python@2` ]]; then
+    brew install python@2
+  fi
+
+fi
+
+echo "VENV: $VIRTUAL_ENV"
 
 # install DCC
 cd /tmp/
 git clone https://github.com/dieterich-lab/DCC.git
-cd DCC
-python2 setup.py install --user
+#cd DCC
+if [ "$OS" = "Mac" ]; then
+  #python2 setup.py install --force
+  #echo "python2 setup.py install"
+  pip2 install DCC/
+else
+  pip2 install DCC/ --user
+fi
 
 # install FUCHS
-cd ..
-git clone https://github.com/dieterich-lab/FUCHS.git
-cd FUCHS
-python2 setup.py install --user
+# cd ..
+ git clone https://github.com/dieterich-lab/FUCHS.git
+ #cd FUCHS
 
+ if [ "$OS" = "Mac" ]; then
+   pip2 install FUCHS/
+ else
+   pip2 install FUCHS/ --user
+ fi
 
 # remove all temporary files
 #rm /tmp/FUCHS/ -rf
 #rm /tmp/DCC/ -rf
-
