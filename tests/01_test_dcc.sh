@@ -45,7 +45,7 @@ bunzip2 chr1.gtf.bz2
 cd 01_dcc/
 
 # execute DCC
-circtools detect -C @samplesheet -ss -T 2 -D -an ../chr1.gtf -A ../00_base/GRCh38_85.fa -R ../00_base/GRCh38_85_repeatmasker.gtf -B @bam_files.txt -M -Nr 2 2 -fg -G -t /tmp/ -F -L 20 -k -O ./
+circtools detect @samplesheet -ss -T 2 -D -an ../chr1.gtf -A ../00_base/GRCh38_85.fa -R ../00_base/GRCh38_85_repeatmasker.gtf -B @bam_files.txt -M -Nr 2 2 -fg -G -t /tmp/ -F -L 20 -k -O ./
 
 cat *.log
 
