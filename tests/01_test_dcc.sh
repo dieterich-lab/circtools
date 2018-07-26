@@ -33,6 +33,14 @@ DCC=`which DCC`
 
 cat $DCC
 
+
+which python
+which python3
+which python2
+
+DCC --help
+
+
 exit
 
 # get basic test data (humane genome)
