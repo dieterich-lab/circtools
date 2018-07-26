@@ -106,6 +106,7 @@ git clone https://github.com/dieterich-lab/DCC.git
 cd DCC
 if [ "$OS" = "Mac" ]; then
   python2 setup.py install
+  echo "python2 setup.py install"
 else
   python2 setup.py install --user
 fi
