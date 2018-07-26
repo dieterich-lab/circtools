@@ -105,10 +105,11 @@ echo "VENV: $VIRTUAL_ENV"
 # install DCC
 cd /tmp/
 git clone https://github.com/dieterich-lab/DCC.git
-cd DCC
+#cd DCC
 if [ "$OS" = "Mac" ]; then
-  python2 setup.py install --force
-  echo "python2 setup.py install"
+  #python2 setup.py install --force
+  #echo "python2 setup.py install"
+  pip2 install DCC/
 else
   python2 setup.py install --user
 fi
