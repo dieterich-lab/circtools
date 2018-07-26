@@ -43,6 +43,7 @@ function install_bedtools {
 # install statsmodels first, does not work in setup.py due to
 # https://github.com/dieterich-lab/circtools/issues/55
 # pip3 install statsmodels
+pip install pysam == 0.13.0
 
 # install dependencies for R first
 if [ "$TRAVISBUILD" ]; then
