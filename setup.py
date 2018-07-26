@@ -159,6 +159,7 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
+        'pysam == 0.13.0',
         'numpy>=1.14.5',
         'pybedtools>=0.7.10',
         'biopython >= 1.71'
