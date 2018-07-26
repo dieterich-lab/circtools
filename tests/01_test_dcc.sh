@@ -29,23 +29,6 @@ function detect_os {
 
 OS=`detect_os`
 
-#DCC=`which DCC`
-#
-#cat $DCC
-#
-#
-#which python
-#which python3
-#which python2
-#
-#python --version
-#python2 --version
-#python3 --version
-#
-#DCC --help
-#
-#exit
-
 # get basic test data (humane genome)
 wget https://data.dieterichlab.org/s/eikQFHKFstSgbrp/download -O 00_base.tar.bz2
 tar jxvf 00_base.tar.bz2
@@ -62,10 +45,6 @@ bunzip2 chr1.gtf.bz2
 cd 01_dcc/
 
 # execute DCC
-circtools detect -C "@samplesheet -ss -T 2 -D -an ../chr1.gtf -A ../00_base/GRCh38_85.fa -R ../00_base/GRCh38_85_repeatmasker.gtf -B @bam_files.txt -M -Nr 2 2 -fg -G -t /tmp/ -F -L 20 -k -O output"
+circtools detect -C "@samplesheet -ss -T 2 -D -an ../chr1.gtf -A ../00_base/GRCh38_85.fa -R ../00_base/GRCh38_85_repeatmasker.gtf -B @bam_files.txt -M -Nr 2 2 -fg -G -t /tmp/ -F -L 20 -k -O ./"
 
-if [ "$OS" = "Mac" ]; then
-  md5 output/*
-else
-  md5sum output/*
-fi
+md5sum -c tests/md5_dcc.txt

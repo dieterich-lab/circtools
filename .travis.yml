@@ -69,6 +69,7 @@ matrix:
             - brew install python@2
             - brew cask uninstall oclint
             - brew install R
+            - brew install md5sha1sum
 
 
 env:
