@@ -38,8 +38,11 @@ which python
 which python3
 which python2
 
-DCC --help
+python --version
+python2 --version
+python3 --version
 
+DCC --help
 
 exit
 
