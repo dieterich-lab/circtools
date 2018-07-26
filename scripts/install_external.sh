@@ -100,6 +100,8 @@ if [ "$OS" = "Mac" ]; then
 
 fi
 
+echo "VENV: $VIRTUAL_ENV"
+
 # install DCC
 cd /tmp/
 git clone https://github.com/dieterich-lab/DCC.git
