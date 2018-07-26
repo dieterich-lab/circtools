@@ -29,22 +29,22 @@ function detect_os {
 
 OS=`detect_os`
 
-DCC=`which DCC`
-
-cat $DCC
-
-
-which python
-which python3
-which python2
-
-python --version
-python2 --version
-python3 --version
-
-DCC --help
-
-exit
+#DCC=`which DCC`
+#
+#cat $DCC
+#
+#
+#which python
+#which python3
+#which python2
+#
+#python --version
+#python2 --version
+#python3 --version
+#
+#DCC --help
+#
+#exit
 
 # get basic test data (humane genome)
 wget https://data.dieterichlab.org/s/eikQFHKFstSgbrp/download -O 00_base.tar.bz2

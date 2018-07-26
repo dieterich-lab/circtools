@@ -111,19 +111,19 @@ if [ "$OS" = "Mac" ]; then
   #echo "python2 setup.py install"
   pip2 install DCC/
 else
-  python2 setup.py install --user
+  pip2 install DCC/ --user
 fi
 
 # install FUCHS
 # cd ..
-# git clone https://github.com/dieterich-lab/FUCHS.git
-# cd FUCHS
-#
-# if [ "$OS" = "Mac" ]; then
-#   python2 setup.py install
-# else
-#   python2 setup.py install --user
-# fi
+ git clone https://github.com/dieterich-lab/FUCHS.git
+ #cd FUCHS
+
+ if [ "$OS" = "Mac" ]; then
+   pip2 install FUCHS/
+ else
+   pip2 install FUCHS/ --user
+ fi
 
 # remove all temporary files
 #rm /tmp/FUCHS/ -rf
