@@ -20,7 +20,7 @@ import sys
 import os.path
 
 # global settings
-version = "1.1.0.3"
+version = "1.1.0.2"
 program_name = "circtools"
 
 
@@ -46,7 +46,7 @@ class CircTools(object):
             description="circtools: a modular, python-based framework for circRNA-related tools that unifies "
                         "several functions in single command line driven software.",
             usage="""circtools [-V] <command> [<args>]
-            
+
             Available commands:
 
                enrich:       circular RNA RBP enrichment scan
@@ -332,17 +332,85 @@ class CircTools(object):
     def detect():
         parser = argparse.ArgumentParser(
             description="circular RNA detection")
-        # NOT prefixing the argument with -- means it"s not optional
-        parser.add_argument("-C",
-                            "--params",
-                            dest="cli_params",
-                            help="Defines the input parameters for DCC",
-                            default="--help"
-                            )
-        args = parser.parse_args(sys.argv[2:])
+
+        parser.add_argument("--version", action="version", version=version)
+        parser.add_argument("Input", metavar="Input", nargs="+",
+                            help="Input of the Chimeric.out.junction file from STAR. Alternatively, a sample sheet "
+                                 "specifying where your chimeric.out.junction files are, each sample per line, "
+                                 "provide with @ prefix (e.g. @samplesheet)")
+        parser.add_argument("-k", "--keep-temp", dest="temp", action="store_true", default=False,
+                            help="Temporary files will not be deleted [default: False]")
+        parser.add_argument("-T", "--threads", dest="cpu_threads", type=int, default=2,
+                            help="Number of CPU threads used for computation [default: 2]")
+        parser.add_argument("-O", "--output", dest="out_dir", default="./",
+                            help="DCC output directory [default: .]")
+        parser.add_argument("-t", "--temp", dest="tmp_dir", default="_tmp_DCC/",
+                            help="DCC temporary directory [default: _tmp_DCC/]")
+
+        group = parser.add_argument_group("Find circRNA Options", "Options to find circRNAs from STAR output")
+        group.add_argument("-D", "--detect", action="store_true", dest="detect", default=False,
+                           help="Enable circRNA detection from Chimeric.out.junction files [default: False]")
+        group.add_argument("-ss", action="store_true", dest="secondstrand", default=False,
+                           help="Must be enabled for stranded libraries, aka 'fr-secondstrand' [default: False]")
+        group.add_argument("-N", "--nonstrand", action="store_false", dest="strand", default=True,
+                           help="The library is non-stranded [default stranded]")
+        group.add_argument("-E", "--endTol", dest="endTol", type=int, default=5, choices=range(0, 10),
+                           help="Maximum base pair tolerance of reads extending over junction sites [default: 5]")
+        group.add_argument("-m", "--maximum", dest="max", type=int, default=1000000,
+                           help="The maximum length of candidate circRNAs (including introns) [default: 1000000]")
+        group.add_argument("-n", "--minimum", dest="min", type=int, default=30,
+                           help="The minimum length of candidate circRNAs (including introns) [default 30]")
+        group.add_argument("-an", "--annotation", dest="annotate",
+                           help="Gene annotation file in GTF/GFF3 format, to annotate "
+                                "circRNAs by their host gene name/identifier")
+
+        group.add_argument("-Pi", "--PE-independent", action="store_true", dest="pairedendindependent", default=False,
+                           help="Has to be specified if the paired end mates have also been mapped separately."
+                                "If specified, -mt1 and -mt2 must also be provided [default: False]")
+        group.add_argument("-mt1", "--mate1", dest="mate1", nargs="+",
+                           help="For paired end data, Chimeric.out.junction files from mate1 independent mapping result")
+        group.add_argument("-mt2", "--mate2", dest="mate2", nargs="+",
+                           help="For paired end data, Chimeric.out.junction files from mate2 independent mapping result")
+        parser.add_argument_group(group)
+
+        group = parser.add_argument_group("Filtering Options", "Options to filter the circRNA candidates")
+        group.add_argument("-F", "--filter", action="store_true", dest="filter", default=False,
+                           help="If specified, the program will perform a recommended filter step on the detection results")
+        group.add_argument("-f", "--filter-only", dest="filteronly", nargs=2,
+                           help="If specified, the program will only filter based on two files provided: "
+                                "1) a coordinates file [BED6 format] and 2) a count file. E.g.: -f example.bed counts.txt")
+        group.add_argument("-M", "--chrM", action="store_true", dest="chrM", default=False,
+                           help="If specified, circRNA candidates located on the mitochondrial chromosome will be removed")
+        group.add_argument("-R", "--rep_file", dest="rep_file",
+                           help="Custom repetitive region file in GTF format to filter out "
+                                "circRNA candidates in repetitive regions")
+        group.add_argument("-L", "--Ln", dest="length", type=int, default=50,
+                           help="Minimum length in base pairs to check for repetitive regions [default 50]")
+        group.add_argument("-Nr", nargs=2, type=int, metavar=("countthreshold", "replicatethreshold"), default=[2, 5],
+                           help="countthreshold replicatethreshold [default: 2,5]")
+        group.add_argument("-fg", "--filterbygene", action="store_true", dest="filterbygene", default=False,
+                           help="If specified, filter also by gene annotation (candidates are not allowed to span"
+                                " more than one gene) default: False")
+        parser.add_argument_group(group)
+
+        group = parser.add_argument_group("Host gene count Options", "Options to count host gene expression")
+        group.add_argument("-G", "--gene", action="store_true", dest="gene", default=False,
+                           help="If specified, the program will count host gene expression given circRNA coordinates "
+                                "[default: False]")
+        group.add_argument("-C", "--circ", dest="circ",
+                           help="User specified circRNA coordinates, any tab delimited file with first three "
+                                "columns as circRNA coordinates: chr\tstart\tend, which DCC will use to count "
+                                "host gene expression")
+        group.add_argument("-B", "--bam", dest="bam", nargs="+",
+                           help="A file specifying the mapped BAM files from which host gene expression is computed; "
+                                "must have the same order as input chimeric junction files")
+        group.add_argument("-A", "--refseq", dest="refseq",
+                           help="Reference sequence FASTA file")
+
+        parser.add_argument_group(group)
 
         import os
-        os.system("DCC " + args.cli_params)
+        os.system("DCC " + " ".join(sys.argv[2:]))
 
     @staticmethod
     def circtest():
@@ -751,16 +819,55 @@ class CircTools(object):
         parser = argparse.ArgumentParser(
             description="circular RNA reconstruction")
         # NOT prefixing the argument with -- means it"s not optional
-        parser.add_argument("-C",
-                            "--params",
-                            dest="cli_params",
-                            help="Defines the input parameters for DCC",
-                            default="--help"
-                            )
-        args = parser.parse_args(sys.argv[2:])
+
+        # input
+        parser.add_argument('-C', '--circIDs', dest='circlefile', default='none',
+                            help='Tab-separated file chr:start_end(tab)read1,read2,read3.')
+        parser.add_argument('-D', '--DCC', dest='CircRNACount', default='none',
+                            help='If you mapped with STAR and are using step1 you need to provide a list'
+                                 ' of circle ids (CircRNACount or CircCoordinates from DCC)'
+                                 'You must supply either -C or -DCC')
+        parser.add_argument('-J', '--chimericJunctions', dest='chimeric_junction', default='none',
+                            help='If you mapped with STAR and are using step1 you need to provide the paired end Chimeric.junction.out file here')
+        parser.add_argument('-F', '--mate1', dest='mate1', default='none',
+                            help='If you mapped with STAR and are using step1 you need to provide the mate1.Chimeric.junction.out file here (optional if ends were mapped separately)')
+        parser.add_argument('-R', '--mate2', dest='mate2', default='none',
+                            help='If you mapped with STAR and are using step1 you need to provide the mate2.Chimeric.junction.out file here (optional if ends were mapped separately)')
+        parser.add_argument('-B', '--bamfile', dest='bamfile', required=True,
+                            help='BAM file containing chimeric reads, linear reads may be in it but are not required.')
+        parser.add_argument('-A', '--annotation', dest='bedfile', required=True,
+                            help='bed formatted feature file including exons.')
+        # output
+        parser.add_argument('-O', '--outFolder', dest='out_folder', default='.',
+                            help='Output folder. There will be a sub folder for the sample containing a BAM file '
+                                 'for each circle.')
+        parser.add_argument('-N', '--sampleName', dest='sample', required=True,
+                            help='sample name to title every thing.')
+
+        # options
+        parser.add_argument('-r', '--thresholdReads', dest='reads', default=5, type=int,
+                            help='Circle has to have at least <r> reads to be analysed.')
+
+        # TODO: default: no multi map
+        parser.add_argument('-q', '--thresholdMapq', dest='mapq', default=3, type=int,
+                            help='MAPQ cutoff, only reads passing this threshold will be written to circle BAM file.')
+        # TODO: add 0 based info
+        parser.add_argument('-c', '--splitCharacter', dest='split_character', default='_',
+                            help='feature name separator.')
+        parser.add_argument('-e', '--exonIndex', dest='exon_index', default=3, type=int,
+                            help='Field indicating the exon number after splitting feature name by split_character (for the annotation file).')
+        parser.add_argument('-p', '--annotationFormat', dest='ref_platform', default='refseq',
+                            help='Specifies the annotation platform which was used (refseq or ensembl)')
+        parser.add_argument('-s', '--skipSteps', dest='skipped_steps', default='none',
+                            help='Comma separated list of steps that should be skipped (e.g. step3,step4,step6)')
+        parser.add_argument('-T', '--tmp', dest='tmp_folder', default='/tmp/',
+                            help='Folder to store temporary files generated by pybedtools.')
+
+        parser.add_argument('-P', '--cpus', dest='num_cpus', default=4, type=int,
+                            help='Number of CPUs used.')
 
         import os
-        os.system("FUCHS " + args.cli_params)
+        os.system("FUCHS " + " ".join(sys.argv[2:]))
 
 
 if __name__ == "__main__":
