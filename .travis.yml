@@ -76,7 +76,6 @@ env:
   - TRAVISBUILD="True"
 
 install:
-
   - python3 setup.py install
 
 script:
