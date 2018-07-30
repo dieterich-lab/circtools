@@ -482,7 +482,6 @@ colnames(circTestSummary) <- c( "Chr",
                                 "Start.End.Region",
                                 "OverallRegion",
                                 "sig_p",
-                                "NA"
                                 )
 
 addWorksheet(wb, sheetName = "Other BSJ FDR 1%")
