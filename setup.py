@@ -161,7 +161,8 @@ setup(
     install_requires=[
         'numpy>=1.14.5',
         'pybedtools>=0.7.10',
-        'biopython >= 1.71'
+        'biopython >= 1.71',
+        'scipy>=0.19.0'
     ],
 
     python_requires='>=3.4',
