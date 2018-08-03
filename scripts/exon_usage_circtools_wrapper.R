@@ -429,7 +429,6 @@ colnames(RNAse_RenrichedCircTest) <- c( "Gene",
                                         "Start.End.Region",
                                         "OverallRegion",
                                         "sig_p",
-                                        "NA",
                                         "GeneID",
                                         "NExons",
                                         "P.Value",
@@ -482,8 +481,7 @@ colnames(circTestSummary) <- c( "Chr",
                                 "Strand",
                                 "Start.End.Region",
                                 "OverallRegion",
-                                "sig_p",
-                                "NA"
+                                "sig_p"
                                 )
 
 addWorksheet(wb, sheetName = "Other BSJ FDR 1%")
