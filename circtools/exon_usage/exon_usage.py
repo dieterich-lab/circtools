@@ -124,7 +124,7 @@ class ExonUsage(circ_module.circ_template.CircTemplate):
         # ------------------------------------ need to call the correct R script here -----------------------
 
         # need to define path top R wrapper
-        exon_script = 'circtools_exon'
+        exon_script = 'circtools_exon_wrapper.R'
 
         # Variable number of args in a list
         args = [
