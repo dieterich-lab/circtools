@@ -96,7 +96,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='1.1.0.5',
+    version='1.1.0.6',
 
     description='circtools - a circular RNA toolbox',
     long_description=long_description,
@@ -206,7 +206,6 @@ setup(
         'scripts/circtools',
         'scripts/circtools_detect_write_skip_tracks.pl',
         'scripts/circtools_enrich_visualization.R',
-        'scripts/circtools_exon',
         'scripts/circtools_quickcheck_wrapper.R',
         'scripts/circtools_reconstruct_visualization.R',
         'scripts/circtools_primex_wrapper.R',
