@@ -6,7 +6,7 @@
 .. figure:: https://raw.githubusercontent.com/dieterich-lab/circtools/master/docs/img/circtools_200px.png
    :alt: circtools
 
-|docs| |build|
+|docs| |build| |zenodo|
 
 Introduction
 -------------
@@ -145,3 +145,8 @@ for follow up wet lab experiments to verify circRNA candidates.
     :alt: Build Status
     :scale: 100%
     :target: https://travis-ci.org/dieterich-lab/circtools
+
+.. |zenodo| image:: https://zenodo.org/badge/83248654.svg
+    :alt: Zenodo DOI link
+    :scale: 100%
+    :target: https://zenodo.org/badge/latestdoi/83248654
