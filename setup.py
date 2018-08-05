@@ -162,7 +162,8 @@ setup(
         'pysam == 0.13.0',
         'numpy>=1.14.5',
         'pybedtools>=0.7.10',
-        'biopython >= 1.71'
+        'biopython >= 1.71',
+        'scipy>=0.19.0'
     ],
 
     python_requires='>=3.4',
@@ -206,7 +207,7 @@ setup(
         'scripts/circtools',
         'scripts/circtools_detect_write_skip_tracks.pl',
         'scripts/circtools_enrich_visualization.R',
-        'scripts/circtools_exon',
+        'scripts/circtools_exon_wrapper.R',
         'scripts/circtools_quickcheck_wrapper.R',
         'scripts/circtools_reconstruct_visualization.R',
         'scripts/circtools_primex_wrapper.R',
