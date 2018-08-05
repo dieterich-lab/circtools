@@ -62,3 +62,4 @@ install:
 script:
     - circtools --version
     - ./tests/01_test_dcc.sh
+    - ./tests/02_test_quickcheck.sh
