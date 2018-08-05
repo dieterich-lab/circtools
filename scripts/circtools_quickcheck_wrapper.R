@@ -152,10 +152,10 @@ star_runs <- star_runs[endsWith(star_runs, arg_starfolder_suffix)]
 star_runs <- star_runs[!grepl("*mate*", star_runs)]
 
 # check columns to remove
-if (arg_remove_columns != "0" && length(arg_remove_columns) > 0) {
-    tmp <- unlist(lapply(arg_remove_columns, function(x){x-3}))
-    star_runs <- star_runs[-tmp]
-}
+# if (arg_remove_columns != "0" && length(arg_remove_columns) > 0) {
+#     tmp <- unlist(lapply(arg_remove_columns, function(x){x-3}))
+#     star_runs <- star_runs[-tmp]
+# }
 
 # new empty list
 uniquely_mapped_reads <- numeric();
