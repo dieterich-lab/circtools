@@ -46,7 +46,7 @@ matrix:
            python:         "3.6"
            before_install:
            # below the formula for python 3.6
-             - brew upgrade https://raw.githubusercontent.com/Homebrew/homebrew-core/f2a764ef944b1080be64bd88dca9a1d80130c558/Formula/python.rb
+             #- brew upgrade https://raw.githubusercontent.com/Homebrew/homebrew-core/f2a764ef944b1080be64bd88dca9a1d80130c558/Formula/python.rb
              - brew install python@2
              - brew cask uninstall oclint
              - brew install R
