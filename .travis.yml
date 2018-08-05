@@ -1,6 +1,7 @@
 sudo:                      true
 
 language:                  python
+cache:                     pip
 
 matrix:
     include:
