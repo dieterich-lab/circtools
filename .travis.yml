@@ -54,7 +54,7 @@ matrix:
 
 
 env:
-  - TRAVISBUILD="True"
+  - TRAVISBUILD="True", INSTALL_R_PACKAGES=True
 
 install:
   - python3 setup.py install
