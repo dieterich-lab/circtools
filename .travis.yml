@@ -57,7 +57,7 @@ env:
   - TRAVISBUILD="True", INSTALL_R_PACKAGES=True
 
 install:
-  - python3 setup.py install
+  - pip3 install .
 
 script:
     - circtools --version
