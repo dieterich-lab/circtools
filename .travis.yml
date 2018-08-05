@@ -63,7 +63,7 @@ env:
   - TRAVISBUILD="True", INSTALL_R_PACKAGES=True
 
 install:
-  - pip3 install .
+  - pip3 install . --upgrade --force -v
 
 script:
     - circtools --version
