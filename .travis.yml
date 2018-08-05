@@ -1,7 +1,10 @@
 sudo:                      true
 
 language:                  python
-cache:                     pip
+cache:
+  directories:
+    - $HOME/virtualenv/
+    - $HOME/.R
 
 matrix:
     include:
