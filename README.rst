@@ -6,7 +6,7 @@
 .. figure:: https://raw.githubusercontent.com/dieterich-lab/circtools/master/docs/img/circtools_200px.png
    :alt: circtools
 
-|docs| |build| |zenodo| |downloads|
+|docs| |build| |zenodo| |downloads| |pypi|
 
 Introduction
 -------------
@@ -155,3 +155,8 @@ for follow up wet lab experiments to verify circRNA candidates.
     :alt: Python Package Index Downloads
     :scale: 100%
     :target: https://pepy.tech/project/circtools
+
+.. |pypi| image:: https://badge.fury.io/py/circtools.svg
+    :alt: Python package version
+    :scale: 100%
+    :target: https://badge.fury.io/py/circtools
