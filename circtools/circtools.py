@@ -308,6 +308,14 @@ class CircTools(object):
                            default="n"
                            )
 
+        group.add_argument("-I",
+                           "--internal-mode",
+                           dest="internal_design",
+                           help="Should internal primers be designed?",
+                           default=False,
+                           action='store_true'
+                           )
+
         group.add_argument("-b",
                            "--no-blast",
                            dest="blast",
