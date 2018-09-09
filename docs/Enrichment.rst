@@ -24,6 +24,7 @@ R packages:
 Python libraries:
 
 * pybedtools >= 0.7.10
+* statsmodels>=0.8.0
 
 .. note:: The ``enrichment`` circtools module as well as all R dependencies are automatically installed during the circtools installation procedure.
 

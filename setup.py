@@ -96,7 +96,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='1.1.0.6',
+    version='1.1.0.7',
 
     description='circtools - a circular RNA toolbox',
     long_description=long_description,
@@ -159,6 +159,8 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
+        'HTSeq>=0.11.0',
+        'pysam >= 0.13',
         'numpy>=1.14.5',
         'pybedtools>=0.7.10',
         'biopython >= 1.71',

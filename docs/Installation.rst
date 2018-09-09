@@ -44,14 +44,14 @@ The primer design module as well as the exon analysis and circRNA testing module
 Python packages
 ^^^^^^^^^^^^^^^
 - For circRNA detection
-    * HTSeq>=0.6.1
-    * pysam>=0.9.0
+    * HTSeq>=0.11.0
+    * pysam>=0.13.0
     * numpy>=1.8.2
     * pandas>=0.18.1
 
 - For circRNA reconstruction
-    * HTSeq>=0.6.1
-    * pysam>=0.9.0
+    * HTSeq>=0.11.0
+    * pysam>=0.13.0
     * numpy>=1.8.2
     * pathos>=0.2.1
 
