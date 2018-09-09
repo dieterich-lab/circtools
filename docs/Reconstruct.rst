@@ -20,7 +20,7 @@ Cloning of the repository:
 
 .. code-block:: bash
 
-  $ git clone git@github.com:dieterich-lab/FUCHS.git
+  $ git clone https://github.com/dieterich-lab/FUCHS.git
 
   $ cd FUCHS
 
