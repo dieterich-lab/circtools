@@ -2,7 +2,7 @@ Installation
 ********************************************************
 
 
-**circtools** is written in Python3 (>=3.4). The tool has a number of external dependencies, mostly standard bioinformatics tools and packages. The installation will, by default, try to install all required dependencies.
+**circtools** is written in Python2 (>= 2.7, ``detect`` and ``reconstruct`` module) and Python3 (>=3.4, all other modules). The tool has a number of external dependencies, mostly standard bioinformatics tools and packages. The installation will, by default, try to install all required dependencies.
 
 Installation is performed via `python3 setup.py install`. No sudo access is required if the installation is suffixed with ``--user`` which will install the package in a user-writeable folder. In this case, the binaries should be installed to ``/home/$USER/.local/bin/`` (for Debian-based systems).
 
@@ -16,7 +16,7 @@ The default installation requires running python on the command line and will in
 
 .. code-block:: bash
 
-    git clone git@github.com:dieterich-lab/circtools.git
+    git clone https://github.com/dieterich-lab/circtools.git
     cd circtools
     python3 setup.py install --verbose --user
 
@@ -73,7 +73,7 @@ Getting the source code
 
 .. code-block:: bash
 
-    git clone git@github.com:dieterich-lab/circtools.git
+    git clone https://github.com/dieterich-lab/circtools.git
 
 Installation
 ^^^^^^^^^^^^

@@ -48,7 +48,7 @@ The installation requires running python on the command line:
 
 ::
 
-    git clone git@github.com:dieterich-lab/circtools.git
+    git clone https://github.com/dieterich-lab/circtools.git
     cd circtools
     python3 setup.py install --verbose --user
 
