@@ -1,11 +1,29 @@
 Enrichment module
 ********************************************************
 
-The ``circtools enrichment`` module was implemented in order to combine circRNA data with positional data from other experiments, for example the `eCLIP <https://www.nature.com/articles/nmeth.3810>`_ approach. The setup uses detected circRNA back splice junctions and thee corresponding location of circRNAs within the genome to test if positional features (e.g. eCLIP peaks) are significantly enriched within a circRNA compared to the remaining linear host gene.
+The ``circtools enrichment`` module was implemented in order to combine circRNA data with positional data from other experiments, for example the `eCLIP <https://www.nature.com/articles/nmeth.3810>`_ approach. The setup uses detected circRNA back splice junctions and the corresponding location of circRNAs within the genome to test if positional features (e.g. eCLIP peaks) are significantly enriched within a circRNA compared to the remaining linear host gene.
 
 .. image:: img/enrich_workflow.png
 
 This may give hints to potential RBP sponge functions of circRNAs when they show significant enrichment of eCLIP peaks in the circRNA portion of the host gene.
+
+
+Background
+----------------------------
+
+Input
+^^^^^^^^^^^^^
+
+The circtools enrich module requires generally three types of input data:
+
+* circRNA coordinates, e.g. from the circtools package itself or any other BED6-formatted circRNA list.
+* a BED6-formatted file with coordinates of features of interest. E.g. RNA binding protein binding sites or any other sequence-based features that can be condensed into genomic coordinates
+* A genome in FASTA format as well as a genome annotation in GTF format. Circtools works well and was tested with ENSEMBL-based genomes and annotations
+
+How does it work
+^^^^^^^^^^^^^^^^^^
+
+In a first step the 'observed' distribution of features throughout the supplied circRNAs is calculated. This observed distribution is used as a baseline in the subsequent 'iteration' step. By employong the ``bedtools shuffle`` command the features are randomly distributed throughout the genome while keep the number and length of all features constant. After several hundred or thousand randomized iterations circtools counts the number of iterations in which more hits within the defined list of circRNAs are observed than in the initial, actual experimental observation. Circtools than computes the probability that a given number of hits is significantly higher than the simulated random distribution obtained by the random shuffling. The test is carried out for the circRNA and the corresponding host genes, therefore also allowing to distinguish between features enriched in the circRNA and possibly depleted in the circRNA host gene.
 
 Required tools and packages
 ----------------------------
