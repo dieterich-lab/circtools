@@ -49,6 +49,7 @@ class Primex(circ_module.circ_template.CircTemplate):
         self.no_blast = self.cli_params.blast
         self.experiment_title = self.cli_params.experiment_title
         self.input_circRNA = self.cli_params.sequence_file
+        self.internal_design = self.cli_params.internal_design
 
         if self.id_list and self.gene_list:
             print("Please specify either host genes via -G or circRNA IDs via -i.")
@@ -188,14 +189,13 @@ class Primex(circ_module.circ_template.CircTemplate):
             from Bio import SeqIO
             with open(exon_storage_tmp, 'a') as data_store:
                 for record in SeqIO.parse(self.input_circRNA, "fasta"):
-
                     # from the FASTA file we cannot tell the coordinates of the circRNA
-                    name = str(record.id)+"_0_0_"+str(len(record.seq))+"_0"
+                    name = str(record.id) + "_0_0_" + str(len(record.seq)) + "_0"
 
                     data_store.write("\t".join([name, str(record.seq), "", "\n"]))
                     exon_cache[name] = {1: str(record.seq), 2: ""}
 
-        else:
+        elif not self.internal_design:
             exons = self.read_annotation_file(self.gtf_file, entity="exon")
 
             with open(self.dcc_file) as fp:
@@ -265,6 +265,7 @@ class Primex(circ_module.circ_template.CircTemplate):
                         # not used for primer design
                         if bed_feature[1] > current_line[1] and bed_feature[2] < current_line[2]:
                             flanking_exon_cache[name][bed_feature[1] + "_" + bed_feature[2]] = 1
+                    print(flanking_exon_cache[name])
 
                     virtual_bed_file_start = pybedtools.BedTool(fasta_bed_line_start, from_string=True)
                     virtual_bed_file_stop = pybedtools.BedTool(fasta_bed_line_stop, from_string=True)
@@ -307,6 +308,86 @@ class Primex(circ_module.circ_template.CircTemplate):
 
                     with open(exon_storage_tmp, 'a') as data_store:
                         data_store.write("\t".join([name, exon1, exon2, "\n"]))
+
+        else:
+            # we are in internal design mode
+            circ_rna_number += 1
+            exons = self.read_annotation_file(self.gtf_file, entity="exon")
+
+            with open(self.dcc_file) as fp:
+
+                for line in fp:
+
+                    # make sure we remove the header
+                    if line.startswith('Chr\t'):
+                        continue
+
+                    line = line.rstrip()
+                    current_line = line.split('\t')
+
+                    if current_line[3] == "not_annotated":
+                        continue
+
+                    if self.gene_list and not self.id_list and current_line[3] not in self.gene_list:
+                        continue
+
+                    sep = "_"
+                    name = sep.join([current_line[3],
+                                     current_line[0],
+                                     current_line[1],
+                                     current_line[2],
+                                     current_line[5]])
+
+                    if self.id_list and not self.gene_list and name not in self.id_list:
+                        continue
+
+                    flanking_exon_cache[name] = {}
+
+                    sep = "\t"
+                    bed_string = sep.join([current_line[0],
+                                           current_line[1],
+                                           current_line[2],
+                                           current_line[3],
+                                           str(0),
+                                           current_line[5]])
+
+                    virtual_bed_file = pybedtools.BedTool(bed_string, from_string=True)
+                    result = exons.intersect(virtual_bed_file, s=True)
+
+                    for result_line in str(result).splitlines():
+
+                        fasta_bed_line_start = ""
+
+                        bed_feature = result_line.split('\t')
+
+                        print(bed_feature)
+
+                        # this is a single-exon circRNA
+                        if bed_feature[1] > current_line[1] and bed_feature[2] < current_line[2]:
+
+                            fasta_bed_line_start += result_line + "\n"
+
+                            flanking_exon_cache[name][bed_feature[1] + "_" + bed_feature[2]] = int(bed_feature[2]) - \
+                                                                                               int(bed_feature[1])
+                            print(flanking_exon_cache[name])
+
+                            virtual_bed_file_start = pybedtools.BedTool(fasta_bed_line_start, from_string=True)
+                            virtual_bed_file_start = virtual_bed_file_start.sequence(fi=self.fasta_file)
+
+                            exon1 = ""
+                            exon2 = ""
+
+                            if virtual_bed_file_start:
+                                exon1 = open(virtual_bed_file_start.seqfn).read().split("\n", 1)[1].rstrip()
+
+                            circ_rna_number += 1
+                            print("extracting flanking exons for circRNA #", circ_rna_number, name, end="\n",
+                                  flush=True)
+
+                            exon_cache[name] = {1: exon1, 2: exon2}
+
+                            with open(exon_storage_tmp, 'a') as data_store:
+                                data_store.write("\t".join([name + "_"+str(int(bed_feature[2])-int(bed_feature[1]))+"_" + str(circ_rna_number), exon1, "", "\n"]))
 
         if not exon_cache:
             print("Could not find any circRNAs matching your criteria, exiting.")
@@ -399,7 +480,7 @@ class Primex(circ_module.circ_template.CircTemplate):
 
                     # filter out the host gene we're in now
                     # also filter out all "PREDICTED" stuff
-                    if description.title.find(primer_to_circ_cache[blast_record.query]) == -1 and\
+                    if description.title.find(primer_to_circ_cache[blast_record.query]) == -1 and \
                             description.title.find("PREDICTED") == -1:
                         blast_result_cache[blast_record.query].append(description.title)
 
@@ -411,6 +492,7 @@ class Primex(circ_module.circ_template.CircTemplate):
 
         for line in script_result.splitlines():
             entry = line.split('\t')
+            print(line)
 
             # split up the identifier for final plotting
             line = line.replace("_", "\t")
@@ -439,23 +521,34 @@ class Primex(circ_module.circ_template.CircTemplate):
 
         # ------------------------------------ run script and check output -----------------------
 
+        print(self.internal_design)
+
         primex_data_formatted = os.popen(primer_script + " " +
                                          blast_storage_tmp + " "
-                                         + "\"" + self.experiment_title + "\""
+                                         + "\"" + self.experiment_title + "\"" + " "
+                                         + str(self.internal_design) + " "
+                                         + exon_storage_tmp + " "
                                          ).read()
 
         with open(output_html_file, 'w') as data_store:
             data_store.write(primex_data_formatted)
 
-        print("Writing results to "+output_html_file)
+        print("Writing results to " + output_html_file)
 
         # here we create the circular graphics for primer visualisation
         for line in primex_data_with_blast_results.splitlines():
             entry = line.split('\t')
 
+            if self.internal_design:
+                exon_id = entry[6]
+                entry.remove(entry[6])
+                entry.remove(entry[5])
+
             # no primers, no graphics
             if entry[6] == "NA":
                 continue
+
+            print(entry)
 
             circular_rna_id = "_".join([entry[0],
                                         entry[1],
@@ -475,8 +568,8 @@ class Primex(circ_module.circ_template.CircTemplate):
                 exon2_colour = "#ffac68"
 
                 if exon2_length == 0:
-                    exon1_length = int(len(exon_cache[circular_rna_id][1])/2)+1
-                    exon2_length = int(len(exon_cache[circular_rna_id][1])/2)
+                    exon1_length = int(len(exon_cache[circular_rna_id][1]) / 2) + 1
+                    exon2_length = int(len(exon_cache[circular_rna_id][1]) / 2)
                     exon2_colour = "#ff6877"
 
                 forward_primer_start = int(entry[8].split(',')[0]) + circrna_length - exon2_length
@@ -506,8 +599,9 @@ class Primex(circ_module.circ_template.CircTemplate):
 
                 if self.junction == "f":
 
-                    feature = SeqFeature(FeatureLocation(reverse_primer_start - reverse_primer_length, reverse_primer_start),
-                                         strand=-1)
+                    feature = SeqFeature(
+                        FeatureLocation(reverse_primer_start - reverse_primer_length, reverse_primer_start),
+                        strand=-1)
                     gds_features.add_feature(feature, name="Reverse", label=False, sigil="BIGARROW", color="#75ff68",
                                              arrowshaft_height=0.3, arrowhead_length=0.1, label_size=22)
 
@@ -531,7 +625,8 @@ class Primex(circ_module.circ_template.CircTemplate):
                     # piece 2: remaining primer portion beginning from 0
 
                     # piece 1:
-                    feature = SeqFeature(FeatureLocation(circrna_length - reverse_primer_start, circrna_length), strand=-1)
+                    feature = SeqFeature(FeatureLocation(circrna_length - reverse_primer_start, circrna_length),
+                                         strand=-1)
                     gds_features.add_feature(feature, name="Reverse", label=False, sigil="BIGARROW", color="#75ff68",
                                              arrowshaft_height=0.3, arrowhead_length=0.1, label_size=22)
 
@@ -571,6 +666,6 @@ class Primex(circ_module.circ_template.CircTemplate):
                         gds_features.add_feature(feature, name="Exon", label=False, color="grey", label_size=22)
 
                 gdd.draw(format='circular', pagesize=(600, 600), circle_core=0.6, track_size=0.3, tracklines=0, x=0.00,
-                         y=0.00, start=0, end=circrna_length-1)
+                         y=0.00, start=0, end=circrna_length - 1)
 
                 gdd.write(self.output_dir + "/" + circular_rna_id_isoform + ".svg", "svg")
