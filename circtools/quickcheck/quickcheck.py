@@ -111,6 +111,9 @@ class QuickCheck(circ_module.circ_template.CircTemplate):
         # need to define path top R wrapper
         quickcheck_script = 'circtools_quickcheck_wrapper.R'
 
+        if self.cli_params.starfolder == "":
+            self.cli_params.starfolder = 0
+
         # Variable number of args in a list
         args = [
                 self.cli_params.DCC_dir,

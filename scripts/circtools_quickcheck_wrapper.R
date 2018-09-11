@@ -143,11 +143,13 @@ if (length(arg_grouping) < num_samples) {
 star_columns <- colnames(CircRNACount[, - c(1 : 3)])
 
 # get paths for those directories
-star_runs <- list.files(arg_star_folder, full.names = TRUE)
+star_runs <- list.dirs(arg_star_folder, full.names = TRUE)
+star_runs <- star_runs[-1]
 
 # only use the folders ending with _STARmapping (Dieterich lab default)
-star_runs <- star_runs[endsWith(star_runs, arg_starfolder_suffix)]
-
+if (arg_starfolder_suffix != 0){
+    star_runs <- star_runs[endsWith(star_runs, arg_starfolder_suffix)]
+}
 # only use the folders of full mappings (not the per-mate ones)
 star_runs <- star_runs[!grepl("*mate*", star_runs)]
 
