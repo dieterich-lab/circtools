@@ -767,8 +767,7 @@ class CircTools(object):
                            dest="species",
                            help="Organism of the study (used for primer BLASTing), "
                                 "rn = Rattus norvegicus, mm = Mus musculus, hs = Homo sapiens",
-                           choices=("mm", "rn", "hs"),
-                           default="hs"
+                           choices=("mm", "rn", "hs")
                            )
         ######################################################
 
