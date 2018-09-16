@@ -212,6 +212,7 @@ setup(
         'scripts/circtools_reconstruct_visualization.R',
         'scripts/circtools_primex_wrapper.R',
         'scripts/circtools_primex_formatter.R',
+        'scripts/circtools_exon_wrapper.R',
         'scripts/circtools_circtest_wrapper.R',
         'scripts/create_igv_script_from_gene_names.py',
         'scripts/create_igv_script_from_position_list.py',
