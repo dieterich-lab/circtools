@@ -33,6 +33,7 @@ External tools
 
 * `STAR [>= 2.6.0] <https://github.com/alexdobin/STAR>`_ required by the ``detect`` and ``reconstruct`` module to map RNA-seq reads against a reference genome and detect back splice junctions
 
+* `Stringtie [>= 1.3.3b, optional] <https://github.com/gpertea/stringtie>`_ required by the ``exon`` module to carry out exon level analyses.
 
 The installation procedure will automatically install two additional Python-based dependencies: `DCC <https://github.com/dieterich-lab/DCC>`_ and `FUCHS <https://github.com/dieterich-lab/FUCHS>`_ by temporarily cloning the repositories and installing both tools via `setuptools` to ``/home/$USER/.local/bin/``. Both tools **require Python 2** in order to run.
 
