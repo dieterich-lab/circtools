@@ -137,8 +137,9 @@ class ExonUsage(circ_module.circ_template.CircTemplate):
                 self.cli_params.ballgown_data,
                 self.cli_params.gtf_file,
                 self.cli_params.circtest_file,
-                self.cli_params.has_header
-                ]
+                self.cli_params.has_header,
+                self.cli_params.species
+        ]
 
         # ------------------------------------ run script and check output -----------------------
 

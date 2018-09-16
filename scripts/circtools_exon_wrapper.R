@@ -59,9 +59,16 @@ arg_ballgown_directory <- args[7] # string
 arg_gtf_file <- args[8] # string
 arg_circTest_file <- args[9] # string
 arg_head_header <- as.logical(args[10])
+arg_species <- args[11]
+
 
 # load a pkg from a string
-arg_ensembl_pkg <- "EnsDb.Hsapiens.v86"
+arg_ensembl_pkg <- switch(
+    arg_species,
+    "hs" = "EnsDb.Hsapiens.v86",
+    "rn" = "EnsDb.Rnorvegicus.v79",
+    "mm" = "EnsDb.Mmusculus.v79"
+)
 
 suppressPackageStartupMessages({
   # stops if no package

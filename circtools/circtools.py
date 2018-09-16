@@ -762,6 +762,14 @@ class CircTools(object):
                            required=True
                            )
 
+        group.add_argument("-s",
+                           "--species",
+                           dest="species",
+                           help="Organism of the study (used for primer BLASTing), "
+                                "rn = Rattus norvegicus, mm = Mus musculus, hs = Homo sapiens",
+                           choices=("mm", "rn", "hs"),
+                           default="hs"
+                           )
         ######################################################
 
         group = parser.add_argument_group("Additional options")
