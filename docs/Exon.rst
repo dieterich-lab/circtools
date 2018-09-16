@@ -28,58 +28,61 @@ General usage
 A call to ``circtools exon --help`` shows all available command line flags:
 
 .. code-block:: bash
+usage: circtools [-h] -d DCC_DIR -l CONDITION_LIST -c CONDITION_COLUMNS -g
+                 GROUPING -r REPLICATES -b BALLGOWN_DATA -G GTF_FILE -C
+                 CIRCTEST_FILE [-s {mm,rn,hs}] [-H HAS_HEADER]
+                 [-o OUTPUT_DIRECTORY] [-n OUTPUT_PREFIX]
 
-    usage: circtools [-h] -d DCC_DIR -l CONDITION_LIST -c CONDITION_COLUMNS -g
-                     GROUPING -r REPLICATES -b BALLGOWN_DATA -G GTF_FILE -C
-                     CIRCTEST_FILE [-H HAS_HEADER] [-o OUTPUT_DIRECTORY]
-                     [-n OUTPUT_PREFIX]
+circular RNA exon usage analysis
 
-    circular RNA exon usage analysis
+optional arguments:
+  -h, --help            show this help message and exit
 
-    optional arguments:
-      -h, --help            show this help message and exit
+Required:
+  -d DCC_DIR, --DCC DCC_DIR
+                        Path to the detect/DCC data directory
+  -l CONDITION_LIST, --condition-list CONDITION_LIST
+                        Comma-separated list of conditions which should be
+                        comparedE.g. "RNaseR +","RNaseR -"
+  -c CONDITION_COLUMNS, --condition-columns CONDITION_COLUMNS
+                        Comma-separated list of 1-based column numbers in the
+                        detect/DCC output which should be compared; e.g.
+                        10,11,12,13,14,15
+  -g GROUPING, --grouping GROUPING
+                        Comma-separated list describing the relation of the
+                        columns specified via -c to the sample names specified
+                        via -l; e.g. -g 1,2 and -r 3 would assign sample1 to
+                        each even column and sample 2 to each odd column
+  -r REPLICATES, --replicates REPLICATES
+                        Comma-separated list describing the relation of the
+                        samples specified via -g to the sample names specified
+                        via -l; e.g. -g 1,2 and -r 3 would assign sample1 to
+                        each even column and sample 2 to each odd column
+  -b BALLGOWN_DATA, --ballgown-data BALLGOWN_DATA
+                        Path to the ballgown data directory
+  -G GTF_FILE, --gtf-file GTF_FILE
+                        Path to the GTF file containing the employed genome
+                        annotation
+  -C CIRCTEST_FILE, --circtest-output CIRCTEST_FILE
+                        Path to the CircTest CSV file containing the CircTest
+                        results
+  -s {mm,rn,hs}, --species {mm,rn,hs}
+                        Organism of the study (used for primer BLASTing), rn =
+                        Rattus norvegicus, mm = Mus musculus, hs = Homo
+                        sapiens
 
-    Required:
-      -d DCC_DIR, --DCC DCC_DIR
-                            Path to the detect/DCC data directory
-      -l CONDITION_LIST, --condition-list CONDITION_LIST
-                            Comma-separated list of conditions which should be
-                            compared E.g. "RNaseR +","RNaseR -"
-      -c CONDITION_COLUMNS, --condition-columns CONDITION_COLUMNS
-                            Comma-separated list of 1-based column numbers in the
-                            detect/DCC output which should be compared; e.g.
-                            10,11,12,13,14,15
-      -g GROUPING, --grouping GROUPING
-                            Comma-separated list describing the relation of the
-                            columns specified via -c to the sample names specified
-                            via -l; e.g. -g 1,2 and -r 3 would assign sample1 to
-                            each even column and sample 2 to each odd column
-      -r REPLICATES, --replicates REPLICATES
-                            Comma-separated list describing the relation of the
-                            samples specified via -g to the sample names specified
-                            via -l; e.g. -g 1,2 and -r 3 would assign sample1 to
-                            each even column and sample 2 to each odd column
-      -b BALLGOWN_DATA, --ballgown-data BALLGOWN_DATA
-                            Path to the ballgown data directory
-      -G GTF_FILE, --gtf-file GTF_FILE
-                            Path to the GTF file containing the employed genome
-                            annotation
-      -C CIRCTEST_FILE, --circtest-output CIRCTEST_FILE
-                            Path to the CircTest CSV file containing the CircTest
-                            results
+Additional options:
+  -H HAS_HEADER, --has-header HAS_HEADER
+                        Do the CircTest result files have a header? [Default:
+                        No]
 
-    Additional options:
-      -H HAS_HEADER, --has-header HAS_HEADER
-                            Do the CircTest result files have a header? [Default:
-                            No]
-
-    Output options:
-      -o OUTPUT_DIRECTORY, --output-directory OUTPUT_DIRECTORY
-                            The output directory for files created by circtest
-                            [Default: .]
-      -n OUTPUT_PREFIX, --output-prefix OUTPUT_PREFIX
-                            The output name (prefix) for files created by circtest
-
+Output options:
+  -o OUTPUT_DIRECTORY, --output-directory OUTPUT_DIRECTORY
+                        The output directory for files created by circtools
+                        [Default: .]
+  -n OUTPUT_PREFIX, --output-prefix OUTPUT_PREFIX
+                        The output name (prefix) for files created by
+                        circtools [Default: exon_analysis]
 
 Sample call
 ^^^^^^^^^^^^
