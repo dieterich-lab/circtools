@@ -5,12 +5,8 @@ The circtools quickcheck module is designed to equip the user with a fast way of
 
 ``circtools quickcheck`` requires sequencing reads have been mapped with STAR since internally the STAR log files are processed. CircRNA detection metrics are provided via ``circtools detect`` which has to be run prior to call the quickcheck module.
 
-Manual installation instructions
---------------------------------
-
 Required tools and packages
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
+--------------------------------
 ``quickcheck`` depends on R and two R packages, namely
 
 * ggplot2: general plotting
