@@ -8,18 +8,45 @@ Installation is performed via `python3 setup.py install`. No sudo access is requ
 
 ``circtools`` was developed and tested on Debian Jessie 8 64 Bit. macOS support is currently (08/2018) being tested and is already available in the ``mac-dev`` branch of the github repository (however, the macOS functionality cannot be fully guaranteed yet). 
 
+Installation from PyPi (preferred)
+-----------------------------------
 
-Quick 3-line installation
+The default installation will install everything needed to run circtools *except R, STAR, or Stringtie* (see below). If you like you may install circtools locally (first call) or globally (second call, SU required).
+
+.. code-block:: bash
+
+    pip3 install circtools --user # does not require root access, installation to local user directory
+
+.. code-block:: bash
+
+    pip3 install circtools # will require root access and globally install circtools
+
+
+Installation from GitHub
 --------------------------
 
-The default installation requires running python on the command line and will install everything needed to run circtools *except bedtools and R* (see below):
+The GitHub installation will install the most recent version directly from the source repository. Use this method if you want the latest fixes and features.
 
 .. code-block:: bash
 
     git clone https://github.com/dieterich-lab/circtools.git
     cd circtools
-    python3 setup.py install --verbose --user
+    pip3 install . --verbose --user
 
+Updating circtools
+--------------------------
+
+You may want to update the circtools package if new versions are published. Like for the initial installation there are two ways to update circtools:
+
+.. code-block:: bash
+
+    pip3 install circtools --user --upgrade
+
+.. code-block:: bash
+
+    cd /path/to/circtools/repo/
+    git pull
+    pip3 install . install --verbose --user --upgrade
 
 Required dependencies
 ---------------------
