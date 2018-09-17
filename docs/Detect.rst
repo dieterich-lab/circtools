@@ -15,7 +15,7 @@ Download of the latest stable `DCC release <https://github.com/dieterich-lab/DCC
 
     $ tar -xvf DCC-<version>.tar.gz
     $ cd DCC-<version>
-    $ python setup.py install --user
+    $ python2 setup.py install --user
 
 Option 2
 ^^^^^^^^
@@ -24,7 +24,7 @@ Cloning the source repository::
 
     $ git clone https://github.com/dieterich-lab/DCC.git
     $ cd DCC
-    $ python setup.py install --user
+    $ python2 setup.py install --user
 
 Verifying the installation::
 
@@ -32,9 +32,9 @@ Verifying the installation::
 
 If the Python installation binary path [e.g. `/$HOME/.local/bin` for Debian] is not included the $PATH, it is also possible run DCC directly::
 
-    $ python <DCC directory>/scripts/DCC <Options>
+    $ python2 <DCC directory>/scripts/DCC <Options>
     # or even
-    $ python <DCC directory>/DCC/main.py <Options>
+    $ python2 <DCC directory>/DCC/main.py <Options>
 
 Usage
 -----
