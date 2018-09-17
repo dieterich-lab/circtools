@@ -78,9 +78,9 @@ Sample call
 ^^^^^^^^^^^^
 .. code-block:: bash
 
-    circtools quickcheck -d DCC/ -s mapping/ -l HepG2-,HepG2+,K562-,K562+ -g 1,2,1,2,1,2,3,4,3,4,3,4
+    circtools quickcheck -d 01_detect/ -s ../star  -l minus,plus -g 1,2,1,2,1,2,1,2  -o 02_quickcheck/  -C .Chimeric.out.junction
 
-Here we have the DCC data located in the folder ``DCC/``, the STAR mapping are stored in ``mapping/``, the experiment had 4 conditions, listed via ``-l HepG2-,HepG2+,K562-,K562+``, the samples in the DCC data file are sorted in the the order specified via ``-g 1,2,1,2,1,2,3,4,3,4,3,4``.
+Here we have the DCC data located in the folder ``01_detect/``, the STAR mapping are stored in ``star/``, the experiment had 4 conditions, listed via ``-l RNaseR_minus,RNaseR_plus``, the samples in the detection data file are sorted in the the order specified via ``-g 1,2,1,2,1,2,1,2``.
 
 .. code-block:: bash
 
@@ -88,8 +88,8 @@ Here we have the DCC data located in the folder ``DCC/``, the STAR mapping are s
     Loading CircRNACount
     Loading LinearRNACount
     Parsing data
-    Found 18 data columns in provided DCC data
-    4 different groups provided
+    Found 8 data columns in provided DCC data
+    2 different groups provided
     Assuming (1,2),(1,2),(1,2),... sample grouping
     plotting data
     Done
