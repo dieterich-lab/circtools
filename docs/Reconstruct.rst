@@ -13,22 +13,14 @@ Required tools and packages
 
 FUCHS dependes on **bedtools (>= 2.27.0)**, **samtools (>= 1.3.1)**,  **Python (> 2.7; pysam>=0.13.0, pybedtools>=0.7.8, numpy>=1.11.2, pathos>=0.2.1)**, and **R(>= 3.2.0; amap, Hmisc, gplots)**. All Python an R dependencies will be installed automatically when installing FUCHS. Please make sure to have the correct versions of bedtools and samtools in your ``$PATH``.
 
-Obtaining the source code
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Cloning of the repository:
-
-.. code-block:: bash
-
-  $ git clone https://github.com/dieterich-lab/FUCHS.git
-
-  $ cd FUCHS
-
 Installation of FUCHS
 ^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: bash
 
-  $ python setup.py install --user
+  $ git clone https://github.com/dieterich-lab/FUCHS.git
+  $ cd FUCHS
+
+  $ python2 setup.py install --user
 
   # This will install a FUCHS binary in $HOME/.local/bin/
   # make sure this folder is in your $PATH
@@ -38,23 +30,16 @@ Installation of FUCHS
   $ FUCHS --help
 
 
-Usage
-------
+General usage
+--------------
 
 In order to characterize circRNAs from RNA-seq data the following steps are necessary:
 
-1. Mapping of RNA-seq data from quality checked FASTQ files with either STAR , BWA, TopHat-Fusion
+1. Mapping of RNA-seq data from quality checked FASTQ files with STAR (BWA, TopHat-Fusion in preparation)
 
-2. Detection circRNAs using circtools detect, CIRI, CIRCfinder or CIRCexplorer
+2. Detection circRNAs using circtools detect (CIRI, CIRCfinder or CIRCexplorer in preparation)
 
 3. Run circtools reconstruct
-
-
-.. note:: Currently only the combination STAR + DCC has been tested; other setups are under development
-
-Step by step tutorial
----------------------
-In this tutorial we will be using HEK293 data available in this repository and use STAR with DCC to detect circular RNAs
 
 
 Mapping of RNA-Seq data and detection of circRNAs
@@ -62,39 +47,34 @@ Mapping of RNA-Seq data and detection of circRNAs
 
 Please see the documentation of `circtools detect <Detect.html>`_ for instructions how to pre-process the data.
 
-Prepare input data for reconstruction module
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Use a wrapper script for the circtools reconstruct call
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The files  ``chimeric.sam``, ``mate1.chimeric.sam``, and ``mate2.chimeric.sam`` have to be merged for the reconstruction module (not necessary if circles were detected using BWA/CIRI):
+As for other parts of the circtools pipeline, a wrapper Bash script has been developed that does all necessary preprocessing after the initial detection step and directly calls the reconstruction module afterwards. We continue by using the Jakobi 2016 data set that also has been used as an example for the `circtools detect <Detect.html>`_ module.
 
 .. code-block:: bash
 
-  # convert SAM to BAM
-  $ samtools view -Sb -o sample sample/Chimeric.out.sam
-  $ samtools view -Sb -o sample.1 sample.1/Chimeric.out.sam
-  $ samtools view -Sb -o sample.2 sample.2/Chimeric.out.sam
+    # download the wrapper scrips for the reconstruct module
+    wget https://raw.githubusercontent.com/dieterich-lab/bioinfo-scripts/master/slurm_circtools_reconstruct.sh
+    # add execute permission
+    chmod 755 slurm_circtools_reconstruct.sh
 
-  # sort both BAM files
-  $ samtools sort -o sample.sorted.bam sample.bam
-  $ samtools sort -o sample.1.sorted.bam sample.1.bam
-  $ samtools sort -o sample.2.sorted.bam sample.2.bam
+    # create output directory
+    mkdir 03_reconstruct
 
-  # create an index for both BAM files
-  $ samtools index sample.sorted.bam
-  $ samtools index sample.1.sorted.bam
-  $ samtools index sample.2.sorted.bam
+    # download exon annotations required by the reconstruct module
+    wget https://data.dieterichlab.org/s/mouse_exons_bed -o mm10.ensembl.exons.bed.bz2
+    bunzip mm10.ensembl.exons.bed.bz2
 
-  # merge both mate BAM files into one new BAM file
-  $ samtools merge merged_sample.bam sample.sorted.bam sample.1.sorted.bam sample.2.sorted.bam
-
-  # re-index the newly aggregated BAM file
-  $ samtools index merged_sample.bam
+    # circtools reconstruct is independently run on all samples:
+    parallel -j1  slurm_circtools_reconstruct.sh {} 03_reconstruct/ mm10.ensembl.exons.bed 01_detect/ ::: ALL_1654_M ALL_1654_N ALL_1654_O ALL_1654_P ALL_1654_Q ALL_1654_R ALL_1654_S ALL_1654_T
 
 
-Running the reconstruction module
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Manually running the reconstruction module
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-``circtools reconstruct`` starts the pipeline which will extract reads, check mate status, detect alternative splicing events, classify different isoforms, run_primer_design coverage profiles, and cluster circRNAs based on coverage profiles
+
+The above wrapper scripts handles all preprocessing and conversion steps. However, advanced users may want to start the module directly. ``circtools reconstruct`` starts the pipeline which will extract reads, check mate status, detect alternative splicing events, classify different isoforms, coverage profiles, and cluster circRNAs based on coverage profiles. Below a sample call for the reconstruct module in single sample mode using circtools detect input data:
 
 .. code-block:: bash
 
