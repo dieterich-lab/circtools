@@ -30,7 +30,7 @@ The following commands have to be performed within an R shell::
 Usage with ``circtools detect`` data
 -------------------------------------
 
-A call to ``circtools primex --help`` shows all available command line flags:
+A call to ``circtools circtest --help`` shows all available command line flags:
 
 .. code-block:: bash
 
@@ -106,11 +106,13 @@ A call to ``circtools primex --help`` shows all available command line flags:
 Sample call
 @@@@@@@@@@@
 
+As for the other module tutorials, we use the Jakobi 2016 data set from the detection module in this module. Below is the sample call for the newly generated circtools detect data:
+
 .. code-block:: bash
 
-     circtools circtest -d DCC/ -l Iso,Ctrl -c 4,5,6,7,8,9,10,11,12 -g 1,1,1,1,1,1,2,2,2 -n RNaseR_iso_vs_RNAseR_ctrl -o output_dir/ -m 50
+    circtools circtest -d 01_detect/ -p 0.01 -s 3 -r 4 -C 2 -g 1,2,1,2,1,2,1,2 -l RNaseR-,RNaseR+ -c 4,5,6,7,8,9,10,11 -o 04_circtest/
 
-Here we have the DCC data located in the folder ``DCC/``, the experiment had 2 conditions, listed via ``-l Iso,Ctrl``, the samples in the DCC data file are sorted in the the order specified via ``-g 1,1,1,1,1,1,2,2,2``, i.e. there are 6 ``Iso`` samples and 3 ``Ctrl`` samples. These ``6+3=9`` columns are found in the DCC data file in the columns specified via ``-c 4,5,6,7,8,9,10,11,12``.
+Here we have the DCC data located in the folder ``01_detect/``, the experiment had 2 conditions, listed via ``-l RNaseR-,RNaseR+``, the samples in the circtools detect data file are sorted in the the order specified via ``-g 1,2,1,2,1,2,1,2``, i.e. there are 4 ``RNaseR-`` samples and 4 ``RNaseR+`` samples. These ``4+4=8`` columns are found in the circtools detect data file in the columns specified via ``-c 4,5,6,7,8,9,10,11``.
 
 
 Output files
