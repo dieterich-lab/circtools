@@ -36,8 +36,9 @@ If the Python installation binary path [e.g. `/$HOME/.local/bin` for Debian] is 
     # or even
     $ python2 <DCC directory>/DCC/main.py <Options>
 
-Usage
------
+
+General usage
+--------------
 
 The detection of circRNAs from RNAseq data through the detection module can be summarized in a few steps:
 
@@ -63,15 +64,112 @@ The detection of circRNAs from RNAseq data through the detection module can be s
 Step by step tutorial
 ---------------------
 
-In this tutorial, we use the data set from  `Westholm et al. 2014 <http://www.sciencedirect.com/science/article/pii/S2211124714009310>`_  as an example. The data are paired-end, stranded RiboMinus RNAseq data from *Drosophila melanogaster*, consisting of samples of three developmental stages (1 day, 4 days, and 20 days) collected from the heads. Data can be downloaded from the NCBI SRA (accession number `SRP001696 <http://www.ncbi.nlm.nih.gov/sra/?term=SRP001696>`_).
+In this tutorial, we use the data set from  `Jakobi et al. 2016 <https://www.sciencedirect.com/science/article/pii/S167202291630033X>`_  as an example. The data are paired-end, stranded RiboMinus RNAseq data from *Mus musculus*, consisting of samples of four ages (2, 3, 6, and 12 month) collected from the whole hearts. Data can be downloaded from the NCBI SRA (accession number `SRP071584 <http://www.ncbi.nlm.nih.gov/sra/?term=SRP071584>`_). While the circtools suite does not offer specific module for the initial data processing, this short tutorial should give the user an idea on how to get the sequencing data in shape for the main circtools pipeline.
+
+Throughout this tutorial, we will employ Bash wrapper scripts that automate the analysis for multiple samples. While these scripts have been designed to be used with the `SLURM <https://slurm.schedmd.com/man_index.html>`_ workload manager, it is also possible to use them in conjunction with `GNU parallel <https://www.gnu.org/software/parallel/>`_ without SLURM.
+
+Data structure
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The data can be downloaded directly from the NCBI SRA via the link given above. Once the data is downloaded, the following data structure is assumed:
+
+.. code-block:: bash
+
+    cd workflow
+    cd reads
+
+    ls -la
+
+    ALL_1654_M__R1.fastq.gz
+    ALL_1654_M__R2.fastq.gz
+    ALL_1654_N__R1.fastq.gz
+    ALL_1654_N__R2.fastq.gz
+    ALL_1654_O__R1.fastq.gz
+    ALL_1654_O__R2.fastq.gz
+    ALL_1654_P__R1.fastq.gz
+    ALL_1654_P__R2.fastq.gz
+    ALL_1654_Q__R1.fastq.gz
+    ALL_1654_Q__R2.fastq.gz
+    ALL_1654_R__R1.fastq.gz
+    ALL_1654_R__R2.fastq.gz
+    ALL_1654_S__R1.fastq.gz
+    ALL_1654_S__R2.fastq.gz
+    ALL_1654_T__R1.fastq.gz
+    ALL_1654_T__R2.fastq.gz
 
 
-Mapping of the fastq files with `STAR <https://github.com/alexdobin/STAR>`_
+Adapter removal and quality trimming
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In a first step, remaining adapter sequences originating from the sequencing-process need to be removed together with potential low-quality bases. There are plenty of tools available to perform this task, in this tutorial we go with `flexbar <https://github.com/seqan/flexbar>`_. The next steps assume that flexbar has been installed and in visible in the ``$PATH`` variable.
+
+.. code-block:: bash
+
+    # download the wrapper scrips for flexbar
+    wget https://raw.githubusercontent.com/dieterich-lab/bioinfo-scripts/master/slurm_flexbar_paired.sh
+    # add execute permission
+    mkdir flexbar
+    cd reads
+    # we now execute flexbar on all of the sample while keeping all paired end sample correctly mapped
+    parallel -j1 --xapply ../slurm_flexbar_paired.sh {1} {2} ../flexbar/ _R1 ::: *_R1.fastq.gz ::: *_R2.fastq.gz
+
+After flexbar finished processing, the folder ``flexbar/`` contains the trimmed, quality-filtered read sets.
+
+
+Removal of rRNA with Bowtie2
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Next, rRNA reads are removed. Normally, we are not interested in these reads, especially when performing circRNA analysis. Removing those reads will also slightly speed up subsequent steps due to the reduced computational load. In this tutorial, Bowtie2 is used in order to discard reads that map against rRNA loci. This tutorial assumes `bowtie2 <http://bowtie-bio.sourceforge.net/bowtie2/index.shtml>`_ has already been installed an is callable with ``$PATH``. A `precompiled bowtie2 index <https://data.dieterichlab.org/s/mouse_rrna_index>`_ of mouse rRNA loci can has been uploaded for this purpose. In brief, bowtie2 maps the reads against a "reference genome" of rRNA loci and only keeps reads, that do *not* align and therefore are rRNA-free.
+
+.. code-block:: bash
+
+    # download wrapper for bowtie2
+    wget https://raw.githubusercontent.com/dieterich-lab/bioinfo-scripts/master/slurm_bowtie2_rRNA_filter_paired.sh
+    chmod 755 slurm_bowtie2_rRNA_filter_paired.sh
+    mkdir rrna/
+    cd flexbar/
+    parallel -j1 --xapply ../slurm_bowtie2_rRNA_filter_paired.sh /path/to/extracted/bowtie2/index/mus-musculus.rRNA {1} {2} ../rrna/ .1 ::: *_1.fastq.gz ::: *_2.fastq.gz
+
+After this step the ``rrna/`` folder contains adapter-free, rRNA-free reads ready for final mapping.
+
+
+Mapping against the reference genome
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In order to map the preprocessed reads against the reference genome and, ultimately detect possible cirRNAs the `STAR <https://github.com/alexdobin/STAR>`_ read mapper is employed. STAR has shown to exhibit a good performance, is highly customizable and, most importantly is able to directly export chimeric reads that are the basis for the circRNA detection process. Again, we are using a wrapper script that simplifies the process of calling STAR for all samples. Like bowtie2, STAR requires an index in order to align reads. Since building this index requires a huge amount of RAM, a `precomputed STAR index <https://data.dieterichlab.org/s/mouse_star_index>`_ for the mouse ENSEMBL 90 build has been prepared for direct download (~22GB).
+
+Essentially, the wrapper script for STAR performs the following tasks:
+
+* Map both reads of each pair against the reference genome
+* Map the unmapped reads of read 1 or read 2 again against the reference genome without the corresponding paired partner
+* Several conversion and cleanup steps of the STAR output
+
+.. code-block:: bash
+
+    # download wrapper for STAR
+    wget https://raw.githubusercontent.com/dieterich-lab/bioinfo-scripts/master/slurm_circtools_detect_paired_mapping.sh
+    chmod 755 slurm_circtools_detect_paired_mapping.sh
+    mkdir star/
+    # obtain the annotation of the mouse genome for splice junctions
+    wget ftp://ftp.ensembl.org/pub/release-90/gtf/mus_musculus/Mus_musculus.GRCm38.90.gtf.gz
+    gzip -d Mus_musculus.GRCm38.90.gtf.gz
+    cd rrna/
+    pd -j1 --xapply ../slurm_circtools_detect_paired_mapping.sh ../folder/to/star/index/ {1} {2} ../star/ .1 ../Mus_musculus.GRCm38.90.gtf
+
+
+Manual mapping
+^^^^^^^^^^^^^^^
+
+Following a few notes on the manual mapping process:
+
 
 .. note:: ``--alignSJoverhangMin`` and ``--chimJunctionOverhangMin`` should use the same values to make the circRNA expression and linear gene expression level comparable.
 
-* In a first step the paired-end data is mapped by using both mates. If the data is paired-end, an additional separate mate mapping is recommended (while not mandatory, this step will increase the sensitivity due to the the processing of small circular RNAs with only one chimeric junction point at each read mate). If the data is single-end, only this mapping step is required. In case of the Westholm data however, paired-end sequencing data is available.
+In a first step the paired-end data is mapped by using both mates. If the data is paired-end, an additional separate mate mapping is recommended (while not mandatory, this step will increase the sensitivity due to the the processing of small circular RNAs with only one chimeric junction point at each read mate). If the data is single-end, only this mapping step is required. In case of the Jakobi data however, paired-end sequencing data is available.
+
+
+.. warning:: Starting with version 2.6.0 of STAR, the chimeric output format changed. In order to be compliant with the circtools work flow the old output mode has to be selected via  ``--chimOutType Junctions SeparateSAMold``
+
 
 .. code-block:: bash
 
@@ -97,8 +195,6 @@ Mapping of the fastq files with `STAR <https://github.com/alexdobin/STAR>`_
          --chimJunctionOverhangMin 15 \
 
 
-
-.. warning:: Starting with version 2.6.0 of STAR, the chimeric output format changed. In order to be compliant with the circtools work flow the old output mode has to be selected via  ``--chimOutType Junctions SeparateSAMold``
 
 * *This step may be skipped when single-end data is used.* Separate per-mate mapping. The naming of mate1 and mate2 has to be consistent with the order of the reads from the joint mapping performed above. In this case, SamplePairedRead_1.fastq.gz is the first mate since it was referenced at the first position in the joint mapping.
 
@@ -127,7 +223,6 @@ Mapping of the fastq files with `STAR <https://github.com/alexdobin/STAR>`_
          --chimScoreSeparation 10 \
          --chimJunctionOverhangMin 15 \
 
-.. warning:: Starting with version 2.6.0 of STAR, the chimeric output format changed. In order to be compliant with the circtools work flow the old output mode has to be selected via  ``--chimOutType Junctions SeparateSAMold``
 
 * The process is repeated for the second mate:
 
@@ -156,8 +251,6 @@ Mapping of the fastq files with `STAR <https://github.com/alexdobin/STAR>`_
          --chimScoreSeparation 10 \
          --chimJunctionOverhangMin 15 \
 
-.. warning:: Starting with version 2.6.0 of STAR, the chimeric output format changed. In order to be compliant with the circtools work flow the old output mode has to be selected via  ``--chimOutType Junctions SeparateSAMold``
-
 Detection of circular RNAs from ``chimeric.out.junction`` files with circtools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -170,83 +263,80 @@ Acquiring suitable GTF files for repeat masking
 
 - **Note**: the output file needs to comply with the GTF format specification. Additionally it may be the case that the names of chromosomes from different databases differ, e.g. **1** for chromosome 1 from ENSEMBL compared to **chr1** for chromosome 1 from UCSC. Since the chromosome names are important for the correct functionality of circtools a sample command for converting the identifiers may be:
 
+- A sample repeat file for the mouse mm10 genome can also `be downloaded <https://data.dieterichlab.org/s/mouse_repeats>`_
+
 .. code-block:: bash
 
  # Example to convert UCSC identifiers to to ENSEMBL standard
 
  $ sed -i 's/^chr//g' your_repeat_file.gtf
 
-Preparation of files containing the paths to required ``chimeric.out.junction`` files 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Preparation of input files for circRNA detection step
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* ``samplesheet`` file, containing the paths to the jointly mapped ``chimeric.out.junction`` files
-
- .. code-block:: bash
-
-  $ cat samplesheet
-  /path/to/STAR/sample_1/joint_mapping/chimeric.out.junction
-  /path/to/STAR/sample_2/joint_mapping/chimeric.out.junction
-  /path/to/STAR/sample_3/joint_mapping/chimeric.out.junction
-
-
-* ``mate1`` file, containing the paths to ``chimeric.out.junction`` files of the separately mapped first read of paired-end data 
-
- .. code-block:: bash
-
-  $ cat mate2
-  /path/to/STAR/sample_1_mate1/joint_mapping/chimeric.out.junction
-  /path/to/STAR/sample_2_mate1/joint_mapping/chimeric.out.junction
-  /path/to/STAR/sample_3_mate1/joint_mapping/chimeric.out.junction
-
-
-* ``mate2`` file, containing the paths to ``chimeric.out.junction`` files of the separately mapped first read of paired-end data 
-
- .. code-block:: bash
-
-  $ cat mate2
-  /path/to/STAR/sample_1_mate2/joint_mapping/chimeric.out.junction
-  /path/to/STAR/sample_2_mate2/joint_mapping/chimeric.out.junction
-  /path/to/STAR/sample_3_mate2/joint_mapping/chimeric.out.junction
-
-Pre-mapped ``chimeric.out.junction`` files from Westholm et al. data set are part of the DCC distribution
+We first create a new folder for the circtools detection step and populate that folder with links to the required files produced by STAR.
 
 .. code-block:: bash
 
-  $ <DCC directory>/DCC/data/samplesheet # jointly mapped chimeric.junction.out files
-  $ <DCC directory>/DCC/data/mate1 # mate1 independently mapped chimeric.junction.out files
-  $ <DCC directory>/DCC/data/mate1 # mate2 independently mapped chimeric.junction.out files
+    # create new folder
+    mkdir -p circtools/01_detect/
+    cd star/
+
+    # link aligned reads (bam files) and indexing files for the aligned reads (.bai)
+    parallel --plus ln -s `pwd`/{}/Aligned.noS.bam /scratch/tjakobi/circtools_workflow/workflow/circtools/01_detect/{}.bam ::: ALL_1654_*
+    parallel --plus ln -s `pwd`/{}/Aligned.noS.bam.bai /scratch/tjakobi/circtools_workflow/workflow/circtools/01_detect/{}.bam.bai ::: ALL_1654_*
+
+    # link chimeric junction files of the main mapping
+    parallel --plus ln -s `pwd`/{}/Chimeric.out.junction /scratch/tjakobi/circtools_workflow/workflow/circtools/01_detect/{}.Chimeric.out.junction ::: ALL_1654_*
+
+    # link chimeric junction files of the single mappings
+    parallel --plus ln -s `pwd`/{}/mate1/Chimeric.out.junction /scratch/tjakobi/circtools_workflow/workflow/circtools/01_detect/{}.mate1.Chimeric.out.junction ::: ALL_1654_*
+    parallel --plus ln -s `pwd`/{}/mate2/Chimeric.out.junction /scratch/tjakobi/circtools_workflow/workflow/circtools/01_detect/{}.mate2.Chimeric.out.junction ::: ALL_1654_*
+
+    cd ..
+    cd circtools/01_detect/
+
+    # create input files for detection step
+    ls | grep bam$ | grep -v mate > bam_files.txt
+    ls | grep junction$ | grep  mate1 > mate1
+    ls | grep junction$ | grep  mate2 > mate2
+    ls | grep junction$ | grep -v mate > samplesheet
+
+Additionally the newly created files, a reference genome in Fasta format as well as an appropriate annotation containing repetitive regions should be provided:
+
+.. code-block:: bash
+
+    # step one: obtain reference genome
+    wget ftp://ftp.ensembl.org/pub/release-90/fasta/mus_musculus/dna/Mus_musculus.GRCm38.dna.primary_assembly.fa.gz
+    gzip -d Mus_musculus.GRCm38.dna.primary_assembly.fa.gz
+
+    # step two: repeat masker file for the genome build:
+    wget https://data.dieterichlab.org/s/mouse_repeats/download -o GRCm38_90_repeatmasker.gtf.bz2
+    bunzip GRCm38_90_repeatmasker.gtf.bz2
 
 
-Runnning circtools circRNA detection
+Running circtools circRNA detection
 ------------------------------------
 
 After performing all preparation steps the detection module can now be started:
 
 .. code-block:: bash
 
-  # Run circtools detection to detect circRNAs, using Westholm data as example
+  # Run circtools detection to detect circRNAs, using the Jakobi 2016 data set
 
   $ circtools detect @samplesheet \ # @ is generally used to specify a file name
         -mt1 @mate1 \ # mate1 file containing the mate1 independently mapped chimeric.junction.out files
         -mt2 @mate2 \ # mate2 file containing the mate1 independently mapped chimeric.junction.out files
         -D \ # run in circular RNA detection mode
-        -R [Repeats].gtf \ # regions in this GTF file are masked from circular RNA detection
-        -an [Annotation].gtf \ # annotation is used to assign gene names to known transcripts
+        -R GRCm38_90_repeatmasker.gtf \ # regions in this GTF file are masked from circular RNA detection
+        -an Mus_musculus.GRCm38.90.gtf \ # annotation is used to assign gene names to known transcripts
         -Pi \ # run in paired independent mode, i.e. use -mt1 and -mt2
         -F \ # filter the circular RNA candidate regions
         -M \ # filter out candidates from mitochondrial chromosomes
         -Nr 5 6 \ minimum count in one replicate [1] and number of replicates the candidate has to be detected in [2]
         -fg \ # candidates are not allowed to span more than one gene
         -G \ # also run host gene expression 
-        -A [Reference].fa \ # name of the fasta genome reference file; must be indexed, i.e. a .fai file must be present
-
-  # For single end, non-stranded data:
-  $ circtools detect @samplesheet -D -R [Repeats].gtf -an [Annotation].gtf -F -M -Nr 5 6 -fg -G -A [Reference].fa
-
-  $ circtools detect @samplesheet -mt1 @mate1 -mt2 @mate2 -D -S -R [Repeats].gtf -an [Annotation].gtf -Pi -F -M -Nr 5 6 -fg
-
-  # For details on the parameters please refer to the help page of the detection module:
-  $ circtools detect -h
+        -A Mus_musculus.GRCm38.dna.primary_assembly.fa \ # name of the fasta genome reference file; must be indexed, i.e. a .fai file must be present
 
 
 .. note:: By default, circtools assumes that the data is stranded. For non-stranded data the ``-N`` flag should be used
