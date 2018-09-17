@@ -215,11 +215,11 @@ setup(
         'scripts/circtools_exon_wrapper.R',
         'scripts/circtools_circtest_wrapper.R',
         'scripts/circtools_generate_intron_gtf.sh'
+        'scripts/circtools_generate_flanking_introns.py',
         'scripts/create_igv_script_from_gene_names.py',
         'scripts/create_igv_script_from_position_list.py',
         'scripts/create_igv_script.py',
         'scripts/detect_new_exons_from_fuchs_data.py',
-        'scripts/generate_flanking_introns_from_DCC.py',
         'scripts/get_introns_from_ensembl.pl'
     ],
 
