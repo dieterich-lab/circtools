@@ -100,11 +100,79 @@ A call to ``circtools enrich --help`` shows all available command line flags:
                           Keep temporary files created by circtools/bedtools
                           [default: no]
 
-Sample call
-^^^^^^^^^^^^
+
+
+Generating necessary input data files
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In addition to input data produced by the detection and reconstruct module, the enrichment module requires a few processing steps. For our example we employ the circRNAs detected in the murine heart and are interested in possible enrichment of repeat in the flanking intron of those circRNAs. Therefore, as a first step the flanking introns need to be compiled from the circRNA coordinates provided by the detect module.
+
 .. code-block:: bash
 
-    circtools enrich -c hepg2_flanking_introns_2k.bed -b AGGF1_HepG2_intersect.bed -a genes_and_introns.gtf -g hg38.chrom.sizes -i 2000 -I intron -p 20 -P 1 -T 1 -o out/ -F AGGF1_HepG2_intersect_intron_flanking -t /tmp/
+    circtools_generate_flanking_introns.py -g /scratch/tjakobi/circtools_workflow/genes_and_introns.gtf -d /scratch/tjakobi/circtools_workflow/workflow/circtools/01_detect/CircCoordinates > /scratch/tjakobi/circtools_workflow/murine_flanking_introns.bed
+
+Additionally, the shuffling algorithm of ``bedtools`` requires knowledge of chromosome sizes. For the mouse genome, a sample file for those length can be easily downloaded:
+
+
+.. code-block:: bash
+
+    wget https://data.dieterichlab.org/s/mm10_chrom_sizes/download -o mm10.chrom.sizes
+
+
+In order to provide a working example of reasonable size we do not use the full set of repeats as provided by the UCSC genome browser but only the 3 most-common ones, i.e. :
+
+
+* AT_rich
+* B3
+* RSINE1
+
+.. code-block:: bash
+
+    wget https://data.dieterichlab.org/s/repeat_selection_mm10/download -O repeat_selection_mm10.tar.bz2
+    tar -jxvf repeat_selection_mm10.tar.bz2
+
+After unzipping the downloaded file, the folder ``repeats/`` contains BED files with coordinates of the three aforementioned repeat categories. Those files will be used as input in the next step. The circtools enrich module is able to work with arbitrary features of a GTF annotation file. However, our aim is to search in introns for enrichment and introns are not part of normal ENSEMBL GTF annotation files. circtools includes a script that easily converts ENSEMBL GTF files in GTF files enriched with intron information.
+
+
+.. code-block:: bash
+
+    mkdir 06_enrich/
+    cd 06_enrich/
+
+    # download build 90 annotation
+    wget ftp://ftp.ensembl.org/pub/release-90/gtf/mus_musculus/Mus_musculus.GRCm38.90.gtf.gz
+
+    # unzip and add introns
+    gzip -d Mus_musculus.GRCm38.90.gtf.gz
+    circtools_generate_intron_gtf.sh Mus_musculus.GRCm38.90.gtf
+
+The resulting files, ``genes_and_introns.gtf`` will now serve as replacement for the standard ENSEMBL annotation in the module call.
+
+
+
+Calling the reconstruct module via wrapper
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: bash
+
+    cd 06_enrich/
+
+    # download wrapper for STAR
+    wget https://raw.githubusercontent.com/dieterich-lab/bioinfo-scripts/master/slurm_circtools_enrich_intron.sh
+    chmod 755 slurm_circtools_enrich_intron.sh
+
+    parallel -j1 slurm_circtools_enrich_intron.sh /scratch/tjakobi/circtools_workflow/workflow/circtools/06_enrich/mm10.chrom.sizes /scratch/tjakobi/circtools_workflow/workflow/circtools/06_enrich/genes_and_introns.gtf /scratch/tjakobi/circtools_workflow/workflow/circtools/06_enrich/repeats/{}.bed /scratch/tjakobi/circtools_workflow/workflow/circtools/06_enrich/murine_flanking_introns.bed {} /scratch/tjakobi/circtools_workflow/workflow/circtools/06_enrich/output/ 2000 /scratch/global_tmp/{}/ :::: /scratch/tjakobi/circtools_workflow/workflow/circtools/06_enrich/repeats/repeats_selected.list
+
+
+Manual module call
+^^^^^^^^^^^^^^^^^^^
+
+Below a sample single call of circtools enrich without using the wrapper script:
+
+.. code-block:: bash
+
+    circtools enrich -c /scratch/tjakobi/circtools_workflow/workflow/circtools/06_enrich/murine_flanking_introns.bed -b /scratch/tjakobi/circtools_workflow/workflow/circtools/06_enrich/repeats/AT_rich.bed -a /scratch/tjakobi/circtools_workflow/workflow/circtools/06_enrich/genes_and_introns.gtf -g /scratch/tjakobi/circtools_workflow/workflow/circtools/06_enrich/mm10.chrom.sizes -i 2000 -I intron -p 20 -P 1 -T 1 -o /scratch/tjakobi/circtools_workflow/workflow/circtools/06_enrich/output// -F AT_rich -t /scratch/global_tmp/AT_rich/
+
 
 This call to ``circtools enrich`` will produce output similar to the one shown below. The run time depends on the size of the circRNA dataset as well as the number of peaks used for the analysis.
 
@@ -113,40 +181,44 @@ Sample command line output
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: bash
 
-  2018-05-14 22:23:26,281 circtest 1.2.0-beta started
-  2018-05-14 22:23:26,281 circtest command line: circtools enrich -c hepg2_flanking_introns_2k.bed -b AGGF1_HepG2_intersect.bed -a genes_and_introns.gtf -g hg38.chrom.sizes -i 2000 -I intron -p 20 -P 1 -T 1 -o out/ -F AGGF1_HepG2_intersect_intron_flanking -t /tmp/
-  2018-05-14 22:23:26,292 bedtools v2.27.1 detected
-  2018-05-14 22:23:26,292 Parsing annotation...
-  2018-05-14 22:23:28,446 Found 285398 entries
-  2018-05-14 22:23:28,446 Done parsing annotation
-  2018-05-14 22:23:30,900 Parsing BED input file...
-  2018-05-14 22:23:31,326 Done parsing BED input file:
-  2018-05-14 22:23:31,326 => 61511 peaks, 28 nt average width
-  2018-05-14 22:23:31,326 Parsing annotation...
-  2018-05-14 22:23:31,992 Found 58051 entries
-  2018-05-14 22:23:31,992 Done parsing annotation
-  2018-05-14 22:23:33,322 Parsing circular RNA input file...
-  2018-05-14 22:23:33,338 Done parsing circular RNA input file:
-  2018-05-14 22:23:33,338 => 3122 circular RNAs, 1770 nt average (theoretical unspliced) length
-  2018-05-14 22:23:33,699 Starting random shuffling of input peaks
-  2018-05-14 22:23:33,702 Processing shuffling thread 1
-  2018-05-14 22:23:33,702 Processing shuffling thread 2
-  2018-05-14 22:23:33,702 Processing shuffling thread 3
-  ....
-  2018-05-14 22:27:05,808 Starting data acquisition from samplings
-  2018-05-14 22:27:19,173 Processed intersections for iteration 1
-  2018-05-14 22:27:19,259 Processed intersections for iteration 2
-  2018-05-14 22:27:19,349 Processed intersections for iteration 3
-  ....
-  2018-05-14 22:59:47,184 Cleaning up... just a second
-  2018-05-14 22:59:47,184 Starting permutation test phase 11
-  2018-05-14 22:59:47,419 Permutation test iteration 1
-  ....
-  2018-05-14 23:02:27,368 Cleaning up temporary files
-  2018-05-14 23:02:27,508 Deleting /scratch/global_tmp/AGGF1_HepG2_intersect_intron_flanking/pybedtools.2ux9j7r3.tmp
-  2018-05-14 23:02:27,509 Deleting /scratch/global_tmp/AGGF1_HepG2_intersect_intron_flanking/pybedtools.zgy7g2yg.tmp
-  2018-05-14 23:02:27,509 Deleting /scratch/global_tmp/AGGF1_HepG2_intersect_intron_flanking/pybedtools.elcwucww.tmp
-  ....
+    2018-09-17 11:13:16,166 circtools 1.1.0.6 started
+    2018-09-17 11:13:16,166 circtools command line: /home/tjakobi//.local/bin/circtools enrich -c /scratch/tjakobi/circtools_workflow/workflow/circtools/06_enrich/murine_flanking_introns.bed -b
+     /scratch/tjakobi/circtools_workflow/workflow/circtools/06_enrich/repeats/AT_rich.bed -a /scratch/tjakobi/circtools_workflow/workflow/circtools/06_enrich/genes_and_introns.gtf -g /scratch/t
+    jakobi/circtools_workflow/workflow/circtools/06_enrich/mm10.chrom.sizes -i 2000 -I intron -p 20 -P 1 -T 1 -o /scratch/tjakobi/circtools_workflow/workflow/circtools/06_enrich/output// -F AT_
+    rich -t /scratch/global_tmp/AT_rich//
+    2018-09-17 11:13:16,177 bedtools v2.27.1 detected
+    2018-09-17 11:13:16,177 Parsing annotation...
+    2018-09-17 11:13:17,864 Found 256488 entries
+    2018-09-17 11:13:17,865 Done parsing annotation
+    2018-09-17 11:13:20,126 Parsing BED input file...
+    2018-09-17 11:13:21,207 Done parsing BED input file:
+    2018-09-17 11:13:21,207 => 228756 peaks, 33 nt average width
+    2018-09-17 11:13:21,207 Parsing annotation...
+    2018-09-17 11:13:21,727 Found 52636 entries
+    2018-09-17 11:13:21,728 Done parsing annotation
+    2018-09-17 11:13:22,777 Parsing circular RNA input file...
+    2018-09-17 11:13:22,787 Done parsing circular RNA input file:
+    2018-09-17 11:13:22,788 => 2522 circular RNAs, 1801 nt average (theoretical unspliced) length
+    2018-09-17 11:13:23,057 Starting random shuffling of input peaks
+    2018-09-17 11:13:23,059 Processing shuffling thread 1
+    2018-09-17 11:13:23,059 Processing shuffling thread 26
+    [output cut]
+    2018-09-17 11:35:14,025 Permutation test iteration 1998
+    2018-09-17 11:35:14,043 Permutation test iteration 1991
+    2018-09-17 11:35:14,172 Permutation test iteration 2000
+    2018-09-17 11:35:14,198 Permutation test iteration 1993
+    2018-09-17 11:35:14,221 Permutation test iteration 1995
+    2018-09-17 11:35:14,381 Permutation test iteration 1997
+    2018-09-17 11:35:14,578 Permutation test iteration 1999
+    2018-09-17 11:35:17,547 Cleaning up... just a second
+    2018-09-17 11:35:18,740 Cleaning up temporary files
+    2018-09-17 11:35:20,552 Deleting /scratch/global_tmp/AT_rich/pybedtools.knohds5y.tmp
+    2018-09-17 11:35:20,553 Deleting /scratch/global_tmp/AT_rich/pybedtools.j0mwk09_.tmp
+    2018-09-17 11:35:20,553 Deleting /scratch/global_tmp/AT_rich/pybedtools.85vjrbnw.tmp
+    2018-09-17 11:35:20,553 Deleting /scratch/global_tmp/AT_rich/pybedtools.jli7p0je.tmp
+    2018-09-17 11:35:20,553 Deleting /scratch/global_tmp/AT_rich/pybedtools.4vz84ujl.tmp
+    2018-09-17 11:35:20,560 Done
+
 
 
 Output produced by ``circtools enrich``
@@ -195,7 +267,7 @@ The generated BED files are holding the temporary annotation data created by ``c
 ^^^^^^^^
 The log file generated by ``circtools enrich``.
 
-Additional graphical visualzation
+Additional graphical visualization
 ---------------------------------------
 
 Circtools is bundled with an additional R-script to post-process the raw data of the enrichment module. In order to be used with the visualization script, the ``enrich`` data has to be slightly preprocessed. The visualzation script is designed to work with multiple sets of peaks, i.e. multiple different eCLIP data sets.
