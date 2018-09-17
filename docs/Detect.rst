@@ -108,6 +108,7 @@ In a first step, remaining adapter sequences originating from the sequencing-pro
     # download the wrapper scrips for flexbar
     wget https://raw.githubusercontent.com/dieterich-lab/bioinfo-scripts/master/slurm_flexbar_paired.sh
     # add execute permission
+    chmod 755 slurm_flexbar_paired.sh
     mkdir flexbar
     cd reads
     # we now execute flexbar on all of the sample while keeping all paired end sample correctly mapped
