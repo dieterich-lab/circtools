@@ -3,22 +3,10 @@ Detect module
 
 The circRNA detection module of circtools is based on DCC, a Python 2.7-based tool built to detect and quantify circRNAs with high specificity. DCC works with the STAR (Dobin et al., 2013) ``chimeric.out.junction`` files which contains chimerically aligned reads including circRNA junction spanning reads.
 
-DCC depends on pysam, pandas, numpy, and HTSeq. The installation process of circtools will normally automatically check for the dependencies, install or update missing Python packages and install the latest stable version of DCC.
+DCC depends on ``pysam``, ``pandas``, ``numpy``, and ``HTSeq``. The installation process of circtools will normally automatically check for the dependencies, install or update missing Python packages and install the latest stable version of DCC.
 
 Manual installation instructions
 --------------------------------
-
-Option 1
-^^^^^^^^
-
-Download of the latest stable `DCC release <https://github.com/dieterich-lab/DCC/releases>`_::
-
-    $ tar -xvf DCC-<version>.tar.gz
-    $ cd DCC-<version>
-    $ python2 setup.py install --user
-
-Option 2
-^^^^^^^^
 
 Cloning the source repository::
 
@@ -30,7 +18,7 @@ Verifying the installation::
 
     $ DCC --version
 
-If the Python installation binary path [e.g. `/$HOME/.local/bin` for Debian] is not included the $PATH, it is also possible run DCC directly::
+If the Python installation binary path [e.g. `/$HOME/.local/bin` for Debian] is not included the ``$PATH``, it is also possible run DCC directly::
 
     $ python2 <DCC directory>/scripts/DCC <Options>
     # or even
@@ -40,9 +28,9 @@ If the Python installation binary path [e.g. `/$HOME/.local/bin` for Debian] is 
 General usage
 --------------
 
-The detection of circRNAs from RNAseq data through the detection module can be summarized in a few steps:
+The detection of circRNAs from RNA-seq data through the detection module can be summarized in a few steps:
 
-- Mapping of RNAseq data from quality checked fastq files. For paired-end (PE) data it is recommended to map the reads pairs jointly as well as separately because STAR does not output reads or read pairs that contain more than one chimeric junction.
+- Mapping of RNA-seq data from quality checked Fastq files. For paired-end (PE) data it is recommended to map the reads pairs jointly as well as separately because STAR does not output reads or read pairs that contain more than one chimeric junction.
 
 - Preparation of input files required by the detection module. In summary, only a ``samplesheet``, which specifies the locations for the ``chimeric.out.junction`` files is required (one relative or absolute path per line). [Command line flag: ``@samplesheet``]
 
@@ -158,8 +146,8 @@ Essentially, the wrapper script for STAR performs the following tasks:
     pd -j1 --xapply ../slurm_circtools_detect_paired_mapping.sh ../folder/to/star/index/ {1} {2} ../star/ .1 ../Mus_musculus.GRCm38.90.gtf
 
 
-Manual mapping
-^^^^^^^^^^^^^^^
+Manual mapping process
+^^^^^^^^^^^^^^^^^^^^^^
 
 Following a few notes on the manual mapping process:
 
