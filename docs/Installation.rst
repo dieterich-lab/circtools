@@ -115,7 +115,7 @@ Installation
 R environment
 ^^^^^^^^^^^^^^
 
-**Step 3**: Setting up R environment. In order for the automatic installation of R packages to work we need to set the package directory to a user-writeable path. The setup automatically sets that path to /home/$USER/.R/:
+**Step 3**: Setting up R environment. In order for the automatic installation of R packages to work we need to set the package directory to a user-writeable path. The setup automatically sets that path to ``/home/$USER/.R/``.
 
 
 Dependencies
@@ -126,12 +126,7 @@ Dependencies
 Finishing up
 ^^^^^^^^^^^^
 
-**Step 5**: Adding installation folder to $PATH. In order for circtools to find all exectuables, the setup will give you the possibility to add the folder ``/home/$USER/.local/bin/`` automatically to your ``.bashrc`` file
-
-.. code-block:: bash
-
-    In order for circtools to be globally callable, we would add the installation folder to the $PATH variable. Would you like us to do that?
-    Update $PATH in .bashrc? [Y/n]
+**Step 5**: Adding installation folder to ``$PATH``. In order for circtools to find all executables, the setup will add the folder ``/home/$USER/.local/bin/`` automatically to your ``.bashrc`` file
 
 This closes the circtools installation. To verify that circtools has been correctly installed, try to call circtools for the first time:
 
