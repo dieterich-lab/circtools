@@ -116,7 +116,7 @@ Additionally, the shuffling algorithm of ``bedtools`` requires knowledge of chro
 
 .. code-block:: bash
 
-    wget https://data.dieterichlab.org/s/mm10_chrom_sizes/download -o mm10.chrom.sizes
+    wget https://data.dieterichlab.org/s/mm10_chrom_sizes/download -O mm10.chrom.sizes
 
 
 In order to provide a working example of reasonable size we do not use the full set of repeats as provided by the UCSC genome browser but only the 3 most-common ones, i.e. :

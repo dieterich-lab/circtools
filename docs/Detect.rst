@@ -312,7 +312,7 @@ Additionally the newly created files, a reference genome in Fasta format as well
     gzip -d Mus_musculus.GRCm38.dna.primary_assembly.fa.gz
 
     # step two: repeat masker file for the genome build:
-    wget https://data.dieterichlab.org/s/mouse_repeats/download -o GRCm38_90_repeatmasker.gtf.bz2
+    wget https://data.dieterichlab.org/s/mouse_repeats/download -O GRCm38_90_repeatmasker.gtf.bz2
     bunzip GRCm38_90_repeatmasker.gtf.bz2
 
 

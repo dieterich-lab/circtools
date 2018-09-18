@@ -63,7 +63,7 @@ As for other parts of the circtools pipeline, a wrapper Bash script has been dev
     mkdir 03_reconstruct
 
     # download exon annotations required by the reconstruct module
-    wget https://data.dieterichlab.org/s/mouse_exons_bed -o mm10.ensembl.exons.bed.bz2
+    wget https://data.dieterichlab.org/s/mouse_exons_bed/download -O mm10.ensembl.exons.bed.bz2
     bunzip mm10.ensembl.exons.bed.bz2
 
     # circtools reconstruct is independently run on all samples:
