@@ -23,7 +23,7 @@ The circtools enrich module requires generally three types of input data:
 How does it work
 ^^^^^^^^^^^^^^^^^^
 
-In a first step the 'observed' distribution of features throughout the supplied circRNAs is calculated. This observed distribution is used as a baseline in the subsequent 'iteration' step. By employong the ``bedtools shuffle`` command the features are randomly distributed throughout the genome while keep the number and length of all features constant. After several hundred or thousand randomized iterations circtools counts the number of iterations in which more hits within the defined list of circRNAs are observed than in the initial, actual experimental observation. Circtools than computes the probability that a given number of hits is significantly higher than the simulated random distribution obtained by the random shuffling. The test is carried out for the circRNA and the corresponding host genes, therefore also allowing to distinguish between features enriched in the circRNA and possibly depleted in the circRNA host gene.
+In a first step the 'observed' distribution of features throughout the supplied circRNAs is calculated. This observed distribution is used as a baseline in the subsequent 'iteration' step. By employing the ``bedtools shuffle`` command the features are randomly distributed throughout the genome while keep the number and length of all features constant. After several hundred or thousand randomized iterations circtools counts the number of iterations in which more hits within the defined list of circRNAs are observed than in the initial, actual experimental observation. Circtools than computes the probability that a given number of hits is significantly higher than the simulated random distribution obtained by the random shuffling. The test is carried out for the circRNA and the corresponding host genes, therefore also allowing to distinguish between features enriched in the circRNA and possibly depleted in the circRNA host gene.
 
 Required tools and packages
 ----------------------------
@@ -183,9 +183,7 @@ Sample command line output
 
     2018-09-17 11:13:16,166 circtools 1.1.0.6 started
     2018-09-17 11:13:16,166 circtools command line: /home/tjakobi//.local/bin/circtools enrich -c /scratch/tjakobi/circtools_workflow/workflow/circtools/06_enrich/murine_flanking_introns.bed -b
-     /scratch/tjakobi/circtools_workflow/workflow/circtools/06_enrich/repeats/AT_rich.bed -a /scratch/tjakobi/circtools_workflow/workflow/circtools/06_enrich/genes_and_introns.gtf -g /scratch/t
-    jakobi/circtools_workflow/workflow/circtools/06_enrich/mm10.chrom.sizes -i 2000 -I intron -p 20 -P 1 -T 1 -o /scratch/tjakobi/circtools_workflow/workflow/circtools/06_enrich/output// -F AT_
-    rich -t /scratch/global_tmp/AT_rich//
+     /scratch/tjakobi/circtools_workflow/workflow/circtools/06_enrich/repeats/AT_rich.bed -a /scratch/tjakobi/circtools_workflow/workflow/circtools/06_enrich/genes_and_introns.gtf -g /scratch/tjakobi/circtools_workflow/workflow/circtools/06_enrich/mm10.chrom.sizes -i 2000 -I intron -p 20 -P 1 -T 1 -o /scratch/tjakobi/circtools_workflow/workflow/circtools/06_enrich/output// -F AT_rich -t /scratch/global_tmp/AT_rich//
     2018-09-17 11:13:16,177 bedtools v2.27.1 detected
     2018-09-17 11:13:16,177 Parsing annotation...
     2018-09-17 11:13:17,864 Found 256488 entries
@@ -229,7 +227,7 @@ Output produced by ``circtools enrich``
 The generated CSV file is the main output of ``circtools enrich``. It contains the data generated during the run and has the following fields:
 
 * *circRNA_host_gene*: Name of the circRNA host gene
-* *chr*: Chromsome location of the circRNA
+* *chr*: Chromosome location of the circRNA
 * *start*: Absolute circRNA start location
 * *stop*: Absolute circRNA end location
 * *strand*: Strand of the circRNA
