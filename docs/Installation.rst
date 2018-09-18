@@ -110,37 +110,18 @@ Installation
 .. code-block:: bash
 
     cd circtools
-    python3 setup.py install --verbose --user
+    pip3 install . install --verbose --user
 
 R environment
 ^^^^^^^^^^^^^^
 
-**Step 3**: Setting up R environment. In order for the automatic installation of R packages to work we need to set the package directory to a user-writeable path. The setup can automatically set that path to /home/$USER/.R/:
+**Step 3**: Setting up R environment. In order for the automatic installation of R packages to work we need to set the package directory to a user-writeable path. The setup automatically sets that path to /home/$USER/.R/:
 
-.. code-block:: bash
-
-    Should we update the R package location in order to install package as user?
-    Update R_LIB in .Renviron [Y/n]
 
 Dependencies
 ^^^^^^^^^^^^
 
-**Step 4**: The setup script is designed to guide you through the installation process and makes sure your enviroonment is setup correctly to run circtools. You will have to answer a few questions throughout this process:
-
-.. code-block:: bash
-
-    We need to install two other programs of the Dieterich Lab circRNA suit, DCC and FUCHS, as well as R package dependencies for other modules of circtools
-    We'll install everything for you from GitHub and CRAN for you.
-    
-    In order for the circtools primer design module to run, we need to install some R modules.
-    Please make sure R >= 3.3 is installed and your R library path is writeable .
-    
-    Do you want to continue the automatic dependency installation?
-    -> "n" will only install the circtools base package
-    -> CTRL-C will abort the installation
-     [Y/n]
-
-Answer with "y" to automatically install `CircTest <https://github.com/dieterich-lab/CircTest>`_, `primex <https://github.com/dieterich-lab/primex>`_, `DCC <https://github.com/dieterich-lab/DCC>`_ and `FUCHS <https://github.com/dieterich-lab/FUCHS>`_. 
+**Step 4**: The setup script is designed to make sure that the environment is setup correctly to run circtools. The circtools setup will automatically install `CircTest <https://github.com/dieterich-lab/CircTest>`_, `primex <https://github.com/dieterich-lab/primex>`_, `DCC <https://github.com/dieterich-lab/DCC>`_ and `FUCHS <https://github.com/dieterich-lab/FUCHS>`_.
 
 Finishing up
 ^^^^^^^^^^^^
