@@ -106,7 +106,7 @@ A call to ``circtools circtest --help`` shows all available command line flags:
 Sample call
 @@@@@@@@@@@
 
-As for the other module tutorials, we use the Jakobi 2016 data set from the detection module in this module. Below is the sample call for the newly generated circtools detect data:
+As for the other module tutorials, we use the `Jakobi et al. 2016 <https://www.sciencedirect.com/science/article/pii/S167202291630033X>`_ data set from the detection module in this module. Below is the sample call for the newly generated circtools detect data:
 
 .. code-block:: bash
 

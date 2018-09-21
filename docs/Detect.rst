@@ -52,7 +52,7 @@ The detection of circRNAs from RNA-seq data through the detection module can be 
 Step by step tutorial
 ---------------------
 
-In this tutorial, we use the data set from  `Jakobi et al. 2016 <https://www.sciencedirect.com/science/article/pii/S167202291630033X>`_  as an example. The data are paired-end, stranded RiboMinus RNAseq data from *Mus musculus*, consisting of samples of four ages (2, 3, 6, and 12 month) collected from the whole hearts. Data can be downloaded from the NCBI SRA (accession number `SRP071584 <http://www.ncbi.nlm.nih.gov/sra/?term=SRP071584>`_). While the circtools suite does not offer specific module for the initial data processing, this short tutorial should give the user an idea on how to get the sequencing data in shape for the main circtools pipeline.
+In this tutorial, we use the data set from  `Jakobi et al. 2016 <https://www.sciencedirect.com/science/article/pii/S167202291630033X>`_  as an example. The data are paired-end, stranded RiboMinus RNAseq data from *Mus musculus*, consisting of samples of four ages (2, 3, 6, and 12 month) collected from the whole hearts. Data can be downloaded from the NCBI SRA (accession number `SRP071584 <https://trace.ncbi.nlm.nih.gov/Traces/study/?acc=SRP071584>`_). While the circtools suite does not offer specific module for the initial data processing, this short tutorial should give the user an idea on how to get the sequencing data in shape for the main circtools pipeline.
 
 Throughout this tutorial, we will employ Bash wrapper scripts that automate the analysis for multiple samples. While these scripts have been designed to be used with the `SLURM <https://slurm.schedmd.com/man_index.html>`_ workload manager, it is also possible to use them in conjunction with `GNU parallel <https://www.gnu.org/software/parallel/>`_ without SLURM.
 
@@ -154,7 +154,7 @@ Following a few notes on the manual mapping process:
 
 .. note:: ``--alignSJoverhangMin`` and ``--chimJunctionOverhangMin`` should use the same values to make the circRNA expression and linear gene expression level comparable.
 
-In a first step the paired-end data is mapped by using both mates. If the data is paired-end, an additional separate mate mapping is recommended (while not mandatory, this step will increase the sensitivity due to the the processing of small circular RNAs with only one chimeric junction point at each read mate). If the data is single-end, only this mapping step is required. In case of the Jakobi data however, paired-end sequencing data is available.
+In a first step the paired-end data is mapped by using both mates. If the data is paired-end, an additional separate mate mapping is recommended (while not mandatory, this step will increase the sensitivity due to the the processing of small circular RNAs with only one chimeric junction point at each read mate). If the data is single-end, only this mapping step is required. In case of the `Jakobi et al. 2016 <https://www.sciencedirect.com/science/article/pii/S167202291630033X>`_ data however, paired-end sequencing data is available.
 
 
 .. warning:: Starting with version 2.6.0 of STAR, the chimeric output format changed. In order to be compliant with the circtools work flow the old output mode has to be selected via  ``--chimOutType Junctions SeparateSAMold``

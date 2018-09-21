@@ -50,7 +50,7 @@ Please see the documentation of `circtools detect <Detect.html>`_ for instructio
 Use a wrapper script for the circtools reconstruct call
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-As for other parts of the circtools pipeline, a wrapper Bash script has been developed that does all necessary preprocessing after the initial detection step and directly calls the reconstruction module afterwards. We continue by using the Jakobi 2016 data set that also has been used as an example for the `circtools detect <Detect.html>`_ module.
+As for other parts of the circtools pipeline, a wrapper Bash script has been developed that does all necessary preprocessing after the initial detection step and directly calls the reconstruction module afterwards. We continue by using the `Jakobi et al. 2016 <https://www.sciencedirect.com/science/article/pii/S167202291630033X>`_ data set that also has been used as an example for the `circtools detect <Detect.html>`_ module.
 
 .. code-block:: bash
 

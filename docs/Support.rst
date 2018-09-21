@@ -34,6 +34,8 @@ If you do not have a GitHub account you can also reach use via mail: `circtools@
 
 Literature
 ----------
+* circRNAs in murine hearts: `Jakobi, T., Czaja-Hasse, L.F., Reinhardt, R. and Dieterich, C., 2016. Profiling and validation of the circular RNA repertoire in adult murine hearts. Genomics, proteomics & bioinformatics, 14(4), pp.216-223. <https://www.sciencedirect.com/science/article/pii/S167202291630033X>`_
+
 * circRNA analysis workflow: `Jakobi, T. and Dieterich, C., 2018. Deep Computational Circular RNA Analytics from RNA-seq Data. In Circular RNAs (pp. 9-25). Humana Press, New York, NY. <https://link.springer.com/protocol/10.1007/978-1-4939-7562-4_2>`_
 
 * ``circtools reconstruct`` / FUCHS: `Metge, F., Czaja-Hasse, L.F., Reinhardt, R. and Dieterich, C., 2017. FUCHS—towards full circular RNA characterization using RNAseq. PeerJ, 5, p.e2934. <https://peerj.com/articles/2934/>`_
