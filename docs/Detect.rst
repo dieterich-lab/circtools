@@ -56,15 +56,51 @@ In this tutorial, we use the data set from  `Jakobi et al. 2016 <https://www.sci
 
 Throughout this tutorial, we will employ Bash wrapper scripts that automate the analysis for multiple samples. While these scripts have been designed to be used with the `SLURM <https://slurm.schedmd.com/man_index.html>`_ workload manager, it is also possible to use them in conjunction with `GNU parallel <https://www.gnu.org/software/parallel/>`_ without SLURM.
 
-Data structure
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The data can be downloaded directly from the NCBI SRA via the link given above. Once the data is downloaded, the following data structure is assumed:
+Download of raw data files from the NCBI SRA
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The raw data of the `Jakobi et al. 2016 <https://www.sciencedirect.com/science/article/pii/S167202291630033X>`_ study was uploaded to the NCBI short read archive (SRA) and converted to the NCBI SRA format. Before we can start processing the data, the `sra-toolkit <https://github.com/ncbi/sra-tools/wiki/Downloads>`_ needs to be installed. In order to simplify the download process, the `wonderdump <http://data.biostarhandbook.com/scripts/README.html>`_ script is used.
 
 .. code-block:: bash
 
-    cd workflow
-    cd reads
+    # create main folder and raw reads folder
+    mkdir -p workflow/reads
+
+    cd workflow/reads
+
+    # change the default download directory of wonderdump to current directory
+    sed -i 's/SRA_DIR=~\/ncbi\/public\/sra/SRA_DIR=.\//g' wonderdump.sh
+
+    # get list of accession numbers to download
+    # also get a mapping file from SRA accession to original file name
+    wget https://data.dieterichlab.org/s/jakobi2016_sra_list/download -O jakobi2016_sra_list.txt
+    wget https://data.dieterichlab.org/s/sra_mapping/download -O mapping.txt
+
+    # downloading and rewriting the files as gzipped .fastq files will take some time
+    # in the end, the process will generate a set of 16 files (8 samples x 2 pairs)
+
+    # start wonderdump with the accession list and download data (~29GB)
+    cat jakobi2016_sra_list.txt | xargs -n 1 echo ./wonderdump.sh --split-files --gzip | bash
+
+    # rename files from SRA accessions to file names used throughout this tutorial
+
+    # for mate 1:
+    parallel --link ln -s {2}_1.fastq {1}1.fastq :::: mapping.txt :::: jakobi2016_sra_list.txt
+
+    # for mate 2:
+    parallel --link ln -s {2}_2.fastq {1}2.fastq :::: mapping.txt :::: jakobi2016_sra_list.txt
+
+
+
+Data structure
+^^^^^^^^^^^^^^^^
+
+Once the data is downloaded, the following data structure is assumed:
+
+.. code-block:: bash
+
+    cd workflow/reads
 
     ls -la
 
