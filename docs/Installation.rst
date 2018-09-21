@@ -6,7 +6,11 @@ Installation
 
 Installation is performed via `python3 setup.py install`. No sudo access is required if the installation is suffixed with ``--user`` which will install the package in a user-writeable folder. In this case, the binaries should be installed to ``/home/$USER/.local/bin/`` (for Debian-based systems).
 
-``circtools`` was developed and tested on Debian Jessie 8 64 Bit. macOS support is currently (08/2018) being tested and is already available in the ``mac-dev`` branch of the github repository (however, the macOS functionality cannot be fully guaranteed yet). 
+
+Supported operating systems
+-----------------------------------
+
+``circtools`` was developed and tested on Debian Jessie 8 64 Bit and Debian Stretch 9 64 bit. macOS support is currently (09/2018) being tested and is already available in the ``mac-dev`` branch of the github repository (however, the macOS functionality cannot be fully guaranteed yet).
 
 Installation from PyPi (preferred)
 -----------------------------------
