@@ -134,6 +134,7 @@ plot <- ggplot(data = data, aes(x = group, y = count, fill = group)) +
     labs(x = "Sample") +
     labs(fill = "Sample") +
     theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank())
+print(plot)
 
 # # total raw number of FUCHS circRNAs
 plot <- ggplot(data = data, aes(x = group, y = count, fill = group)) +
@@ -150,6 +151,7 @@ plot <- ggplot(data = data, aes(x = group, y = count, fill = group)) +
     labs(fill = "Sample") +
     scale_y_log10() +
     theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank())
+print(plot)
 
 # Quantile length plots
 
