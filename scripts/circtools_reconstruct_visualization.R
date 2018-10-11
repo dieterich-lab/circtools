@@ -19,6 +19,7 @@
 message("Loading required packages")
 suppressMessages(library(ggplot2))
 suppressMessages(require(data.table))
+suppressMessages(require(ggsignif))
 message("Done loading packages")
 
 # may not be optimal, but we do not want warning for now
@@ -62,6 +63,8 @@ arg_reconstruct_data <- args[1] # path is string
 arg_groups <-   unlist(lapply(strsplit(args[2],","), as.numeric)) # list of ints
 arg_condition_list  <- strsplit(args[3],",")[[1]] # list of strings
 arg_colour_mode <- args[4]
+
+geom_signif_list <- (combn(arg_condition_list,2, simplify=F))
 
 # check colour mode
 if (arg_colour_mode != "colour" & arg_colour_mode != "bw" ) {
@@ -115,7 +118,7 @@ for (i in 1 : length(sequencing_lib_name)) {
 }
 
 ############### bare fuchs data, circRNA length
-pdf("results.pdf", width= 8, height=5.5 , title="FUCHS results")
+pdf("results.pdf", width= 8, height=5.5 , title="circtools reconstruction results")
 
 # # total raw number of FUCHS circRNAs
 plot <- ggplot(data = data, aes(x = group, y = count, fill = group)) +
@@ -124,7 +127,7 @@ plot <- ggplot(data = data, aes(x = group, y = count, fill = group)) +
     if (arg_colour_mode == "bw" ) {
         plot <- plot + scale_fill_grey(start = 0, end = .9)
     }
-    plot <- plot +
+    plot <- plot + geom_signif(comparisons = geom_signif_list, step_increase = 0.1, map_signif_level = T) +
     labs(title = "Circular RNA reconstruction results",
     subtitle = "Absolute count - normal scale") +
     labs(y = "Total number of circular RNAs") +
@@ -139,7 +142,7 @@ plot <- ggplot(data = data, aes(x = group, y = count, fill = group)) +
     if (arg_colour_mode == "bw" ) {
         plot <- plot + scale_fill_grey(start = 0, end = .9)
     }
-    plot <- plot +
+    plot <- plot + geom_signif(comparisons = geom_signif_list, step_increase = 0.1, map_signif_level = T) +
     labs(title = "Circular RNA reconstruction results",
 		subtitle = "Absolute count - log10 scale") +
     labs(y = "Total number of circular RNAs (log10)") +
@@ -159,7 +162,7 @@ plot <- ggplot(data = isoforms, aes(x = group, y = num, fill = group)) +
     if (arg_colour_mode == "bw" ) {
         plot <- plot + scale_fill_grey(start = 0, end = .9)
     }
-    plot <- plot +
+    plot <- plot + geom_signif(comparisons = geom_signif_list, step_increase = 0.1, map_signif_level = T) +
     labs(title = "Circular RNA reconstruction results",
     subtitle = "# circRNA isoforms per host gene") +
     labs(y = "Number of isoforms") +
@@ -174,7 +177,7 @@ plot <- ggplot(data = exon_counts, aes(x = group, y = Length_total, fill = group
     if (arg_colour_mode == "bw" ) {
         plot <- plot + scale_fill_grey(start = 0, end = .9)
     }
-    plot <- plot +
+    plot <- plot + geom_signif(comparisons = geom_signif_list, step_increase = 0.1, map_signif_level = T) +
     scale_y_log10() +
     labs(title = "Circular RNA reconstruction results",
     subtitle = "Total length of circRNAs") +
@@ -190,7 +193,7 @@ plot <- ggplot(data = exon_counts, aes(x = group, y = Length_exons, fill = group
     if (arg_colour_mode == "bw" ) {
         plot <- plot + scale_fill_grey(start = 0, end = .9)
     }
-    plot <- plot +
+    plot <- plot + geom_signif(comparisons = geom_signif_list, step_increase = 0.1, map_signif_level = T) +
     scale_y_log10() +
     labs(title = "Circular RNA reconstruction results",
     subtitle = "Exon-based length of circRNAs") +
@@ -205,7 +208,7 @@ plot <- ggplot(data = exon_counts, aes(x = group, y = Exons, fill = group)) +
     if (arg_colour_mode == "bw" ) {
         plot <- plot + scale_fill_grey(start = 0, end = .9)
     }
-    plot <- plot +
+    plot <- plot + geom_signif(comparisons = geom_signif_list, step_increase = 0.1, map_signif_level = T) +
     labs(title = "Circular RNA reconstruction results",
     subtitle = "Number of exons per circRNA") +
     labs(y = "# exons per circRNA") +
@@ -220,7 +223,7 @@ plot <- ggplot(data = mate_status, aes(x = group, y = Single, fill = group)) +
     if (arg_colour_mode == "bw" ) {
         plot <- plot + scale_fill_grey(start = 0, end = .9)
     }
-    plot <- plot +
+    plot <- plot + geom_signif(comparisons = geom_signif_list, step_increase = 0.1, map_signif_level = T) +
     scale_y_log10() +
     labs(title = "Circular RNA reconstruction results",
     subtitle = "Single breakpoint circRNAs (absolute)") +
@@ -235,7 +238,7 @@ plot <- ggplot(data = mate_status, aes(x = group, y = Double, fill = group)) +
     if (arg_colour_mode == "bw" ) {
         plot <- plot + scale_fill_grey(start = 0, end = .9)
     }
-    plot <- plot +
+    plot <- plot + geom_signif(comparisons = geom_signif_list, step_increase = 0.1, map_signif_level = T) +
     scale_y_log10() +
 		labs(title = "Circular RNA reconstruction results",
 		subtitle = "Double breakpoint circRNAs (absolute)") +
@@ -268,7 +271,7 @@ plot <- ggplot(mate_status, aes(x = group, y = Ratio, fill = group)) +
     if (arg_colour_mode == "bw" ) {
         plot <- plot + scale_fill_grey(start = 0, end = .9)
     }
-    plot <- plot +
+    plot <- plot + geom_signif(comparisons = geom_signif_list, step_increase = 0.1, map_signif_level = T) +
 		labs(title = "Circular RNA reconstruction results",
 		subtitle = "Ratio of double breakpoints") +
     labs(y = "Ratio double breakpoints") +
