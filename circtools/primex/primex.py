@@ -56,6 +56,8 @@ class Primex(circ_module.circ_template.CircTemplate):
 
         self.homo_sapiens_blast_db = "GPIPE/9606/current/rna"
         self.mus_musculus_blast_db = "GPIPE/10090/current/rna"
+        self.rattus_norvegicus_blast_db = "GPIPE/10116/current/rna"
+
         self.other_blast_db = "nt"
 
     def module_name(self):
@@ -73,6 +75,8 @@ class Primex(circ_module.circ_template.CircTemplate):
             blast_db = self.mus_musculus_blast_db
         elif organism == "hs":
             blast_db = self.homo_sapiens_blast_db
+        elif organism == "rn":
+            blast_db = self.rattus_norvegicus_blast_db
 
         return_handle = NCBIWWW.qblast("blastn",
                                        blast_db,

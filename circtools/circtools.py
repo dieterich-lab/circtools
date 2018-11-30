@@ -235,8 +235,9 @@ class CircTools(object):
         group.add_argument("-O",
                            "--organism",
                            dest="organism",
-                           help="Organism of the study (used for primer BLASTing), mm = Mus musculus, hs = Homo sapiens",
-                           choices=("mm", "hs"),
+                           help="Organism of the study (used for primer BLASTing), mm = Mus musculus, hs = Homo sapiens,"
+                                " rn = Rattus norvegicus",
+                           choices=("mm", "hs", "rn"),
                            default="hs"
                            )
 
