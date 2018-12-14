@@ -216,8 +216,14 @@ pdf(paste(arg_output_directory, ".pdf", sep = "") , height= 8.2, width=11.69 , t
                                 # legend.position = c(0.95, 0.95)
                                 legend.justification = "top"
                         ) +
-                        scale_x_log10() +
-                        scale_y_log10() +
+                        scale_x_log10(
+                            breaks = scales::trans_breaks("log10", function(x) 10^x),
+                            labels = scales::trans_format("log10", scales::math_format(10^.x))
+                        ) +
+                        scale_y_log10(
+                            breaks = scales::trans_breaks("log10", function(x) 10^x),
+                            labels = scales::trans_format("log10", scales::math_format(10^.x))
+                        ) +
                         annotation_logticks(sides = "trbl")
 
     if (arg_colour_mode == "bw" ) {
@@ -272,8 +278,14 @@ pdf(paste(arg_output_directory, ".pdf", sep = "") , height= 8.2, width=11.69 , t
                                 # legend.position = c(0.95, 0.95)
                                 legend.justification = "top"
                         ) +
-                        scale_x_log10() +
-                        scale_y_log10() +
+                        scale_x_log10(
+                            breaks = scales::trans_breaks("log10", function(x) 10^x),
+                            labels = scales::trans_format("log10", scales::math_format(10^.x))
+                        ) +
+                        scale_y_log10(
+                            breaks = scales::trans_breaks("log10", function(x) 10^x),
+                            labels = scales::trans_format("log10", scales::math_format(10^.x))
+                        ) +
                         annotation_logticks(sides = "trbl")
 
     if (arg_colour_mode == "bw" ) {
