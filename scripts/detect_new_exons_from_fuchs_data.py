@@ -184,7 +184,7 @@ group.add_argument("-t",
 group.add_argument("-c",
                    "--coverage",
                    dest="min_coverage",
-                   help="Minimal coverage of exons [default: 1.0 == 100%]",
+                   help="Minimal coverage of exons [default: 1.0 == 100]",
                    type=float,
                    default=1.0
                    )
