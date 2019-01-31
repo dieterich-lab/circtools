@@ -183,7 +183,7 @@ class CircTools(object):
                                 "May be specified multiple times. [default: gene - shuffle over the the whole gene region]",
                            # May be used as list: e.g. -I exon -I UTR
                            action='append',
-                           default="gene"
+                           default=["gene"]
                            )
 
         group.add_argument("-k",
