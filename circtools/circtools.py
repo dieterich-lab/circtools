@@ -180,9 +180,10 @@ class CircTools(object):
                            "--include-features",
                            dest="include_features",
                            help="Defines the the features which should be used for shuffling. "
-                                "May be specified multiple times. [default: all - shuffle over the whole genome]",
+                                "May be specified multiple times. [default: gene - shuffle over the the whole gene region]",
                            # May be used as list: e.g. -I exon -I UTR
                            action='append',
+                           default="gene"
                            )
 
         group.add_argument("-k",
