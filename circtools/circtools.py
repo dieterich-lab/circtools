@@ -161,13 +161,14 @@ class CircTools(object):
                            default=0.05
                            )
 
-        # group.add_argument("-H",
-        #                    "--header",
-        #                    dest="has_header",
-        #                    help="Defines if the circRNA input file has a header line [default: no]",
-        #                    type=bool,
-        #                    default=False
-        #                    )
+        group.add_argument("-W",
+                           "--white-list",
+                           dest="whitelist",
+                           help="Path to a BED file containing coordinates of exons that should be exclusively taken "
+                                "into account when generating the enrichment. These may be exons produced by the exon"
+                                "module that show enrichment in the RNase R treated sample.",
+                           default=""
+                           )
 
         group.add_argument("-F",
                            "--output-filename",
