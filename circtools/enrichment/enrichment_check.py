@@ -15,16 +15,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
-import time
-import os
-import sys
-import re
-import multiprocessing
 import functools
+import logging
+import multiprocessing
+import os
+import re
+import sys
+import time
 
-import pybedtools
 import circ_module.circ_template
+import pybedtools
 
 FILE_TYPE_GTF = ".gtf"
 FILE_TYPE_BED = ".bed"
@@ -610,13 +610,10 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
             key_to_check = bed_feature[0] + "_" + bed_feature[1] + "_" + bed_feature[2]
 
-            print("to check: "+ key_to_check)
-
             if self.cli_params.whitelist and circ and key_to_check not in self.whitelist:
-                print("found: "+ key_to_check)
                 continue
-            #elif self.cli_params.whitelist and key_to_check not in self.whitelist:
-               #print("not found: "+ key_to_check)
+            # elif self.cli_params.whitelist and circ and key_to_check in self.whitelist:
+            #    print("whitelist found: "+ key_to_check)
 
             # we add up the length of each feature that is part of the "uber" feature, e.g. sum up exon length
             # as sub features of a gene
@@ -751,9 +748,9 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
                     # check if chromosomes match
                     if first_chr != bed_feature[0]:
-                       continue
-                       #gene_name = gene_name + "_" + bed_feature[0] + "_" + bed_feature[1]
-                       #count_table[gene_name] = {}
+                        continue
+                    # gene_name = gene_name + "_" + bed_feature[0] + "_" + bed_feature[1]
+                    # count_table[gene_name] = {}
 
                 if key not in count_table[gene_name]:
                     count_table[gene_name][key] = {}
