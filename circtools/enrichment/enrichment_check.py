@@ -1054,7 +1054,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                                 observed_count_correction = 0
 
                                 if location_key_circular in self.circRNA_buddies:
-                                    #print("buddy pair linear correction: " + location_key_circular + " -> " + self.circRNA_buddies[location_key_circular])
 
                                     if self.circRNA_buddies[location_key_circular] in processed_counts[0][gene]:
 
@@ -1063,9 +1062,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                                     if self.circRNA_buddies[location_key_circular] in self.observed_counts[0][gene]:
 
                                         observed_count_correction = self.observed_counts[0][gene][self.circRNA_buddies[location_key_circular]]
-
-                                    #print("buddy pair linear correction raw: " + str(shuffled_value) + " -> " + str(count_correction))
-                                    #print("buddy pair linear correction obs: " + str(observed_value_dict[location_key_new]) + " -> " + str(observed_count_correction))
 
                             if shuffled_value-circ_count-count_correction > observed_value_dict[location_key_new] - observed_count_correction:
 
@@ -1089,15 +1085,10 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                         observed_count_correction = 0
 
                         if location_key in self.circRNA_buddies:
-                            #print("buddy pair: " + location_key + " -> " + self.circRNA_buddies[location_key])
 
                             if self.circRNA_buddies[location_key] in processed_counts[0][gene]:
                                 count_correction = processed_counts[0][gene][self.circRNA_buddies[location_key]]
                                 observed_count_correction = self.observed_counts[0][gene][self.circRNA_buddies[location_key]]
-
-                            #print("buddy pair raw: " + str(shuffled_value) + " -> " + str(count_correction))
-                            #print("buddy pair obs: " + str(observed_value_dict[location_key]) + " -> " + str(observed_count_correction))
-                        # print(gene + "->" + str(rna_type) +  " -> " + str(shuffled_value) +  " -> "  + location_key)
 
                         if shuffled_value + count_correction > observed_value_dict[location_key] + observed_count_correction:
 
@@ -1158,36 +1149,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
             pass
 
         self.log_entry("Done")
-
-    @staticmethod
-    def generate_location_hash(bed_file_path):
-        """create a hashmap of locations of exon to be considered for counting intersection hits
-        """
-
-        return_hash = {}
-
-        try:
-            file_handle = open(bed_file_path)
-        except PermissionError:
-            message = ("Input file " + str(bed_file_path) + " cannot be read, exiting.")
-            logging.info(message)
-            sys.exit(message)
-        else:
-
-            with file_handle:
-                line_iterator = iter(file_handle)
-
-                for line in line_iterator:
-
-                    # we skip any comment lines
-                    if line.startswith("#"):
-                        continue
-
-                    columns = line.strip().split('\t')
-                    print("adding " +str(columns[0])+"_"+str(columns[1])+"_"+str(columns[2]) )
-                    return_hash[str(columns[0])+"_"+str(columns[1])+"_"+str(columns[2])] = 1
-
-        return return_hash
 
     def module_name(self):
         """"Return a string representing the name of the module."""
