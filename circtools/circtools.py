@@ -540,7 +540,7 @@ class CircTools(object):
                            dest="range",
                            help="How should the samples be labeled? [Default: Sample]",
                            type=float,
-                           default=1.0
+                           default=1.05
                            )
 
         group.add_argument("-O",
