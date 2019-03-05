@@ -849,27 +849,51 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         # import method for binomial test (tip of @Alexey)
         from statsmodels.stats.proportion import proportion_confint
 
-        # construct header of the CSV output file
-        result_string = "circRNA_host_gene\t" \
-                        "chr\t" \
-                        "start\t" \
-                        "stop\t" \
-                        "strand\t" \
-                        "p-val_circular\t" \
-                        "raw_count_circ_rna\t" \
-                        "observed_input_peaks_circ_rna\t" \
-                        "length_circ_rna\t" \
-                        "length_normalized_count_circ_rna\t" \
-                        "number_of_features_intersecting_circ\t" \
-                        "circ_rna_confidence_interval_0.05\t" \
-                        "p-val_linear\t" \
-                        "raw_count_host_gene\t" \
-                        "observed_input_peaks_host_gene\t" \
-                        "length_host_gene_without_circ_rna\t" \
-                        "length_normalized_count_host_gene\t" \
-                        "number_of_features_intersecting_linear\t" \
-                        "host_gene_confidence_interval_0.05\t" \
-                        "distance_normalized_counts\n"
+        if not self.cli_params.whitelist:
+
+            # construct header of the CSV output file
+            result_string = "circRNA_host_gene\t" \
+                            "chr\t" \
+                            "start\t" \
+                            "stop\t" \
+                            "strand\t" \
+                            "p-val_circular\t" \
+                            "raw_count_circ_rna\t" \
+                            "observed_input_peaks_circ_rna\t" \
+                            "length_circ_rna\t" \
+                            "length_normalized_count_circ_rna\t" \
+                            "number_of_features_intersecting_circ\t" \
+                            "circ_rna_confidence_interval_0.05\t" \
+                            "p-val_linear\t" \
+                            "raw_count_host_gene\t" \
+                            "observed_input_peaks_host_gene\t" \
+                            "length_host_gene_without_circ_rna\t" \
+                            "length_normalized_count_host_gene\t" \
+                            "number_of_features_intersecting_linear\t" \
+                            "host_gene_confidence_interval_0.05\t" \
+                            "distance_normalized_counts\n"
+        else:
+            # construct header of the CSV output file
+            result_string = "circRNA_host_gene\t" \
+                            "chr\t" \
+                            "start\t" \
+                            "stop\t" \
+                            "strand\t" \
+                            "p-val_enriched_circular\t" \
+                            "raw_count_enriched_circ_rna\t" \
+                            "observed_input_peaks_enriched_circ_rna\t" \
+                            "length_enriched_circ_rna\t" \
+                            "length_normalized_count_enriched_circ_rna\t" \
+                            "number_of_features_intersecting_enriched_circ\t" \
+                            "circ_rna_confidence_interval_0.05\t" \
+                            "p-val_non_enriched_circRNA\t" \
+                            "raw_count_not_enriched_circ_rna\t" \
+                            "observed_input_peaks_not_enriched\t" \
+                            "NOT_USED\t" \
+                            "length_normalized_count_not_enriched\t" \
+                            "number_of_features_intersecting__not_enriched\t" \
+                            "not_enriched_confidence_interval_0.05\t" \
+                            "distance_normalized_counts\n"
 
         # for all genes we have seen
         for gene in self.observed_counts[1]:
@@ -898,6 +922,13 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                             length = []
 
                             if self.virtual_inclusion_file_path != "all":
+                                length.append(self.get_extended_key_data(location_key_circular)["feature_length"])
+                                length.append(self.get_extended_key_data(location_key_linear)["feature_length"] -
+                                              self.get_extended_key_data(location_key_circular)["feature_length"])
+                                location_data_circ = self.decode_location_key(location_key_circular)
+                                location_data_linear = self.decode_location_key(location_key_linear)
+
+                            elif self.virtual_inclusion_file_path != "all" and self.cli_params.whitelist:
                                 length.append(self.get_extended_key_data(location_key_circular)["feature_length"])
                                 length.append(self.get_extended_key_data(location_key_linear)["feature_length"] -
                                               self.get_extended_key_data(location_key_circular)["feature_length"])
@@ -1124,7 +1155,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
             circular_intersect = self.do_intersection(shuffled_peaks[iteration], self.whitelist_fg)
 
             # the "normal" exons are running as linear from here on
-            linear_intersect = self.do_intersection(shuffled_peaks[iteration], self.whitelist_bg)
+            linear_intersect = self.do_intersection(shuffled_peaks[iteration], circ_rna_bed)
 
         # process results of the intersects
         intersects = [circular_intersect, linear_intersect]
