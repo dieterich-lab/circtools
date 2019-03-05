@@ -181,10 +181,12 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         if self.cli_params.whitelist:
             # self.whitelist = self.generate_location_hash(self.cli_params.whitelist)
             self.whitelist_fg = pybedtools.BedTool(self.cli_params.whitelist)
-            self.whitelist_fg = circ_rna_bed.intersect(self.whitelist_fg)
-
+            self.whitelist_fg = self.virtual_inclusion_object.intersect(self.whitelist_fg, f=1.0, wb=True)
+            self.whitelist_fg.saveas("test.bed")
+            # exit(0)
             # generate inverse list of exons: those that are not enriched: i.e. background exons
-            self.whitelist_bg = circ_rna_bed.intersect(self.whitelist_fg, v=True)
+            # self.whitelist_bg = circ_rna_bed #.intersect(self.whitelist_fg, v=True)
+
 
         # set up the multiprocessing pool for multi-threading
         mp_pool = multiprocessing.Pool(processes=self.cli_params.num_processes)
