@@ -182,7 +182,16 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
             # self.whitelist = self.generate_location_hash(self.cli_params.whitelist)
             self.whitelist_fg = pybedtools.BedTool(self.cli_params.whitelist)
             self.whitelist_fg = self.virtual_inclusion_object.intersect(self.whitelist_fg, f=1.0, wb=True)
-            self.whitelist_fg.saveas("test.bed")
+
+            tmp = ""
+            for line in str(self.whitelist_fg).splitlines():
+                bed_feature = line.split('\t')
+                bed_feature[9] = bed_feature[3]
+                tmp += "\t".join(bed_feature)+"\n"
+
+            self.whitelist_fg = pybedtools.BedTool(tmp, from_string=True)
+
+            self.whitelist_fg.saveas("test2.bed")
             # exit(0)
             # generate inverse list of exons: those that are not enriched: i.e. background exons
             # self.whitelist_bg = circ_rna_bed #.intersect(self.whitelist_fg, v=True)
@@ -216,6 +225,11 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
             self.tmp_dict,
             self.process_intersection(self.results[0][1], linear_start=True)
         )
+        import pprint
+        pp = pprint.PrettyPrinter(indent=4)
+        pp.pprint(self.observed_counts[0])
+        print("------------")
+        pp.pprint(self.observed_counts[1])
 
         # how many iterations do we want to do before cleaning up?
         iterations_per_phase = int(self.cli_params.num_iterations / self.cli_params.num_processes)
@@ -687,6 +701,8 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
             if self.virtual_inclusion_file_path != "all":
                 key += "_" + str(bed_feature[4])
 
+            # print(bed_feature)
+
             if linear_start and gene_name in self.tmp_dict:
                 # need to get list of circRNAs linked to this host gene
 
@@ -897,7 +913,23 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                             "not_enriched_confidence_interval_0.05\t" \
                             "distance_normalized_counts\n"
 
+        # print(self.observed_counts[0])
         # for all genes we have seen
+
+        with open("f11.txt", 'w') as text_file:
+            text_file.write(str(self.observed_counts[0]))
+
+        with open("f22.txt", 'w') as text_file:
+            text_file.write(str(self.observed_counts[1]))
+
+
+        import pprint
+        pp1 = pprint.PrettyPrinter(stream=open("f1.txt",'w'),indent=4)
+        pp2 = pprint.PrettyPrinter(stream=open("f2.txt",'w'),indent=4)
+
+        pp1.pprint(self.observed_counts[0])
+        pp2.pprint(self.observed_counts[1])
+
         for gene in self.observed_counts[1]:
             # make sure we found a circular RNA
             if gene in self.observed_counts[0]:
