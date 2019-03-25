@@ -200,25 +200,34 @@ In a first step the paired-end data is mapped by using both mates. If the data i
 
   $ mkdir Sample1
   $ cd Sample1
-  $ STAR --runThreadN 10 \
-         --genomeDir [genome] \
-         --outSAMtype BAM SortedByCoordinate \
-         --readFilesIn Sample1_1.fastq.gz  Sample1_2.fastq.gz \
-         --readFilesCommand zcat \
-         --outFileNamePrefix [sample prefix] \
-         --outReadsUnmapped Fastx \
-         --outSJfilterOverhangMin 15 15 15 15 \
-         --alignSJoverhangMin 15 \
-         --alignSJDBoverhangMin 15 \
-         --outFilterMultimapNmax 20 \
-         --outFilterScoreMin 1 \
-         --outFilterMatchNmin 1 \
-         --outFilterMismatchNmax 2 \
-         --chimSegmentMin 15 \
-         --chimScoreMin 15 \
-         --chimScoreSeparation 10 \
-         --chimJunctionOverhangMin 15 \
-
+  $ STAR    --runThreadN 10\
+            --genomeDir [genome]\
+            --genomeLoad NoSharedMemory\
+            --readFilesIn Sample1_1.fastq.gz  Sample1_2.fastq.gz\
+            --readFilesCommand zcat\
+            --outFileNamePrefix [sample prefix]\
+            --outReadsUnmapped Fastx\
+            --outSAMattributes NH   HI   AS   nM   NM   MD   jM   jI   XS\
+            --outSJfilterOverhangMin 15   15   15   15\
+            --outFilterMultimapNmax 20\
+            --outFilterScoreMin 1\
+            --outFilterMatchNminOverLread 0.7\
+            --outFilterMismatchNmax 999\
+            --outFilterMismatchNoverLmax 0.05\
+            --alignIntronMin 20\
+            --alignIntronMax 1000000\
+            --alignMatesGapMax 1000000\
+            --alignSJoverhangMin 15\
+            --alignSJDBoverhangMin 10\
+            --alignSoftClipAtReferenceEnds No\
+            --chimSegmentMin 15\
+            --chimScoreMin 15\
+            --chimScoreSeparation 10\
+            --chimJunctionOverhangMin 15\
+            --sjdbGTFfile [GTF annotation]\
+            --quantMode GeneCounts\
+            --twopassMode Basic\
+            --chimOutType Junctions SeparateSAMold
 
 
 * *This step may be skipped when single-end data is used.* Separate per-mate mapping. The naming of mate1 and mate2 has to be consistent with the order of the reads from the joint mapping performed above. In this case, SamplePairedRead_1.fastq.gz is the first mate since it was referenced at the first position in the joint mapping.
@@ -228,25 +237,34 @@ In a first step the paired-end data is mapped by using both mates. If the data i
   # Create a directory for mate1
   $ mkdir mate1
   $ cd mate1
-  $ STAR --runThreadN 10 \
-         --genomeDir [genome] \
-         --outSAMtype None \
-         --readFilesIn Sample1_1.fastq.gz \
-         --readFilesCommand zcat \
-         --outFileNamePrefix [sample prefix] \
-         --outReadsUnmapped Fastx \
-         --outSJfilterOverhangMin 15 15 15 15 \
-         --alignSJoverhangMin 15 \
-         --alignSJDBoverhangMin 15 \
-         --seedSearchStartLmax 30 \
-         --outFilterMultimapNmax 20 \
-         --outFilterScoreMin 1 \
-         --outFilterMatchNmin 1 \
-         --outFilterMismatchNmax 2 \
-         --chimSegmentMin 15 \
-         --chimScoreMin 15 \
-         --chimScoreSeparation 10 \
-         --chimJunctionOverhangMin 15 \
+  $   $ STAR    --runThreadN 10\
+            --genomeDir [genome]\
+            --genomeLoad NoSharedMemory\
+            --readFilesIn Sample1_1.fastq.gz\
+            --readFilesCommand zcat\
+            --outFileNamePrefix [sample prefix]\
+            --outReadsUnmapped Fastx\
+            --outSAMattributes NH   HI   AS   nM   NM   MD   jM   jI   XS\
+            --outSJfilterOverhangMin 15   15   15   15\
+            --outFilterMultimapNmax 20\
+            --outFilterScoreMin 1\
+            --outFilterMatchNminOverLread 0.7\
+            --outFilterMismatchNmax 999\
+            --outFilterMismatchNoverLmax 0.05\
+            --alignIntronMin 20\
+            --alignIntronMax 1000000\
+            --alignMatesGapMax 1000000\
+            --alignSJoverhangMin 15\
+            --alignSJDBoverhangMin 10\
+            --alignSoftClipAtReferenceEnds No\
+            --chimSegmentMin 15\
+            --chimScoreMin 15\
+            --chimScoreSeparation 10\
+            --chimJunctionOverhangMin 15\
+            --sjdbGTFfile [GTF annotation]\
+            --quantMode GeneCounts\
+            --twopassMode Basic\
+            --chimOutType Junctions SeparateSAMold
 
 
 * The process is repeated for the second mate:
@@ -256,25 +274,34 @@ In a first step the paired-end data is mapped by using both mates. If the data i
   # Create a directory for mate2
   $ mkdir mate2
   $ cd mate2
-  $ STAR --runThreadN 10 \
-         --genomeDir [genome] \
-         --outSAMtype None \
-         --readFilesIn Sample1_2.fastq.gz \
-         --readFilesCommand zcat \
-         --outFileNamePrefix [sample prefix] \
-         --outReadsUnmapped Fastx \
-         --outSJfilterOverhangMin 15 15 15 15 \
-         --alignSJoverhangMin 15 \
-         --alignSJDBoverhangMin 15 \
-         --seedSearchStartLmax 30 \
-         --outFilterMultimapNmax 20 \
-         --outFilterScoreMin 1 \
-         --outFilterMatchNmin 1 \
-         --outFilterMismatchNmax 2 \
-         --chimSegmentMin 15 \
-         --chimScoreMin 15 \
-         --chimScoreSeparation 10 \
-         --chimJunctionOverhangMin 15 \
+  $   $ STAR    --runThreadN 10\
+            --genomeDir [genome]\
+            --genomeLoad NoSharedMemory\
+            --readFilesIn Sample1_2.fastq.gz\
+            --readFilesCommand zcat\
+            --outFileNamePrefix [sample prefix]\
+            --outReadsUnmapped Fastx\
+            --outSAMattributes NH   HI   AS   nM   NM   MD   jM   jI   XS\
+            --outSJfilterOverhangMin 15   15   15   15\
+            --outFilterMultimapNmax 20\
+            --outFilterScoreMin 1\
+            --outFilterMatchNminOverLread 0.7\
+            --outFilterMismatchNmax 999\
+            --outFilterMismatchNoverLmax 0.05\
+            --alignIntronMin 20\
+            --alignIntronMax 1000000\
+            --alignMatesGapMax 1000000\
+            --alignSJoverhangMin 15\
+            --alignSJDBoverhangMin 10\
+            --alignSoftClipAtReferenceEnds No\
+            --chimSegmentMin 15\
+            --chimScoreMin 15\
+            --chimScoreSeparation 10\
+            --chimJunctionOverhangMin 15\
+            --sjdbGTFfile [GTF annotation]\
+            --quantMode GeneCounts\
+            --twopassMode Basic\
+            --chimOutType Junctions SeparateSAMold
 
 Detection of circular RNAs from ``chimeric.out.junction`` files with circtools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
