@@ -229,6 +229,14 @@ class Primex(circ_module.circ_template.CircTemplate):
                     if self.id_list and not self.gene_list and name not in self.id_list:
                         continue
 
+                    circrna_length = int(current_line[2]) - int(current_line[1])
+
+                    if self.product_range[0] > circrna_length or self.product_range[1] > circrna_length:
+                        print("Specified qPCR product size to large for circRNA \"%s\".\nCircRNA length:"
+                              " %d, product size: %d to %d." %
+                              (name, circrna_length, self.product_range[0], self.product_range[1]))
+                        exit(-1)
+
                     flanking_exon_cache[name] = {}
 
                     sep = "\t"
