@@ -171,6 +171,17 @@ class Primex(circ_module.circ_template.CircTemplate):
             # exit with -1 error if we can't use it
             exit(-1)
 
+        # let's first check if the temporary directory exists
+        if self.product_range and len(self.product_range) != 2:
+            print("Please specify a qPCR product range as range, e.g. \"-p 140 150\".")
+            # exit with -1 error if we can't use it
+            exit(-1)
+
+        if self.product_range[1] < self.product_range[0]:
+            print("qPCR product range has to be > 0.")
+            # exit with -1 error if we can't use it
+            exit(-1)
+
         circ_rna_number = 0
 
         # define temporary files
