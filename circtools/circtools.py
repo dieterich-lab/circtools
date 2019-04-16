@@ -317,6 +317,13 @@ class CircTools(object):
                            default=False,
                            action='store_true'
                            )
+        group.add_argument("-n",
+                           "--num-pairs",
+                           dest="num_pairs",
+                           help="Number of primer pairs to be designed",
+                           type=int,
+                           default=10
+                           )
 
         args = parser.parse_args(sys.argv[2:])
 

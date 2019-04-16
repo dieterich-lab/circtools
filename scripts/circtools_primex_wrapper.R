@@ -12,6 +12,8 @@ args <- commandArgs(trailingOnly = TRUE)
 data_file_name <- args[1]
 product_size <- unlist(lapply(strsplit(args[2],","), as.numeric))
 junction_mode <- args[3]
+num_pairs <- args[4]
+
 
 # open file for reading
 con  <- file(data_file_name, open = "r")
@@ -67,7 +69,7 @@ while (length(current_line <- readLines(con, n = 1, warn = FALSE)) > 0) {
     }
 
     # return 10 pairs at max
-    seqOpts$PRIMER_NUM_RETURN = 10
+    seqOpts$PRIMER_NUM_RETURN = num_pairs
 
     # mute primer3 output, we only want the variable later
     sink("/dev/null")
