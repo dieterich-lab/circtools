@@ -17,6 +17,12 @@
 
 # this is a workaround in order to be able to install R packages as regular user
 
+USER_DIR=~/.R/
+
 if [ ! -f ~/.Renviron ]; then
-    echo "R_LIBS=~/.R/" >> ~/.Renviron
+    echo "R_LIBS_USER=~/.R/" >> ~/.Renviron
+fi
+
+if [ ! -d "$USER_DIR" ]; then
+  mkdir ~/.R/
 fi
