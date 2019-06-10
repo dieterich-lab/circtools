@@ -15,12 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-# set mirrors
-source("https://bioconductor.statistik.tu-dortmund.de/biocLite.R")
-options(repos = c(CRAN = "https://cran.uni-muenster.de/"))
-biocLite()
-
+# we need these packages
 pkgs <- c(
     "aod",
     "ballgown",
@@ -48,10 +43,32 @@ pkgs <- c(
     "EnsDb.Hsapiens.v86"
 )
 
+# set mirror
+options(repos = c(CRAN = "https://cran.uni-muenster.de/"))
+
 # check if devtools is already installed
 pkgs <- pkgs[!pkgs %in% installed.packages()[,1]]
-if (length(pkgs) > 0)
-  biocLite(pkgs)
+
+print("R minor version:")
+
+print(as.numeric(strsplit(version[['minor']], '')[[1]][[1]]) )
+
+# new installer caller for R >3.6.0
+if (as.numeric(strsplit(version[['minor']], '')[[1]][[1]]) >= 6){
+
+    if (!requireNamespace("BiocManager", quietly = TRUE))
+        install.packages("BiocManager")
+
+        if (length(pkgs) > 0)
+            BiocManager::install(pkgs)
+
+} else {
+    source("https://bioconductor.statistik.tu-dortmund.de/biocLite.R")
+    biocLite()
+
+    if (length(pkgs) > 0)
+        biocLite(pkgs)
+}
 
 # load devtools library
 library(devtools)
