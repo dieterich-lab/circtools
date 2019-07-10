@@ -24,4 +24,4 @@ fi
 
 ITER=$2
 
-awk -F '\t' "{{print FILENAME"\t"\$0}}" *.csv | sed 's/_.*$ITER_.*.csv//g' | grep -v circRNA_host_gene > $3/$4
+awk -F '\t' "{{print FILENAME"\t"\$0}}" $1/*.csv | sed 's/_.*$ITER_.*.csv//g' | grep -v circRNA_host_gene > $3/$4
