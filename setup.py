@@ -209,6 +209,7 @@ setup(
         'scripts/circtools',
         'scripts/circtools_detect_write_skip_tracks.pl',
         'scripts/circtools_enrich_visualization.R',
+        'scripts/circtools_merge_enrich_results.sh',
         'scripts/circtools_quickcheck_wrapper.R',
         'scripts/circtools_reconstruct_visualization.R',
         'scripts/circtools_primex_wrapper.R',
