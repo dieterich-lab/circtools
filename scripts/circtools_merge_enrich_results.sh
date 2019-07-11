@@ -22,6 +22,4 @@ if [ ! $# == 4 ]; then
   exit
 fi
 
-ITER=$2
-
-awk -F '\t' "{{print FILENAME"\t"\$0}}" $1/*.csv | sed 's/_.*$ITER_.*.csv//g' | grep -v circRNA_host_gene > $3/$4
+awk -v OFS='\t' -F '\t' '{print FILENAME,$0}' $1/*.csv |  sed "s/_${2}_.*.csv//g" | sed "s~$1~~" | sed "s~/~~" | grep -v circRNA_host_gene > $3/$4
