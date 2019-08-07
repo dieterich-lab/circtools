@@ -51,6 +51,7 @@ class CircTools(object):
 
                enrich:       circular RNA RBP enrichment scan
                primex:       circular RNA primer design tool
+               sirna:        circular RNA sirna design tool
                detect:       circular RNA detection with DCC
                reconstruct:  circular RNA reconstruction with FUCHS
                circtest:     circular RNA statistical testing
