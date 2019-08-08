@@ -384,39 +384,53 @@ class CircTools(object):
         group.add_argument("-fp",
                            "--find_parameter",
                            dest="findParameter",
-                           help="Rule used to find siRNA (0 for Ui-Tei, 1 for Reynolds, 2 for multi-length search mode (Ui-Tei))")
-        
-        
+                           help="Rule used to find siRNA (0 for Ui-Tei, 1 for Reynolds, 2 for multi-length search mode (Ui-Tei))",
+                           type=int,
+                           default=0
+                           )
+         
         group.add_argument("-op",
                            "--overlap_parameter",
                            dest="overlapParameter",
-                           help="Number of base pairs all siRNAs have to overlap the BSJ by")
+                           help="Number of base pairs all siRNAs have to overlap the BSJ by",
+                           type=int,
+                           default=3)
         
         group.add_argument("-gl",
                            "--G_repeat_length",
                            dest="GLength",
-                           help="Maximum number of consecutive Gs in an siRNA sequence that will be tolerated")
+                           help="Maximum number of consecutive Gs in an siRNA sequence that will be tolerated",
+                           type=int,
+                           default=4)
         
         group.add_argument("-tl",
                            "--T_repeat_length",
                            dest="TLength",
-                           help="Maximum number of consecutive Ts in an siRNA sequence that will be tolerated")
+                           help="Maximum number of consecutive Ts in an siRNA sequence that will be tolerated",
+                           type=int,
+                           default=4)
         
         group.add_argument("-al",
                            "--A_repeat_length",
                            dest="ALength",
-                           help="Maximum number of consecutive As in an siRNA sequence that will be tolerated")
+                           help="Maximum number of consecutive As in an siRNA sequence that will be tolerated",
+                           type=int,
+                           default=4)
         
         group.add_argument("-mt",
                            "--Mismatch_tolerance",
                            dest="mismatchTolerance",
-                           help="Minimum number of mismatches a siRNA has to have against blast results")
+                           help="Minimum number of mismatches a siRNA has to have against blast results",
+                           type=int,
+                           default=2)
         
         group.add_argument("-mthr",
                            "--Mismatch_threshhold",
                            dest="mismatchThreshhold",
                            help="Maximum number of blast results complementary to siRNA (containing fewer mismatches " 
-                                  "than mismatch tolerance) that will be tolerated")
+                                  "than mismatch tolerance) that will be tolerated",
+                           type=int,
+                           default=2)
         
         group.add_argument("-sm",
                            "--Seed_mismatch",
@@ -426,7 +440,9 @@ class CircTools(object):
         group.add_argument("-hp",
                            "--overhang_parameter",
                            dest="overhangParameter",
-                           help="Determines the type of overhang that is added to the siRNA")
+                           help="Determines the type of overhang that is added to the siRNA",
+                           type=int,
+                           )
         
         
         

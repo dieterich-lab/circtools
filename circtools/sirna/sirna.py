@@ -39,7 +39,9 @@ class Sirna(circ_module.circ_template.CircTemplate):
         self.id_list = self.cli_params.id_list
         self.input_circRNA = self.cli_params.sequence_file
         
+        self.experiment_title = self.cli_params.experiment_title
         self.temp_dir = self.cli_params.global_temp_dir
+        self.output_dir = self.cli_params.output_dir
         
         self.target = self.cli_params.target
 
@@ -55,6 +57,7 @@ class Sirna(circ_module.circ_template.CircTemplate):
         self.blast_xml_tmp = self.temp_dir + "circtools_blast_results.xml"
         self.delNum_blast = 0
         self.hitlist_size = 10
+        self.sirnacsv = self.temp_dir + "sirna.csv"
 
         #define user-defined values
         self.find_parameter = self.cli_params.findParameter
@@ -64,13 +67,11 @@ class Sirna(circ_module.circ_template.CircTemplate):
         self.A_length = self.cli_params.ALength
         self.delNum_length = 0
         
-        self.blast = self.cli_params.blast
+        self.no_blast = self.cli_params.blast
         self.mismatch_tolerance = self.cli_params.mismatchTolerance
         self.mismatch_threshhold = self.cli_params.mismatchThreshhold
         self.seed_mismatch = self.cli_params.seedMismatch
         self.overhang_parameter = self.cli_params.overhangParameter
-        
-        self.output_html_file = "testing.html"
 
 
         # define reference dicts
@@ -153,17 +154,17 @@ class Sirna(circ_module.circ_template.CircTemplate):
         #        lines = f.read().splitlines()
         #    self.id_list = lines
 
-            # let's first check if the temporary directory exists
-        #if not (os.access(self.temp_dir, os.W_OK)):
-        #    print("Temporary directory %s not writable." % self.temp_dir)
+        #let's first check if the temporary directory exists
+        if not (os.access(self.temp_dir, os.W_OK)):
+            print("Temporary directory %s not writable." % self.temp_dir)
             # exit with -1 error if we can't use it
-        #    exit(-1)
+            exit(-1)
 
-            # let's first check if the temporary directory exists
-        #if not (os.access(self.output_dir, os.W_OK)):
-        #    print("Output directory %s not writable." % self.output_dir)
+        # let's first check if the output directory exists
+        if not (os.access(self.output_dir, os.W_OK)):
+            print("Output directory %s not writable." % self.output_dir)
             # exit with -1 error if we can't use it
-        #    exit(-1)
+            exit(-1)
 
         circ_rna_number = 0
 
@@ -184,9 +185,11 @@ class Sirna(circ_module.circ_template.CircTemplate):
 
                 # from the FASTA file we cannot tell the coordinates of the circRNA
                 name = str(record.id)+"_0_0_"+str(len(record.seq))+"_0"
-
+                
                 #data_store.write("\t".join([name, str(record.seq), "", "\n"]))
-                self.exon_cache[name] = {1: str(record.seq), 2: ""}
+                seq = str(record.seq)
+                bsj = seq[-31:] + seq[0:31]
+                self.exon_cache[name] = {1: str(record.seq), 2: "", 3: bsj}
 
                 #bsj = exon1[-31:] + exon2[0:31]
 
@@ -766,7 +769,7 @@ class Sirna(circ_module.circ_template.CircTemplate):
                     ##show position of mismatches
             blasts = {'Alignment':alignStorage, 'Blast Info':blastStorage}
             blastDf = DataFrame(blasts, columns=['Alignment', 'Blast Info'])
-            blastDf.to_html('blastTest' + mysiRNA + '.html', index = False)
+            #blastDf.to_html('blastTest' + mysiRNA + '.html', index = False)
             
             #add weighting of mismatches - mismatches closer to 5' end are more significant
             if mismatchCount >= self.mismatch_threshhold:
@@ -805,37 +808,45 @@ class Sirna(circ_module.circ_template.CircTemplate):
         #for circ in self.siRNA_to_circ_cache:
         scoresDf = self.siRNA_to_circ_cache[circ][1]
         totalRows = len(scoresDf.index)
-        if self.blast == True:
+        if self.no_blast == False:
             blastList = []
             for x in scoresDf['siRNA']:
                 blastNum = self.siRNA_blast_cache[x]
                 blastList.append(blastNum)
-        if self.blast == False:
+        if self.no_blast == True:
             blastList = []
             for i in range (0, totalRows, 1):
                 blastList.append("N/A")
+        newStrandList = []
         if self.overhang_parameter == 0:
             for x in scoresDf['siRNA']:
                 newString = x+"UU"
                 tempString = x+"UU"
                 sense = self.reverseComplementRNA(x)
-                sense = "  " + sense+"UU"
-                newString  = "  " + newString + "_" + sense
-                scoresDf = scoresDf.replace(x, newString)
+                sense = sense+"UU"
+                newString  = "Guide: " + newString + "<br>" + "Passenger: " + sense
+                newStrandList.append(newString)
+                #scoresDf = scoresDf.replace(x, newString)
                 #self.siRNA_to_circ_cache[circ][1] = self.siRNA_to_circ_cache[circ][1].replace(x, tempString)
-        if self.overhang_parameter == 1:
+        elif self.overhang_parameter == 1:
             for x in scoresDf['siRNA']:
                 newString = x+"TT"
                 tempString =x+"TT"
                 sense = self.reverseComplementRNA(x)
-                sense = "  " + sense+"TT"
-                newString  = "  " + newString + "_" + sense
-                scoresDf = scoresDf.replace(x, newString)
+                sense = sense+"TT"
+                newString  = "Guide: " + newString + "<br>" + "Passenger: " + sense
+                newStrandList.append(newString)
+                #scoresDf = scoresDf.replace(x, newString)
                 #self.siRNA_to_circ_cache[circ][1] = self.siRNA_to_circ_cache[circ][1].replace(x, tempString)
         #if scoresDf.empty:
             #print("Could not find any siRNAs targeting " + circ)
             #empty = True
-            #continue
+            #continuei
+        else:
+            for x in scoresDf['siRNA']:
+                sense = self.reverseComplementRNA(x)
+                newString = "Guide: " + x + "<br>" + "Passenger: " + sense
+                newStrandList.append(newString)
         geneParams = circ.split('_')
         
         strandList = []
@@ -859,7 +870,8 @@ class Sirna(circ_module.circ_template.CircTemplate):
         scoresDf.insert(0, 'Annot', annotList)
         scoresDf.insert(7, 'Rule', ruleList)
         scoresDf.insert(8, 'Blast', blastList)
-        scoresDf.rename(columns={'siRNA':'Anti-sense Guide siRNA'}, inplace=True)
+        scoresDf.insert(5, 'newsiRNA', newStrandList)
+        #scoresDf.rename(columns={'siRNA':'Anti-sense Guide siRNA'}, inplace=True)
         dfList.append(scoresDf)
        # if empty:
         #    print("Try running in a different mode or relaxing the input parameters")
@@ -867,17 +879,18 @@ class Sirna(circ_module.circ_template.CircTemplate):
         
     def writeOutput(self, totalDf):
         # let's first check if the temporary directory exists
-        if not (os.access(self.temp_dir, os.W_OK)):
-            print("Temporary directory %s not writable." % self.temp_dir)
+       # if not (os.access(self.temp_dir, os.W_OK)):
+        #    print("Temporary directory %s not writable." % self.temp_dir)
             # exit with -1 error if we can't use it
-            exit(-1)
+        #    exit(-1)
             
         testCsv = totalDf.to_csv()
-        with open("siRNA.csv", "w") as siRNA_file:
+        with open(self.sirnacsv, "w") as siRNA_file:
             siRNA_file.write(testCsv)
-
-        subprocess.check_output(['Rscript', "/prj/sandeep_internship/results/siRNA_Formatter.R", "siRNA.csv"])
-        outputFile.close()
+        blast_r = "True"
+        if self.no_blast:
+            blast_r = "False"
+        subprocess.check_output(['Rscript', "../scripts/circtools_sirna_formatter.R", self.sirnacsv, blast_r, self.output_dir, self.experiment_title])
     
     def drawsiRNA(self, circ):
         if circ in self.exon_cache:
@@ -931,12 +944,13 @@ class Sirna(circ_module.circ_template.CircTemplate):
                 
                 gdd.draw(format='linear', pagesize=(600, 600), track_size=0.3, tracklines=0, x=0.00, 
                          y=0.00, start=0, end=exon1_length+exon2_length)
-                if self.overhang_parameter == 0:
-                    gdd.write(circ + siRNA + "UU"+".svg", "svg")
-                elif self.overhang_parameter == 1:
-                    gdd.write(circ + siRNA + "TT"+".svg", "svg")
-                else:
-                    gdd.write(circ + siRNA +".svg", "svg")
+                gdd.write(self.output_dir+circ+siRNA+".svg","svg")
+                #if self.overhang_parameter == 0:
+                #    gdd.write(self.output_dir + circ + siRNA + "UU"+".svg", "svg")
+                #elif self.overhang_parameter == 1:
+                #    gdd.write(self.output_dir + circ + siRNA + "TT"+".svg", "svg")
+                #else:
+                #    gdd.write(self.ouput_dir + circ + siRNA +".svg", "svg")
             
             
     def run_module(self):
@@ -975,7 +989,7 @@ class Sirna(circ_module.circ_template.CircTemplate):
             self.calculateThermodynamicStability(circ)
         for circ in self.siRNA_to_circ_cache:
             self.createBlastInputFile(circ)
-        if self.blast == True:
+        if self.no_blast == False:
             self.runBlast()
             print(str(self.delNum_blast) + " siRNAs were eliminated in the blast step")
         empty = False
