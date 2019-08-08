@@ -392,7 +392,7 @@ class CircTools(object):
         group.add_argument("-op",
                            "--overlap_parameter",
                            dest="overlapParameter",
-                           help="Number of base pairs all siRNAs have to overlap the BSJ by",
+                           help="Minimum number of base pair overlap over the BSJ for all siRNAs",
                            type=int,
                            default=3)
         
@@ -420,7 +420,7 @@ class CircTools(object):
         group.add_argument("-mt",
                            "--Mismatch_tolerance",
                            dest="mismatchTolerance",
-                           help="Minimum number of mismatches a siRNA has to have against blast results",
+                           help="Minimum number of mismatches a siRNA has to have against each blast result",
                            type=int,
                            default=2)
         
@@ -435,13 +435,15 @@ class CircTools(object):
         group.add_argument("-sm",
                            "--Seed_mismatch",
                            dest="seedMismatch",
-                           help="")
+                           help="If chosen, this option means that the minimum number of mismatches (mismatch tolerance) must be in the seed region of the siRNA",
+                           default = False,
+                           action='store_true')
         
         group.add_argument("-hp",
                            "--overhang_parameter",
                            dest="overhangParameter",
-                           help="Determines the type of overhang that is added to the siRNA",
-                           type=int,
+                           help="Determines the type of overhang that is added to the siRNA (0 for UU overhang, 1 for TT overhang, blank for no overhang)",
+                           type=int
                            )
         
         
@@ -501,7 +503,7 @@ class CircTools(object):
         group.add_argument("-b",
                            "--no-blast",
                            dest="blast",
-                           help="Should siRNAs be BLASTED?",
+                           help="Should siRNAs be BLASTED? (Choosing this option means siRNAs won't be blasted)",
                            default=False,
                            action='store_true'
                            )
