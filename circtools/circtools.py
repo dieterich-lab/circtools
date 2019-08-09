@@ -477,7 +477,7 @@ class CircTools(object):
         group.add_argument("-tr",
                            "--target",
                            dest="target",
-                           help="Which strand the siRNA should target (anti-sense or sense)",
+                           help="Which strand the siRNA should target (ex: supplying anti-sense creates an anti-sense guide RNA targeting the sense strand)",
                            default="anti-sense"
                            )
 
@@ -486,7 +486,7 @@ class CircTools(object):
                            dest="gene_list",
                            help="Space-separated list of host gene names. siRNAs for CircRNAs of those genes will be "
                                 "designed."
-                                "E.g. -G \"CAMSAP1\" \"RYR2\"",
+                                "E.g. -G \"Camsap1\" \"Ryr2\"",
                            required=False,
                            nargs='+'
                            )

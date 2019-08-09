@@ -38,6 +38,10 @@ class Sirna(circ_module.circ_template.CircTemplate):
         self.gene_list = self.cli_params.gene_list
         self.id_list = self.cli_params.id_list
         self.input_circRNA = self.cli_params.sequence_file
+
+        if self.id_list and self.gene_list:
+            print("Please specify either host genes via -G or circRNA IDs via -i.")
+            sys.exit(-1)
         
         self.experiment_title = self.cli_params.experiment_title
         self.temp_dir = self.cli_params.global_temp_dir
@@ -49,7 +53,6 @@ class Sirna(circ_module.circ_template.CircTemplate):
         self.exon_cache = {}
         self.flanking_exon_cache = {}
         self.siRNA_to_circ_cache = {}
-        #blast storage cache?
         self.siRNA_data_cache = {}
         self.siRNA_blast_cache = {}
         
@@ -148,11 +151,11 @@ class Sirna(circ_module.circ_template.CircTemplate):
                                                      o="distinct,distinct,distinct")  # group
 
     def extractSequence(self):
-        #if self.id_list and os.access(self.id_list[0], os.R_OK):
-        #    print("Detected supplied circRNA ID file.")
-        #    with open(self.id_list[0]) as f:
-        #        lines = f.read().splitlines()
-        #    self.id_list = lines
+        if self.id_list and os.access(self.id_list[0], os.R_OK):
+            print("Detected supplied circRNA ID file.")
+            with open(self.id_list[0]) as f:
+                lines = f.read().splitlines()
+            self.id_list = lines
 
         #let's first check if the temporary directory exists
         if not (os.access(self.temp_dir, os.W_OK)):
@@ -167,18 +170,7 @@ class Sirna(circ_module.circ_template.CircTemplate):
             exit(-1)
 
         circ_rna_number = 0
-
-        # define temporary files
-        #exon_storage_tmp = self.temp_dir + "circtools_flanking_exons.tmp"
-        #blast_storage_tmp = self.temp_dir + "circtools_blast_results.tmp"
-       # blast_xml_tmp = self.temp_dir + "circtools_blast_results.xml"
-
-        #output_html_file = self.output_dir + self.experiment_title.replace(" ", "_") + ".html"
-
-        # erase old contents
-        #open(exon_storage_tmp, 'w').close()
         
-        ##FIGURE OUT HOW TO DEAL WITH INPUT FASTA SEQUENCE
         if self.input_circRNA:
             from Bio import SeqIO
             for record in SeqIO.parse(self.input_circRNA, "fasta"):
@@ -190,10 +182,6 @@ class Sirna(circ_module.circ_template.CircTemplate):
                 seq = str(record.seq)
                 bsj = seq[-31:] + seq[0:31]
                 self.exon_cache[name] = {1: str(record.seq), 2: "", 3: bsj}
-
-                #bsj = exon1[-31:] + exon2[0:31]
-
-                #self.exon_cache[name] = {1: exon1, 2: exon2, 3: bsj}
                 
         else:
             exons = self.read_annotation_file(self.gtf_file, entity="exon")
@@ -213,7 +201,6 @@ class Sirna(circ_module.circ_template.CircTemplate):
                     if current_line[3] == "not_annotated":
                         continue
 
-                    #not id_list??
                     if self.gene_list and not self.id_list and current_line[3] not in self.gene_list:
                         continue
 
@@ -308,7 +295,7 @@ class Sirna(circ_module.circ_template.CircTemplate):
                         exon1 = exon2
                         exon2 = ""
 
-                    # double check values
+                    # sequence from which potential siRNAs can be extracted 
                     bsj = exon1[-31:] + exon2[0:31]
 
                     self.exon_cache[name] = {1: exon1, 2: exon2, 3: bsj}
@@ -383,13 +370,11 @@ class Sirna(circ_module.circ_template.CircTemplate):
                 y = sampleString[(startPosition + 18):endPosition]
                 if y == "G" or y == "C":
                     myRNA = sampleString[startPosition:endPosition]
-                    # make more efficient by substringing the exon_storage entry
-                    # (have to change BSJPosition location too)
-                    # the start/end position limitations were arbitrary, need to figure that out too
+
                     if startPosition < (BSJPOSITION-self.overlap_parameter+1) and endPosition > (BSJPOSITION+self.overlap_parameter):
                         if len(myRNA) == 19:
                             ##TARGETING ANTI-SENSE -- CHECK RAT SLC8A1
-                            myRNA = self.complementRNA(myRNA)
+                            #myRNA = self.complementRNA(myRNA)
                             siRNAList.append(myRNA)
             startPosition = startPosition + 1
             endPosition = startPosition + 19
@@ -407,7 +392,7 @@ class Sirna(circ_module.circ_template.CircTemplate):
                 myRNA = sampleString[startPosition:endPosition]
                 if startPosition < (BSJPOSITION-self.overlap_parameter+1) and endPosition > (BSJPOSITION+self.overlap_parameter):
                     if len(myRNA) == 19:
-                        myRNA = self.complementRNA(myRNA)
+                        #myRNA = self.complementRNA(myRNA)
                         siRNAList.append(myRNA)
             startPosition = startPosition + 1
             endPosition = startPosition + 19
@@ -430,7 +415,7 @@ class Sirna(circ_module.circ_template.CircTemplate):
                     # (have to change BSJPosition location too)
                     # the start/end position limitations were arbitrary, need to figure that out too
                     if startPosition < (BSJPOSITION-self.overlap_parameter+1) and endPosition > (BSJPOSITION+self.overlap_parameter):
-                        myRNA = self.complementRNA(myRNA)
+                        #myRNA = self.complementRNA(myRNA)
                         siRNAList.append(myRNA)
             startPosition = startPosition + 1
             endPosition = startPosition + 19
@@ -675,7 +660,7 @@ class Sirna(circ_module.circ_template.CircTemplate):
             blast_db = self.rattus_norvegicus_blast_db
 
         print("Running blast...")
-        # double check the other arguments in the qblast call (do I need them?)
+        # double check the other arguments in the qblast call
         return_handle2 = NCBIWWW.qblast("blastn",
                                        blast_db,
                                        input_file,
@@ -693,8 +678,6 @@ class Sirna(circ_module.circ_template.CircTemplate):
             self.blast_input_file += "\n>" + mysiRNA + "$" + circ + "\n" + mysiRNA
 
     def runBlast(self):
-        #BLAST FOR SEED-DEPENDENT OFF-TARGET EFFECTS??
-        #Only blast top 5 or top 10 candidates from list (and change seed stability to a scoring option)
 
         #for circ in self.siRNA_to_circ_cache:
         #siRNAList = self.siRNA_to_circ_cache[circ]['siRNA'].tolist()
@@ -720,9 +703,7 @@ class Sirna(circ_module.circ_template.CircTemplate):
             mysiRNA = queryTitle[0]
             circ = queryTitle[1]
             blastCount = 0
-            # Need to figure out what the right threshhold is (also based on length of query and size of database?)
-            # probably should make it a user-specified value
-            # or maybe filter based on number of mismatches
+            # E-value threshhold not used currently, correct threshhold value based on length of query and size of database?
             E_VALUE_THRESH = 10
             #low complexity filter?
             #for alignment in blast_record.alignments:
@@ -740,23 +721,21 @@ class Sirna(circ_module.circ_template.CircTemplate):
                     mismatches = len(mysiRNA) - hsp.identities
                     ##count indels too
                     seedMismatches = 0
-                    #hsp.match that's empty??
-                    #do what with seed mismatches
+                    #hsp.match that's empty - potential bug
                     for match in hsp.match[0:9]:
                         if match != "|":
                             seedMismatches += 1
                     
-                    if self.seed_mismatch == 0:
+                    if self.seed_mismatch == True:
                         if seedMismatches <= self.mismatch_tolerance:
                             mismatchCount += 1
                     
-                    if self.seed_mismatch == 1:
+                    if self.seed_mismatch == False:
                         if mismatches <= self.mismatch_tolerance:
                             mismatchCount += 1
                             
                     blastString = ""
                     alignString = ""
-                    #print('mismatches: ' + str(mismatches))
                     blastString += '****Alignment****\n'
                     blastString += 'sequence:' + alignment.title + '\n'
                     blastString += 'length:' + str(alignment.length) + '\n'
@@ -798,10 +777,9 @@ class Sirna(circ_module.circ_template.CircTemplate):
             print("Try running in a different mode or relaxing the input parameters")
         else:
             print("Showing siRNAs and their scores for " + circ)
-            #print(scoresDF.toString())
     
     #writes output to an HTML
-    #conversely write to csv file?
+    #add method for converting to a csv or pdf file
     def createOutput(self, circ, dfList):
         
         #empty = False
@@ -960,10 +938,10 @@ class Sirna(circ_module.circ_template.CircTemplate):
         #convert the circRNA sequence into a sequence from which potential siRNAs can be extracted
         if self.target == "anti-sense":
             for circ in self.exon_cache:
-                self.DNAtoRNA(circ)
+                self.reverseComplement(circ)
         if self.target == "sense":
             for circ in self.exon_cache:
-                self.reverseComplement(circ)
+                self.DNAtoRNA(circ)
         print("Finding siRNAs...")
         
         #extract potential siRNA sequences
@@ -1013,11 +991,6 @@ class Sirna(circ_module.circ_template.CircTemplate):
             
             #fix threshhold value of 30
             print("A score above 50 represents an effective siRNA")
-            
-        
-#myFinder = SiRNA("Ryr2", None, "mm", 0, 3, 4, 4, 4, 0, 1, 1, 1, 21.5, 0)
-#myFinder.run_module()
 
-#method for outputing parameters for inputed siRNA
-
-        
+#method for outputing good features (silencing score, etc.) of an input siRNA
+ 
