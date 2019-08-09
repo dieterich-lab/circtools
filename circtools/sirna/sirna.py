@@ -39,6 +39,10 @@ class Sirna(circ_module.circ_template.CircTemplate):
         self.id_list = self.cli_params.id_list
         self.input_circRNA = self.cli_params.sequence_file
         
+        if self.id_list and self.gene_list:
+            print("Please specify either host genes via -G or circRNA IDs via -i.")
+            sys.exit(-1)
+
         self.experiment_title = self.cli_params.experiment_title
         self.temp_dir = self.cli_params.global_temp_dir
         self.output_dir = self.cli_params.output_dir
