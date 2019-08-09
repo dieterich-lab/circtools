@@ -617,7 +617,6 @@ class Sirna(circ_module.circ_template.CircTemplate):
         scoreList = []
         for a in siRNAList:
             scoreFindParameter = self.siRNA_findParameter_cache[a]
-            print("circ: " + circ + "findParameter: " + str(scoreFindParameter))
             tempScore = self.calculateScore(a, scoreFindParameter)
             scoreList.append(tempScore)
         scores = {'siRNA': siRNAList, 'Silencing Score': scoreList}
@@ -950,7 +949,7 @@ class Sirna(circ_module.circ_template.CircTemplate):
         #extract potential siRNA sequences
         for circ in self.exon_cache:
             self.findsiRNAs(circ)
-            if not self.siRNA_to_circ_cache[circ][1] and self.find_parameter == 0:
+            if not self.siRNA_to_circ_cache[circ][1] and (self.find_parameter == 0 or self.find_parameter == 2):
                 print("Could not find any siRNAs for " + circ + " using the Ui-Tei rule")
                 print("Finding siRNAs using Reynolds rule")
                 self.findsiRNAsReynolds(circ)
