@@ -280,7 +280,7 @@ class Sirna(circ_module.circ_template.CircTemplate):
                     exon1 = ""
                     exon2 = ""
 
-                    # double check the naming of the exons (for example the "\n" stuff)
+
                     if virtual_bed_file_start:
                         exon1 = open(virtual_bed_file_start.seqfn).read().split("\n", 1)[1].rstrip()
 
@@ -392,33 +392,20 @@ class Sirna(circ_module.circ_template.CircTemplate):
                 myRNA = sampleString[startPosition:endPosition]
                 if startPosition < (BSJPOSITION-self.overlap_parameter+1) and endPosition > (BSJPOSITION+self.overlap_parameter):
                     if len(myRNA) == 19:
-                        #myRNA = self.complementRNA(myRNA)
                         siRNAList.append(myRNA)
                         self.siRNA_findParameter_cache[myRNA] = {1}
             startPosition = startPosition + 1
             endPosition = startPosition + 19
         self.siRNA_to_circ_cache[circ] = {1: siRNAList, 2: 'Reynolds'}
 
-    #Currently using same 19nt Ui-Tei scoring mechanism - scoring may need to change
+    #Currently using same 19nt Ui-Tei scoring mechanism - may need to create multi-length scoring method
     def findsiRNAs_multiLength(self, circ):
-        #for circ in self.exon_cache:
 
         siRNAList = []
         startPosition = 0
         endPosition = 19
         BSJPOSITION = 29
         sampleString = self.exon_cache[circ][3]
-       # for x in sampleString:
-       #     if x == "A" or x == "U":
-       #         y = sampleString[(startPosition + 18):endPosition]
-       #         if y == "G" or y == "C":
-       #             myRNA = sampleString[startPosition:endPosition]
-       #             if startPosition < (BSJPOSITION-self.overlap_parameter+1) and endPosition > (BSJPOSITION+self.overlap_parameter):
-                        #myRNA = self.complementRNA(myRNA)
-       #                 siRNAList.append(myRNA)
-       #                 self.siRNA_findParameter_cache[myRNA] = {2}
-       #     startPosition = startPosition + 1
-       #     endPosition = startPosition + 19
 
         for x in sampleString:
             if x == "A" or x == "U":
@@ -548,7 +535,7 @@ class Sirna(circ_module.circ_template.CircTemplate):
     def calculateScoreUiTei(self, rna_string):
         rnaString = rna_string
         score = 0
-        #double check these values
+
         thirdString = rnaString[0:6]
         thirdAUContent = self.calculateAUContent(thirdString)
         if thirdAUContent > .5:
@@ -558,7 +545,7 @@ class Sirna(circ_module.circ_template.CircTemplate):
         if thirdAUContent > .7:
             score = score + 5
 
-        #double check these values
+
         twoThirdString = rnaString[7:14]
         twoThirdGCContent = self.calculateGCContent(twoThirdString)
         if twoThirdGCContent > .5:
@@ -604,7 +591,7 @@ class Sirna(circ_module.circ_template.CircTemplate):
     #@staticmethod
     def calculateScore(self, rna_string, x):
         score = 0
-        #print("reached!" + "x: " + str(x))
+
         if x == 0:
             score = self.calculateScoreUiTei(rna_string)
         if x == 1:
@@ -730,6 +717,7 @@ class Sirna(circ_module.circ_template.CircTemplate):
                         if match != "|":
                             seedMismatches += 1
                     
+                    #Assuming mismatch tolerance isn't zero (if it is zero, some siRNAs may still be filtered out because of the <=) 
                     if self.seed_mismatch == True:
                         if seedMismatches <= self.mismatch_tolerance:
                             mismatchCount += 1
@@ -755,6 +743,7 @@ class Sirna(circ_module.circ_template.CircTemplate):
             #blastDf.to_html('blastTest' + mysiRNA + '.html', index = False)
             
             #add weighting of mismatches - mismatches closer to 5' end are more significant
+            #Assuming mismatch threshhold isn't zero (if it zero, some siRNAs may still be filtered out because of the >=)
             if mismatchCount >= self.mismatch_threshhold:
                 #siRNA_to_circ_cache[circ] = siRNA_to_circ_cache[circ].set_index("siRNA")
                 #siRNA_t o_circ_cache[circ].drop([mysiRNA], axis = 0)
@@ -774,7 +763,6 @@ class Sirna(circ_module.circ_template.CircTemplate):
 
     #create output method that shows which rules were satisfied by each siRNA etc. 
     def showOutput(self, circ):
-        #for circ in self.siRNA_to_circ_cache:
         scoresDF = self.siRNA_to_circ_cache[circ][1]
         if scoresDF.empty:
             print("Could not find any siRNAs targeting " + circ)
@@ -785,9 +773,7 @@ class Sirna(circ_module.circ_template.CircTemplate):
     #writes output to an HTML
     #add method for converting to a csv or pdf file
     def createOutput(self, circ, dfList):
-        
-        #empty = False
-        #for circ in self.siRNA_to_circ_cache:
+         
         scoresDf = self.siRNA_to_circ_cache[circ][1]
         totalRows = len(scoresDf.index)
         if self.no_blast == False:
@@ -820,10 +806,6 @@ class Sirna(circ_module.circ_template.CircTemplate):
                 newStrandList.append(newString)
                 #scoresDf = scoresDf.replace(x, newString)
                 #self.siRNA_to_circ_cache[circ][1] = self.siRNA_to_circ_cache[circ][1].replace(x, tempString)
-        #if scoresDf.empty:
-            #print("Could not find any siRNAs targeting " + circ)
-            #empty = True
-            #continuei
         else:
             for x in scoresDf['siRNA']:
                 sense = self.reverseComplementRNA(x)
@@ -855,16 +837,9 @@ class Sirna(circ_module.circ_template.CircTemplate):
         scoresDf.insert(5, 'newsiRNA', newStrandList)
         #scoresDf.rename(columns={'siRNA':'Anti-sense Guide siRNA'}, inplace=True)
         dfList.append(scoresDf)
-       # if empty:
-        #    print("Try running in a different mode or relaxing the input parameters")
 
         
     def writeOutput(self, totalDf):
-        # let's first check if the temporary directory exists
-       # if not (os.access(self.temp_dir, os.W_OK)):
-        #    print("Temporary directory %s not writable." % self.temp_dir)
-            # exit with -1 error if we can't use it
-        #    exit(-1)
             
         testCsv = totalDf.to_csv()
         with open(self.sirnacsv, "w") as siRNA_file:
@@ -884,8 +859,8 @@ class Sirna(circ_module.circ_template.CircTemplate):
             exon2_colour = "#ffac68"
             
             if exon2_length == 0:
-                exon1_length = int(len(self.exon_cache[circular_rna_id][1])/2)+1
-                exon2_length = int(len(self.exon_cache[circular_rna_id][1])/2)
+                exon1_length = int(len(self.exon_cache[circ][1])/2)+1
+                exon2_length = int(len(self.exon_cache[circ][1])/2)
                 exon2_colour = "#ff6877"
             siRNAList = self.siRNA_to_circ_cache[circ][1]['siRNA']
             for siRNA in siRNAList:
@@ -927,12 +902,6 @@ class Sirna(circ_module.circ_template.CircTemplate):
                 gdd.draw(format='linear', pagesize=(600, 600), track_size=0.3, tracklines=0, x=0.00, 
                          y=0.00, start=0, end=exon1_length+exon2_length)
                 gdd.write(self.output_dir+circ+siRNA+".svg","svg")
-                #if self.overhang_parameter == 0:
-                #    gdd.write(self.output_dir + circ + siRNA + "UU"+".svg", "svg")
-                #elif self.overhang_parameter == 1:
-                #    gdd.write(self.output_dir + circ + siRNA + "TT"+".svg", "svg")
-                #else:
-                #    gdd.write(self.ouput_dir + circ + siRNA +".svg", "svg")
             
             
     def run_module(self):
@@ -993,7 +962,6 @@ class Sirna(circ_module.circ_template.CircTemplate):
             totalDf = pd.concat(dfList)
             self.writeOutput(totalDf)
             
-            #fix threshhold value of 30
             print("A score above 50 represents an effective siRNA")
 
 #method for outputing good features (silencing score, etc.) of an input siRNA
