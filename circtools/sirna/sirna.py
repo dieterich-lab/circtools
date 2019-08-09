@@ -17,8 +17,6 @@ from IPython.display import HTML
 class Sirna(circ_module.circ_template.CircTemplate): 
 
     def __init__(self, argparse_arguments, program_name, version):
-
-        #create short and long mode
         
         self.cli_params = argparse_arguments
         self.program_name = program_name
@@ -401,6 +399,7 @@ class Sirna(circ_module.circ_template.CircTemplate):
             endPosition = startPosition + 19
         self.siRNA_to_circ_cache[circ] = {1: siRNAList, 2: 'Reynolds'}
 
+    #Currently using same 19nt Ui-Tei scoring mechanism - scoring may need to change
     def findsiRNAs_multiLength(self, circ):
         #for circ in self.exon_cache:
 
@@ -409,31 +408,28 @@ class Sirna(circ_module.circ_template.CircTemplate):
         endPosition = 19
         BSJPOSITION = 29
         sampleString = self.exon_cache[circ][3]
-        for x in sampleString:
-            if x == "A" or x == "U":
-                y = sampleString[(startPosition + 18):endPosition]
-                if y == "G" or y == "C":
-                    myRNA = sampleString[startPosition:endPosition]
-                    # make more efficient by substringing the exon_storage entry
-                    # (have to change BSJPosition location too)
-                    # the start/end position limitations were arbitrary, need to figure that out too
-                    if startPosition < (BSJPOSITION-self.overlap_parameter+1) and endPosition > (BSJPOSITION+self.overlap_parameter):
+       # for x in sampleString:
+       #     if x == "A" or x == "U":
+       #         y = sampleString[(startPosition + 18):endPosition]
+       #         if y == "G" or y == "C":
+       #             myRNA = sampleString[startPosition:endPosition]
+       #             if startPosition < (BSJPOSITION-self.overlap_parameter+1) and endPosition > (BSJPOSITION+self.overlap_parameter):
                         #myRNA = self.complementRNA(myRNA)
-                        siRNAList.append(myRNA)
-                        self.siRNA_findParameter_cache[myRNA] = {2}
-            startPosition = startPosition + 1
-            endPosition = startPosition + 19
+       #                 siRNAList.append(myRNA)
+       #                 self.siRNA_findParameter_cache[myRNA] = {2}
+       #     startPosition = startPosition + 1
+       #     endPosition = startPosition + 19
 
         for x in sampleString:
             if x == "A" or x == "U":
                 substring = sampleString[endPosition:(endPosition+9)]
                 for y in substring:
                     if y == "G" or y == "C":
-                        if startPosition < (BSJPOSITION - 3) and endPosition > (BSJPOSITION + 4):
-                            myRNA = sampleString[startPosition:(endPosition+1)]
-                            
+                        if startPosition < (BSJPOSITION - self.overlap_parameter+1) and endPosition > (BSJPOSITION + self.overlap_parameter):
+                            myRNA = sampleString[startPosition:(endPosition+1)] 
                             siRNAList.append(myRNA)
-                        endPosition = endPosition + 1
+                            self.siRNA_findParameter_cache[myRNA] = {2}
+                    endPosition = endPosition + 1
             startPosition = startPosition + 1
             endPosition = startPosition + 19
         self.siRNA_to_circ_cache[circ] = {1: siRNAList, 2: 'Ui-Tei'}
@@ -608,6 +604,7 @@ class Sirna(circ_module.circ_template.CircTemplate):
     #@staticmethod
     def calculateScore(self, rna_string, x):
         score = 0
+        #print("reached!" + "x: " + str(x))
         if x == 0:
             score = self.calculateScoreUiTei(rna_string)
         if x == 1:
@@ -620,7 +617,8 @@ class Sirna(circ_module.circ_template.CircTemplate):
         siRNAList = self.siRNA_to_circ_cache[circ][1]
         scoreList = []
         for a in siRNAList:
-            scoreFindParameter = self.siRNA_findParameter_cache[a]
+            for b in self.siRNA_findParameter_cache[a]:
+                scoreFindParameter = b
             tempScore = self.calculateScore(a, scoreFindParameter)
             scoreList.append(tempScore)
         scores = {'siRNA': siRNAList, 'Silencing Score': scoreList}
