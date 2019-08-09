@@ -38,10 +38,6 @@ class Sirna(circ_module.circ_template.CircTemplate):
         self.gene_list = self.cli_params.gene_list
         self.id_list = self.cli_params.id_list
         self.input_circRNA = self.cli_params.sequence_file
-
-        if self.id_list and self.gene_list:
-            print("Please specify either host genes via -G or circRNA IDs via -i.")
-            sys.exit(-1)
         
         self.experiment_title = self.cli_params.experiment_title
         self.temp_dir = self.cli_params.global_temp_dir
@@ -55,7 +51,8 @@ class Sirna(circ_module.circ_template.CircTemplate):
         self.siRNA_to_circ_cache = {}
         self.siRNA_data_cache = {}
         self.siRNA_blast_cache = {}
-        
+        self.siRNA_findParameter_cache = {}
+
         self.blast_input_file = ""
         self.blast_xml_tmp = self.temp_dir + "circtools_blast_results.xml"
         self.delNum_blast = 0
@@ -373,9 +370,10 @@ class Sirna(circ_module.circ_template.CircTemplate):
 
                     if startPosition < (BSJPOSITION-self.overlap_parameter+1) and endPosition > (BSJPOSITION+self.overlap_parameter):
                         if len(myRNA) == 19:
-                            ##TARGETING ANTI-SENSE -- CHECK RAT SLC8A1
                             #myRNA = self.complementRNA(myRNA)
                             siRNAList.append(myRNA)
+                            #Assuming all siRNAs for all circs are unique, no overwriting of the same key should occur (Length of 19 should be sufficient to ensure uniqueness)
+                            self.siRNA_findParameter_cache[myRNA] = {0}
             startPosition = startPosition + 1
             endPosition = startPosition + 19
         self.siRNA_to_circ_cache[circ] = {1: siRNAList, 2: 'Ui-Tei'}
@@ -394,6 +392,7 @@ class Sirna(circ_module.circ_template.CircTemplate):
                     if len(myRNA) == 19:
                         #myRNA = self.complementRNA(myRNA)
                         siRNAList.append(myRNA)
+                        self.siRNA_findParameter_cache[myRNA] = {1}
             startPosition = startPosition + 1
             endPosition = startPosition + 19
         self.siRNA_to_circ_cache[circ] = {1: siRNAList, 2: 'Reynolds'}
@@ -417,6 +416,7 @@ class Sirna(circ_module.circ_template.CircTemplate):
                     if startPosition < (BSJPOSITION-self.overlap_parameter+1) and endPosition > (BSJPOSITION+self.overlap_parameter):
                         #myRNA = self.complementRNA(myRNA)
                         siRNAList.append(myRNA)
+                        self.siRNA_findParameter_cache[myRNA] = {2}
             startPosition = startPosition + 1
             endPosition = startPosition + 19
 
@@ -582,10 +582,10 @@ class Sirna(circ_module.circ_template.CircTemplate):
     def calculateScoreReynolds(self, rna_string):
         score = 0
         rnaString = rna_string
-        GCContent = calculateGCContent(rnaString)
+        GCContent = self.calculateGCContent(rnaString)
         if GCContent > .32 and GCContent < .50:
             score = score + 25
-        initialAUContent = calculateAUContent(rnaString[0:5])
+        initialAUContent = self.calculateAUContent(rnaString[0:5])
         if initialAUContent >= .60:
             score = score + 25
         if rnaString[0:1] == "A":
@@ -599,6 +599,7 @@ class Sirna(circ_module.circ_template.CircTemplate):
         positionSeven = rnaString[6:7]
         if positionSeven == "G":
             score = score - 5
+        return score
 
     #@staticmethod
     def calculateScore(self, rna_string, x):
@@ -606,16 +607,18 @@ class Sirna(circ_module.circ_template.CircTemplate):
         if x == 0:
             score = self.calculateScoreUiTei(rna_string)
         if x == 1:
-            score = calculateScoreReynolds(rna_string)
+            score = self.calculateScoreReynolds(rna_string)
         if x == 2:
-            score = calculateScoreUiTei(rna_string)
+            score = self.calculateScoreUiTei(rna_string)
         return score
 
     def scoreSiRNAs(self, circ):
         siRNAList = self.siRNA_to_circ_cache[circ][1]
         scoreList = []
         for a in siRNAList:
-            tempScore = self.calculateScore(a, self.find_parameter)
+            scoreFindParameter = self.siRNA_findParameter_cache[a]
+            print("circ: " + circ + "findParameter: " + str(scoreFindParameter))
+            tempScore = self.calculateScore(a, scoreFindParameter)
             scoreList.append(tempScore)
         scores = {'siRNA': siRNAList, 'Silencing Score': scoreList}
         scoresDF = DataFrame(scores, columns=['siRNA', 'Silencing Score'])
@@ -629,7 +632,7 @@ class Sirna(circ_module.circ_template.CircTemplate):
         for i in range(len(siRNAList) - 1, -1, -1):
             Tm = self.calculateSeedStability(siRNAList[i])
             mysiRNA = siRNAList[i]
-            #make seed Tm a user-defined parameter
+            #Code to filter out siRNAs based on seed-Dupled Tm:
             #if (Tm > self.seedDuplex_threshhold):
             #    self.siRNA_to_circ_cache[circ] = self.siRNA_to_circ_cache[circ][self.siRNA_to_circ_cache[circ].siRNA != mysiRNA]
             #else:
