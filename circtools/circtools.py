@@ -51,6 +51,7 @@ class CircTools(object):
 
                enrich:       circular RNA RBP enrichment scan
                primex:       circular RNA primer design tool
+               sirna:        circular RNA sirna design tool
                detect:       circular RNA detection with DCC
                reconstruct:  circular RNA reconstruction with FUCHS
                circtest:     circular RNA statistical testing
@@ -335,6 +336,190 @@ class CircTools(object):
         import primex.primex
         primex_instance = primex.primex.Primex(args, program_name, version)
         primex_instance.run_module()
+
+    @staticmethod
+    def sirna():
+        parser = argparse.ArgumentParser(
+            description="circular RNA sirna design")
+        # NOT prefixing the argument with -- means it"s not optional
+
+        group = parser.add_argument_group("Input")
+
+        group.add_argument("-d",
+                           "--dcc-file",
+                           dest="dcc_file",
+                           help="CircCoordinates file from DCC / detect module",
+                           required=True
+                           )
+
+        group.add_argument("-g",
+                           "--gtf-file",
+                           dest="gtf_file",
+                           help="GTF file of genome annotation e.g. ENSEMBL",
+                           required=True
+                           )
+
+        group.add_argument("-f",
+                           "--fasta",
+                           dest="fasta_file",
+                           help="FASTA file with genome sequence (must match annotation)",
+                           required=True
+                           )
+
+        group.add_argument("-O",
+                           "--organism",
+                           dest="organism",
+                           help="Organism of the study (used for primer BLASTing), mm = Mus musculus, hs = Homo sapiens,"
+                                " rn = Rattus norvegicus",
+                           choices=("mm", "hs", "rn"),
+                           default="hs"
+                           )
+
+        group.add_argument("-s",
+                           "--sequence",
+                           dest="sequence_file",
+                           help="FASTA file containing the circRNA sequence (exons and introns)"
+                           )
+        
+        group.add_argument("-fp",
+                           "--find_parameter",
+                           dest="findParameter",
+                           help="Rule used to find siRNA (0 for Ui-Tei, 1 for Reynolds, 2 for multi-length search mode (Ui-Tei))",
+                           type=int,
+                           default=0
+                           )
+         
+        group.add_argument("-op",
+                           "--overlap_parameter",
+                           dest="overlapParameter",
+                           help="Minimum number of base pair overlap over the BSJ for all siRNAs",
+                           type=int,
+                           default=3)
+        
+        group.add_argument("-gl",
+                           "--G_repeat_length",
+                           dest="GLength",
+                           help="Maximum number of consecutive Gs in an siRNA sequence that will be tolerated",
+                           type=int,
+                           default=4)
+        
+        group.add_argument("-tl",
+                           "--T_repeat_length",
+                           dest="TLength",
+                           help="Maximum number of consecutive Ts in an siRNA sequence that will be tolerated",
+                           type=int,
+                           default=4)
+        
+        group.add_argument("-al",
+                           "--A_repeat_length",
+                           dest="ALength",
+                           help="Maximum number of consecutive As in an siRNA sequence that will be tolerated",
+                           type=int,
+                           default=4)
+        
+        group.add_argument("-mt",
+                           "--Mismatch_tolerance",
+                           dest="mismatchTolerance",
+                           help="Minimum number of mismatches a siRNA has to have against each blast result",
+                           type=int,
+                           default=2)
+        
+        group.add_argument("-mthr",
+                           "--Mismatch_threshhold",
+                           dest="mismatchThreshhold",
+                           help="Maximum number of blast results complementary to siRNA (containing fewer mismatches " 
+                                  "than mismatch tolerance) that will be tolerated",
+                           type=int,
+                           default=2)
+        
+        group.add_argument("-sm",
+                           "--Seed_mismatch",
+                           dest="seedMismatch",
+                           help="If chosen, this option means that the minimum number of mismatches (mismatch tolerance) must be in the seed region of the siRNA",
+                           default = False,
+                           action='store_true')
+        
+        group.add_argument("-hp",
+                           "--overhang_parameter",
+                           dest="overhangParameter",
+                           help="Determines the type of overhang that is added to the siRNA (0 for UU overhang, 1 for TT overhang, blank for no overhang)",
+                           type=int
+                           )
+        
+        
+        
+
+        group = parser.add_argument_group("Output options")
+
+        group.add_argument("-o",
+                           "--output",
+                           dest="output_dir",
+                           help="Output directory (must exist)",
+                           default="./"
+                           )
+
+        group.add_argument("-T",
+                           "--title",
+                           dest="experiment_title",
+                           help="Title of the experiment for HTML output and file name",
+                           default="circtools_sirna_design"
+                           )
+
+        group = parser.add_argument_group("Additional options")
+
+        group.add_argument("-t",
+                           "--temp",
+                           dest="global_temp_dir",
+                           help="Temporary directory (must exist)",
+                           default="/tmp/"
+                           )
+        
+        group.add_argument("-tr",
+                           "--target",
+                           dest="target",
+                           help="Which strand the siRNA should target (ex: supplying anti-sense creates an anti-sense guide RNA targeting the sense strand)",
+                           default="anti-sense"
+                           )
+
+        group.add_argument("-G",
+                           "--genes",
+                           dest="gene_list",
+                           help="Space-separated list of host gene names. siRNAs for CircRNAs of those genes will be "
+                                "designed."
+                                "E.g. -G \"Camsap1\" \"Ryr2\"",
+                           required=False,
+                           nargs='+'
+                           )
+
+        group.add_argument("-i",
+                           "--id-list",
+                           dest="id_list",
+                           help="Space-separated list of circRNA IDs."
+                                " E.g. -i \"CAMSAP1_9_135850137_135850461_-\" \"CAMSAP1_9_135881633_135883078_-\"",
+                           required=False,
+                           nargs='+'
+                           )
+
+        group.add_argument("-b",
+                           "--no-blast",
+                           dest="blast",
+                           help="Should siRNAs be BLASTED? (Choosing this option means siRNAs won't be blasted)",
+                           default=False,
+                           action='store_true'
+                           )
+         
+
+        args = parser.parse_args(sys.argv[2:])
+
+        # start the sirna module
+
+        # make sure we can load the sub module
+        sys.path.append(os.path.join(os.path.dirname(__file__)))
+
+        ##double check
+        import sirna.sirna
+        sirna_instance = sirna.sirna.Sirna(args, program_name, version)
+        sirna_instance.run_module()
 
     @staticmethod
     def detect():
