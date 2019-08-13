@@ -15,6 +15,7 @@ python:
 
 before_install:
   - sudo apt-get install bedtools
+  - sudo apt-get install r-base
 
 install:
 
