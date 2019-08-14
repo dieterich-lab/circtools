@@ -4,7 +4,6 @@ import os
 import sys
 import subprocess
 import pybedtools
-pybedtools.set_bedtools_path("/biosw/bedtools/2.27.1/bin")
 import tempfile
 from Bio.Blast import NCBIWWW
 from Bio.Blast import NCBIXML
@@ -12,7 +11,7 @@ from Bio.SeqFeature import SeqFeature, FeatureLocation
 from Bio.Graphics import GenomeDiagram
 import pandas as pd
 from pandas import DataFrame
-from IPython.display import HTML
+# from IPython.display import HTML
 
 class Sirna(circ_module.circ_template.CircTemplate): 
 
@@ -847,7 +846,8 @@ class Sirna(circ_module.circ_template.CircTemplate):
         blast_r = "True"
         if self.no_blast:
             blast_r = "False"
-        subprocess.check_output(['Rscript', "../scripts/circtools_sirna_formatter.R", self.sirnacsv, blast_r, self.output_dir, self.experiment_title])
+            print("circtools_sirna_formatter.R", self.sirnacsv, blast_r, self.output_dir, self.experiment_title)
+        subprocess.check_output(["circtools_sirna_formatter.R", self.sirnacsv, blast_r, self.output_dir, self.experiment_title])
     
     def drawsiRNA(self, circ):
         if circ in self.exon_cache:
