@@ -336,7 +336,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                     # column7 -> reserved for flanking intron detection
                     # update: make sure column7 has the format we expect
 
-                    if columns[7]:
+                    if len(columns) > 6:
 
                         components = columns[7].split("_")
                         # we have a normal key without feature information
