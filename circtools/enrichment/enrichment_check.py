@@ -108,6 +108,10 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
             self.whitelist = self.generate_location_hash(self.cli_params.whitelist)
 
         # (default is ["all"])
+
+        if self.cli_params.include_features == None:
+            self.cli_params.include_features = ["gene"]
+
         if self.cli_params.include_features:
 
             # for each of the user supplied include features
@@ -340,7 +344,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                     # column7 -> reserved for flanking intron detection
                     # update: make sure column7 has the format we expect
 
-                    if columns[7]:
+                    if len(columns) >7:
 
                         components = columns[7].split("_")
                         # we have a normal key without feature information
@@ -1177,7 +1181,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                         continue
 
                     columns = line.strip().split('\t')
-                    print("adding " +str(columns[0])+"_"+str(columns[1])+"_"+str(columns[2]) )
+                    #print("adding " +str(columns[0])+"_"+str(columns[1])+"_"+str(columns[2]) )
                     return_hash[str(columns[0])+"_"+str(columns[1])+"_"+str(columns[2])] = 1
 
         return return_hash
