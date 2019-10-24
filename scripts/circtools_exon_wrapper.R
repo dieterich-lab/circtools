@@ -72,13 +72,6 @@ arg_ens_db <- switch(
     "ss" = "sscrofa_gene_ensembl"
 )
 
-
-suppressPackageStartupMessages({
-  # stops if no package
-  library(arg_ensembl_pkg, character.only = TRUE)
-})
-annotationdb <- get(arg_ensembl_pkg)
-
 ## load complete data set
 message("Loading CircRNACount")
 CircRNACount <- read.delim(paste(arg_dcc_data, "CircRNACount", sep="/"), header = T)
