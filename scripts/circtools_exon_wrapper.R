@@ -269,6 +269,28 @@ write.table(  splicedExonDFfixed[,c(1:3,5)],
 
 ############# Done writing BED files ##############
 
+#Read back-splice enrichment
+
+# head(splicedExonDFfixed[,5])
+#colnames(dccDF)<-c("chr","start","end","strand")
+splicedExonDFfixed <- subset(
+                            splicedExonDFfixed,
+                            splicedExonDFfixed[,5]<=-5 & splicedExonDFfixed[,4]>0
+                          )
+
+# create GRanges object from diff. spliced genes table and assign PValue and FC
+multiExonRanges <- makeGRangesFromDataFrame(splicedExonDFfixed[,1:3]);
+mcols(multiExonRanges)$log2FC <- splicedExonDFfixed[,4]
+mcols(multiExonRanges)$Pval <- splicedExonDFfixed[,5]
+
+# Extract genes with single exons based on the table created before
+singleExonDF=subset(geneBaseTable[,c("chr","start","end","strand")],
+                  geneBaseTable[,2] %in% genesWithSingleExon
+                  )
+
+# create appropriate GRanges objects
+singleExonRanges <- makeGRangesFromDataFrame(singleExonDF);
+
 ensembl <- useMart("ensembl", dataset = arg_ens_db, host = "ensembl.org")
 
 genemap <- getBM(attributes = c("external_gene_name", "ensembl_gene_id", "description"), values = as.character(topSplicedGenes$GeneID), mart = ensembl)
