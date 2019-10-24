@@ -72,208 +72,208 @@ arg_ens_db <- switch(
     "ss" = "sscrofa_gene_ensembl"
 )
 
-#
-# suppressPackageStartupMessages({
-#   # stops if no package
-#   library(arg_ensembl_pkg, character.only = TRUE)
-# })
-# annotationdb <- get(arg_ensembl_pkg)
-#
-# ## load complete data set
-# message("Loading CircRNACount")
-# CircRNACount <- read.delim(paste(arg_dcc_data, "CircRNACount", sep="/"), header = T)
-#
-# message("Loading CircCoordinates")
-# CircCoordinates <- read.delim(paste(arg_dcc_data, "CircCoordinates", sep="/"), header = T)
-#
-# # read sub directories containing the ballgown runs and return list
-# ballgownRuns <- as.list(list.files(arg_ballgown_directory, full.names = TRUE))
-#
-# # output directory
-# baseDir <- arg_output_directory
-#
-# # group mapping
-# group <- unlist(lapply(arg_groups, function(x) {return(arg_condition_list[x])}))
-#
-# # sample<>replicate mapping
-# id <- unlist(lapply(seq(1, length(arg_replicates)), function(x) {return((paste(arg_condition_list[x], arg_replicates[x], sep="_R")))}))
-#
-# bg.dccDF <- data.frame( id=id, group=group)
-#
-# bg_dirs_to_work <- unlist(lapply(arg_condition_columns, function(x) {return(ballgownRuns[x-3])}))
-#
-# message("Starting ballgown processing")
-#
-# bg <- ballgown(bg_dirs_to_work, verbose=TRUE)
-#
-# message("Preparing necessary data structures")
-#
-# whole_exon_table <- eexpr(bg, 'all')# eexpr -> exon level
-# whole_intron_table <- iexpr(bg, 'all')# iexpr -> intron level
-#
-# t2g<-indexes(bg)$t2g # transcript / gene table
-# e2t<-indexes(bg)$e2t # exon / transcript table
-#
-# e2g<-unique(merge(e2t, t2g, by.x=2, by.y=1)[, 2:3])# exon / gene table merging
-# idx<-names(which(table(e2g[, 1])==1))# idx to sort out non-gene exons
-# e2g<-subset(e2g, e2g[, 1]%in% idx)# exon / gene transcript / merging
-#
-# # redo everything based on counts
-# # use mrcount -> multi-map-corrected number of reads overlapping the exon/intron
-# nonMMexonCount<-whole_exon_table[, c(1, grep("mrcount", colnames(whole_exon_table)))]
-#
-# # only exons > 10 reads throught all mappings
-# idx<-which(apply(nonMMexonCount[, -1], 1, sum)>10)
-# nonMMexonCount<-nonMMexonCount[idx,]
-#
-# # merge exon couns and ( exon / gene / transcript) table
-# e2g.counts<-merge(nonMMexonCount, e2g, by.x=1, by.y=1)
-#
-# # extract first and last columns
-# geneBaseTable<-e2g.counts[, c(1, ncol(e2g.counts))]
-#
-# # combine tables, add chr, strand, start and stop
-# # we now have a large table with exon to gene mappings and base annotation
-# geneBaseTable<-merge(geneBaseTable, whole_exon_table[, 1:5], by.x=1, by.y=1)
-#
-# # add exon number to gene name. e.g.: ENSG00000223972 -> ENSG00000223972.8
-# geneBaseTable[, 1]<-gsub(" ", "", apply(geneBaseTable[, c(2, 1)],
-# 1, paste, sep="", collapse="."))
-#
-# #print(head(geneBaseTable))
-# # bundle together gene names, gene/exon combos in a data frame
-# geneIDs <- data.frame(GeneID=geneBaseTable[, "g_id"],
-# Gene.Exon=geneBaseTable[, "e_id"])
-#
-# message("Setting treatment and conditions")
-#
-# treatment <- group
-# condition <- id
-# batch <- unlist(lapply(arg_replicates,function(x){paste("R",x,sep="")}))
-#
-# # remove first and last column
-# e2g.minimal=e2g.counts[,-c(1,ncol(e2g.counts))]
-#
-# # indices of exons in e2g.minimal table with > 40 counts throughout all samples
-# idx<-which(apply(e2g.minimal,1,sum)>4*10)
-#
-# # select > 40 count exons from the slimmed exon / gene table
-# e2g.minimal=e2g.minimal[idx,]
-#
-# # set appropriate gene names
-# rownames(e2g.minimal)<-geneIDs[idx,2]
-#
-# # only keep gene + exon names that also have > 40 count
-# geneIDs=geneIDs[idx,]
-#
-# # extract multi-exon genes
-# genesWithMultipleExons=names(which(table(as.character(geneIDs[,1]))>1))
-#
-# # extract single exon genes
-# genesWithSingleExon=names(which(table(as.character(geneIDs[,1]))==1))
-#
-# message(paste("Found ",length(genesWithMultipleExons), " multi exon genes", sep = ""))
-#
-# message(paste("Found ", length(genesWithSingleExon), " single exon genes", sep = ""))
-#
-# # subset the geneID list to only contain multi-exon genes
-# geneIDs=subset(geneIDs,geneIDs[,1] %in% genesWithMultipleExons)
-#
-# # intersect the minimal e2g list with with the geneIDs to get exon (gene)
-# # -> count relation
-# e2g.minimal=e2g.minimal[intersect(rownames(e2g.minimal),geneIDs[,2]),]
-#
-# # DE analysis with edgeR starts here
-# z <- DGEList(counts=e2g.minimal, genes=geneIDs)
-# z <- calcNormFactors(z)
-#
-# # build the design for edgeR
-# design <- model.matrix(~ treatment)
-#
-# message("Starting dispersion estimation")
-# z <- estimateGLMCommonDisp(z,design)
-# z <- estimateGLMTrendedDisp(z,design)
-# z <- estimateGLMTagwiseDisp(z,design)
-#
-# message("Fitting model...")
-# fit <- glmFit(z,design)
-#
-# message("Testing for differential exon usage")
-# # Test For Differential Exon Usage
-# # Given a negative binomial generalized log-linear model fit at the exon level,
-# # test for differential exon usage between experimental conditions.
-# diffSplicedGenes<-diffSpliceDGE(  fit,
-#                                 geneid="GeneID",
-#                                 exonid="Gene.Exon",
-#                                 prior.count=0.125,
-#                                 verbose=TRUE
-#                               )
-#
-# # Top Table Of Differentially Spliced Genes Or Exons
-# # Top table ranking the most differentially spliced genes or exons
-# topSplicedGenes=topSpliceDGE( diffSplicedGenes,
-#                             FDR=0.01,
-#                             test="Simes",
-#                             number=nrow(diffSplicedGenes$gene.geneIDs)
-#                           )
-#
-# # merge information from gene2 table with the DS exons from above
-# splicedExonDF <- merge(
-#                       geneBaseTable,
-#                       data.frame(
-#                                     ID = names(diffSplicedGenes$exon.p.value),
-#                                     Pval=diffSplicedGenes$exon.p.value,
-#                                     log2FC=diffSplicedGenes$coefficients
-#                                   ),
-#                       by.x=1, by.y=1
-#                     )
-#
-# #####################################################
-#
-# # build new table with selected columns
-# splicedExonDFfixed=splicedExonDF[,c("chr","start","end","log2FC","Pval")];
-# splicedExonDFfixed[,2]<-splicedExonDFfixed[,2]-1 # fix start pos (0-based now)
-# splicedExonDFfixed[,3]<-splicedExonDFfixed[,3] # fix stop pos (added +1 as it was too short)
-# splicedExonDFfixed[,5]<-log2(splicedExonDFfixed[,5]) # get log2 for Pval column
-#
-# message("Writing bed files...")
-# ############# Writing BED files ##############
-#
-# # write BED track header for FC track
-# write(  paste("track type=bedGraph name=\"edgeR_exon_foldChange\"",
-#        "description=\"Exon fold change over all total RNA data sets\"",
-#        "visibility=full color=200,100,0 altColor=0,100,200 priority=20",
-#        sep=""),file=paste(baseDir,"exon_fc_track.bedgraph", sep=""));
-#
-# # write actual content (FCs)
-# write.table(
-#           splicedExonDFfixed[,1:4],
-#           file=paste(baseDir,"exon_fc_track.bedgraph",sep=""),
-#           quote=F,
-#           sep="\t",
-#           append=T,
-#           row.names=F,
-#           col.names=F
-#         )
-#
-# ############
-#
-# # write BED track header for pValue track
-# write(paste("track type=bedGraph name=\"edgeR_exon_Pvalue\"",
-#          "description=\"Pvalue over all data sets\"",
-#          "visibility=full color=200,100,0 altColor=0,100,200 priority=20",
-#          sep=""), file=paste(baseDir,"exon_pval_track.bedgraph", sep=""));
-#
-# # write actual content (PValues)
-# write.table(  splicedExonDFfixed[,c(1:3,5)],
-#             file=paste(baseDir,"exon_pval_track.bedgraph",sep=""),
-#             quote=F,
-#             sep="\t",
-#             append=T,
-#             row.names=F,
-#             col.names=F
-#           )
-load("circtools.RData")
+
+suppressPackageStartupMessages({
+  # stops if no package
+  library(arg_ensembl_pkg, character.only = TRUE)
+})
+annotationdb <- get(arg_ensembl_pkg)
+
+## load complete data set
+message("Loading CircRNACount")
+CircRNACount <- read.delim(paste(arg_dcc_data, "CircRNACount", sep="/"), header = T)
+
+message("Loading CircCoordinates")
+CircCoordinates <- read.delim(paste(arg_dcc_data, "CircCoordinates", sep="/"), header = T)
+
+# read sub directories containing the ballgown runs and return list
+ballgownRuns <- as.list(list.files(arg_ballgown_directory, full.names = TRUE))
+
+# output directory
+baseDir <- arg_output_directory
+
+# group mapping
+group <- unlist(lapply(arg_groups, function(x) {return(arg_condition_list[x])}))
+
+# sample<>replicate mapping
+id <- unlist(lapply(seq(1, length(arg_replicates)), function(x) {return((paste(arg_condition_list[x], arg_replicates[x], sep="_R")))}))
+
+bg.dccDF <- data.frame( id=id, group=group)
+
+bg_dirs_to_work <- unlist(lapply(arg_condition_columns, function(x) {return(ballgownRuns[x-3])}))
+
+message("Starting ballgown processing")
+
+bg <- ballgown(bg_dirs_to_work, verbose=TRUE)
+
+message("Preparing necessary data structures")
+
+whole_exon_table <- eexpr(bg, 'all')# eexpr -> exon level
+whole_intron_table <- iexpr(bg, 'all')# iexpr -> intron level
+
+t2g<-indexes(bg)$t2g # transcript / gene table
+e2t<-indexes(bg)$e2t # exon / transcript table
+
+e2g<-unique(merge(e2t, t2g, by.x=2, by.y=1)[, 2:3])# exon / gene table merging
+idx<-names(which(table(e2g[, 1])==1))# idx to sort out non-gene exons
+e2g<-subset(e2g, e2g[, 1]%in% idx)# exon / gene transcript / merging
+
+# redo everything based on counts
+# use mrcount -> multi-map-corrected number of reads overlapping the exon/intron
+nonMMexonCount<-whole_exon_table[, c(1, grep("mrcount", colnames(whole_exon_table)))]
+
+# only exons > 10 reads throught all mappings
+idx<-which(apply(nonMMexonCount[, -1], 1, sum)>10)
+nonMMexonCount<-nonMMexonCount[idx,]
+
+# merge exon couns and ( exon / gene / transcript) table
+e2g.counts<-merge(nonMMexonCount, e2g, by.x=1, by.y=1)
+
+# extract first and last columns
+geneBaseTable<-e2g.counts[, c(1, ncol(e2g.counts))]
+
+# combine tables, add chr, strand, start and stop
+# we now have a large table with exon to gene mappings and base annotation
+geneBaseTable<-merge(geneBaseTable, whole_exon_table[, 1:5], by.x=1, by.y=1)
+
+# add exon number to gene name. e.g.: ENSG00000223972 -> ENSG00000223972.8
+geneBaseTable[, 1]<-gsub(" ", "", apply(geneBaseTable[, c(2, 1)],
+1, paste, sep="", collapse="."))
+
+#print(head(geneBaseTable))
+# bundle together gene names, gene/exon combos in a data frame
+geneIDs <- data.frame(GeneID=geneBaseTable[, "g_id"],
+Gene.Exon=geneBaseTable[, "e_id"])
+
+message("Setting treatment and conditions")
+
+treatment <- group
+condition <- id
+batch <- unlist(lapply(arg_replicates,function(x){paste("R",x,sep="")}))
+
+# remove first and last column
+e2g.minimal=e2g.counts[,-c(1,ncol(e2g.counts))]
+
+# indices of exons in e2g.minimal table with > 40 counts throughout all samples
+idx<-which(apply(e2g.minimal,1,sum)>4*10)
+
+# select > 40 count exons from the slimmed exon / gene table
+e2g.minimal=e2g.minimal[idx,]
+
+# set appropriate gene names
+rownames(e2g.minimal)<-geneIDs[idx,2]
+
+# only keep gene + exon names that also have > 40 count
+geneIDs=geneIDs[idx,]
+
+# extract multi-exon genes
+genesWithMultipleExons=names(which(table(as.character(geneIDs[,1]))>1))
+
+# extract single exon genes
+genesWithSingleExon=names(which(table(as.character(geneIDs[,1]))==1))
+
+message(paste("Found ",length(genesWithMultipleExons), " multi exon genes", sep = ""))
+
+message(paste("Found ", length(genesWithSingleExon), " single exon genes", sep = ""))
+
+# subset the geneID list to only contain multi-exon genes
+geneIDs=subset(geneIDs,geneIDs[,1] %in% genesWithMultipleExons)
+
+# intersect the minimal e2g list with with the geneIDs to get exon (gene)
+# -> count relation
+e2g.minimal=e2g.minimal[intersect(rownames(e2g.minimal),geneIDs[,2]),]
+
+# DE analysis with edgeR starts here
+z <- DGEList(counts=e2g.minimal, genes=geneIDs)
+z <- calcNormFactors(z)
+
+# build the design for edgeR
+design <- model.matrix(~ treatment)
+
+message("Starting dispersion estimation")
+z <- estimateGLMCommonDisp(z,design)
+z <- estimateGLMTrendedDisp(z,design)
+z <- estimateGLMTagwiseDisp(z,design)
+
+message("Fitting model...")
+fit <- glmFit(z,design)
+
+message("Testing for differential exon usage")
+# Test For Differential Exon Usage
+# Given a negative binomial generalized log-linear model fit at the exon level,
+# test for differential exon usage between experimental conditions.
+diffSplicedGenes<-diffSpliceDGE(  fit,
+                                geneid="GeneID",
+                                exonid="Gene.Exon",
+                                prior.count=0.125,
+                                verbose=TRUE
+                              )
+
+# Top Table Of Differentially Spliced Genes Or Exons
+# Top table ranking the most differentially spliced genes or exons
+topSplicedGenes=topSpliceDGE( diffSplicedGenes,
+                            FDR=0.01,
+                            test="Simes",
+                            number=nrow(diffSplicedGenes$gene.geneIDs)
+                          )
+
+# merge information from gene2 table with the DS exons from above
+splicedExonDF <- merge(
+                      geneBaseTable,
+                      data.frame(
+                                    ID = names(diffSplicedGenes$exon.p.value),
+                                    Pval=diffSplicedGenes$exon.p.value,
+                                    log2FC=diffSplicedGenes$coefficients
+                                  ),
+                      by.x=1, by.y=1
+                    )
+
+#####################################################
+
+# build new table with selected columns
+splicedExonDFfixed=splicedExonDF[,c("chr","start","end","log2FC","Pval")];
+splicedExonDFfixed[,2]<-splicedExonDFfixed[,2]-1 # fix start pos (0-based now)
+splicedExonDFfixed[,3]<-splicedExonDFfixed[,3] # fix stop pos (added +1 as it was too short)
+splicedExonDFfixed[,5]<-log2(splicedExonDFfixed[,5]) # get log2 for Pval column
+
+message("Writing bed files...")
+############# Writing BED files ##############
+
+# write BED track header for FC track
+write(  paste("track type=bedGraph name=\"edgeR_exon_foldChange\"",
+       "description=\"Exon fold change over all total RNA data sets\"",
+       "visibility=full color=200,100,0 altColor=0,100,200 priority=20",
+       sep=""),file=paste(baseDir,"exon_fc_track.bedgraph", sep=""));
+
+# write actual content (FCs)
+write.table(
+          splicedExonDFfixed[,1:4],
+          file=paste(baseDir,"exon_fc_track.bedgraph",sep=""),
+          quote=F,
+          sep="\t",
+          append=T,
+          row.names=F,
+          col.names=F
+        )
+
+############
+
+# write BED track header for pValue track
+write(paste("track type=bedGraph name=\"edgeR_exon_Pvalue\"",
+         "description=\"Pvalue over all data sets\"",
+         "visibility=full color=200,100,0 altColor=0,100,200 priority=20",
+         sep=""), file=paste(baseDir,"exon_pval_track.bedgraph", sep=""));
+
+# write actual content (PValues)
+write.table(  splicedExonDFfixed[,c(1:3,5)],
+            file=paste(baseDir,"exon_pval_track.bedgraph",sep=""),
+            quote=F,
+            sep="\t",
+            append=T,
+            row.names=F,
+            col.names=F
+          )
+
 ############# Done writing BED files ##############
 
 ensembl <- useMart("ensembl", dataset = arg_ens_db, host = "ensembl.org")
