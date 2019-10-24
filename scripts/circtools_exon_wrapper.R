@@ -370,7 +370,7 @@ circTestSummary<- read.delim(
                         arg_circTest_file,
                         header=arg_head_header,
                         as.is=T
-                      )
+                      )[,c(1:9)]
 
 cols.ct <- c("Chr", "Start", "End", "Gene", "JunctionType", "Strand", "Start.End.Region", "OverallRegion", "sig_p")
 colnames(circTestSummary) <- cols.ct
@@ -471,7 +471,11 @@ writeDataTable(wb, sheet = 1, x=mainTable[order(mainTable[,"FDR"]),])
 
 # Enriched Back-Splice junctions / FDR 1%
 addWorksheet(wb, sheetName = "enriched BSJ FDR 1% (CircTest)")
+
+print(head((RNAse_RenrichedCircTest)))
 writeDataTable(wb, sheet = 2, x=RNAse_RenrichedCircTest)
+
+
 
 # Back-Splice junctions from circTest / FDR 1%
 
