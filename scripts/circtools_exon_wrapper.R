@@ -25,6 +25,7 @@ suppressMessages(library(ggfortify))
 suppressMessages(library(openxlsx))
 suppressMessages(library(GenomicRanges))
 suppressMessages(library(GenomicFeatures))
+suppressMessages(library(biomaRt))
 
 message("Done loading packages")
 
@@ -63,12 +64,14 @@ arg_species <- args[11]
 
 
 # load a pkg from a string
-arg_ensembl_pkg <- switch(
+arg_ens_db <- switch(
     arg_species,
-    "hs" = "EnsDb.Hsapiens.v86",
-    "rn" = "EnsDb.Rnorvegicus.v79",
-    "mm" = "EnsDb.Mmusculus.v79"
+    "hs" = "hsapiens_gene_ensembl",
+    "rn" = "rnorvegicus_gene_ensembl",
+    "mm" = "mmuscules_gene_ensembl",
+    "ss" = "sscrofa_gene_ensembl"
 )
+
 
 suppressPackageStartupMessages({
   # stops if no package
@@ -273,37 +276,15 @@ write.table(  splicedExonDFfixed[,c(1:3,5)],
 
 ############# Done writing BED files ##############
 
+ensembl <- useMart("ensembl", dataset = arg_ens_db, host = "ensembl.org")
 
-#Read back-splice enrichment
+genemap <- getBM(attributes = c("external_gene_name", "ensembl_gene_id", "description"), values = as.character(topSplicedGenes$GeneID), mart = ensembl)
 
-# head(splicedExonDFfixed[,5])
-#colnames(dccDF)<-c("chr","start","end","strand")
-splicedExonDFfixed <- subset(
-                            splicedExonDFfixed,
-                            splicedExonDFfixed[,5]<=-5 & splicedExonDFfixed[,4]>0
-                          )
-
-# create GRanges object from diff. spliced genes table and assign PValue and FC
-multiExonRanges <- makeGRangesFromDataFrame(splicedExonDFfixed[,1:3]);
-mcols(multiExonRanges)$log2FC <- splicedExonDFfixed[,4]
-mcols(multiExonRanges)$Pval <- splicedExonDFfixed[,5]
-
-# Extract genes with single exons based on the table created before
-singleExonDF=subset(geneBaseTable[,c("chr","start","end","strand")],
-                  geneBaseTable[,2] %in% genesWithSingleExon
-                  )
-
-# create appropriate GRanges objects
-singleExonRanges <- makeGRangesFromDataFrame(singleExonDF);
-
-# retrieve gene annotation
-geneAttributes <- c("SYMBOL", "GENEID", "ENTREZID", "GENENAME")
-geneAnnotation <- ensembldb::select(
-  annotationdb, as.character(topSplicedGenes$GeneID), geneAttributes, keytype = "GENEID")
+colnames(genemap) <-  c("SYMBOL", "GENEID", "DESCRIPTION")
 
 topSplicedGenesMartData <- merge(
   topSplicedGenes,
-  geneAnnotation,
+  genemap,
   by.x = "GeneID",
   by.y = "GENEID",
   all.x = TRUE
@@ -440,7 +421,6 @@ colnames(RNAse_RenrichedCircTest) <- c( "Gene",
                                         "NExons",
                                         "P.Value",
                                         "FDR",
-                                        "entrezgene",
                                         "description"
                                         )
 
