@@ -19,10 +19,9 @@
 
 USER_DIR=~/.R/
 
-if [ ! -f ~/.Renviron ]; then
-    echo "R_LIBS_USER=~/.R/" >> ~/.Renviron
-fi
-
-if [ ! -d "$USER_DIR" ]; then
-  mkdir ~/.R/
+if [[ -z "${R_LIBS_USER}" ]]; then
+  echo "R_LIBS_USER=$USER_DIR" >> ~/.Renviron
+  if [ ! -d "$USER_DIR" ]; then
+  mkdir $USER_DIR
+  fi
 fi
