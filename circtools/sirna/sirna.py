@@ -24,6 +24,8 @@ class Sirna(circ_module.circ_template.CircTemplate):
         self.homo_sapiens_blast_db = "GPIPE/9606/current/rna"
         self.mus_musculus_blast_db = "GPIPE/10090/current/rna"
         self.rattus_norvegicus_blast_db = "GPIPE/10116/current/rna"
+        self.sus_scrofa_blast_db = "GPIPE/9823/current/rna"
+
         self.other_blast_db = "nt"
         
         self.dcc_file = self.cli_params.dcc_file
@@ -647,6 +649,8 @@ class Sirna(circ_module.circ_template.CircTemplate):
             blast_db = self.homo_sapiens_blast_db
         elif organism == "rn":
             blast_db = self.rattus_norvegicus_blast_db
+        elif organism == "ss":
+            blast_db = self.sus_scrofa_blast_db
 
         print("Running blast...")
         # double check the other arguments in the qblast call

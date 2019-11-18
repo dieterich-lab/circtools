@@ -16,8 +16,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
-import sys
 import os.path
+import sys
 
 # global settings
 version = "1.1.0.8"
@@ -369,9 +369,10 @@ class CircTools(object):
         group.add_argument("-O",
                            "--organism",
                            dest="organism",
-                           help="Organism of the study (used for primer BLASTing), mm = Mus musculus, hs = Homo sapiens,"
-                                " rn = Rattus norvegicus",
-                           choices=("mm", "hs", "rn"),
+                           help="Organism of the study (used for primer BLASTing), "
+                                "mm = Mus musculus, hs = Homo sapiens,"
+                                " rn = Rattus norvegicus, ss = Sus Scrofa",
+                           choices=("mm", "hs", "rn", "ss"),
                            default="hs"
                            )
 
@@ -380,74 +381,74 @@ class CircTools(object):
                            dest="sequence_file",
                            help="FASTA file containing the circRNA sequence (exons and introns)"
                            )
-        
+
         group.add_argument("-fp",
                            "--find_parameter",
                            dest="findParameter",
-                           help="Rule used to find siRNA (0 for Ui-Tei, 1 for Reynolds, 2 for multi-length search mode (Ui-Tei))",
+                           help="Rule used to find siRNA (0 for Ui-Tei, 1 for Reynolds, 2 "
+                                "for multi-length search mode (Ui-Tei))",
                            type=int,
                            default=0
                            )
-         
+
         group.add_argument("-op",
                            "--overlap_parameter",
                            dest="overlapParameter",
                            help="Minimum number of base pair overlap over the BSJ for all siRNAs",
                            type=int,
                            default=3)
-        
+
         group.add_argument("-gl",
                            "--G_repeat_length",
                            dest="GLength",
                            help="Maximum number of consecutive Gs in an siRNA sequence that will be tolerated",
                            type=int,
                            default=4)
-        
+
         group.add_argument("-tl",
                            "--T_repeat_length",
                            dest="TLength",
                            help="Maximum number of consecutive Ts in an siRNA sequence that will be tolerated",
                            type=int,
                            default=4)
-        
+
         group.add_argument("-al",
                            "--A_repeat_length",
                            dest="ALength",
                            help="Maximum number of consecutive As in an siRNA sequence that will be tolerated",
                            type=int,
                            default=4)
-        
+
         group.add_argument("-mt",
                            "--Mismatch_tolerance",
                            dest="mismatchTolerance",
                            help="Minimum number of mismatches a siRNA has to have against each blast result",
                            type=int,
                            default=2)
-        
+
         group.add_argument("-mthr",
                            "--Mismatch_threshhold",
                            dest="mismatchThreshhold",
-                           help="Maximum number of blast results complementary to siRNA (containing fewer mismatches " 
-                                  "than mismatch tolerance) that will be tolerated",
+                           help="Maximum number of blast results complementary to siRNA (containing fewer mismatches "
+                                "than mismatch tolerance) that will be tolerated",
                            type=int,
                            default=2)
-        
+
         group.add_argument("-sm",
                            "--Seed_mismatch",
                            dest="seedMismatch",
-                           help="If chosen, this option means that the minimum number of mismatches (mismatch tolerance) must be in the seed region of the siRNA",
-                           default = False,
+                           help="If chosen, this option means that the minimum number of mismatches "
+                                "(mismatch tolerance) must be in the seed region of the siRNA",
+                           default=False,
                            action='store_true')
-        
+
         group.add_argument("-hp",
                            "--overhang_parameter",
                            dest="overhangParameter",
-                           help="Determines the type of overhang that is added to the siRNA (0 for UU overhang, 1 for TT overhang, blank for no overhang)",
+                           help="Determines the type of overhang that is added to the siRNA "
+                                "(0 for UU overhang, 1 for TT overhang, blank for no overhang)",
                            type=int
                            )
-        
-        
-        
 
         group = parser.add_argument_group("Output options")
 
@@ -473,11 +474,12 @@ class CircTools(object):
                            help="Temporary directory (must exist)",
                            default="/tmp/"
                            )
-        
+
         group.add_argument("-tr",
                            "--target",
                            dest="target",
-                           help="Which strand the siRNA should target (ex: supplying anti-sense creates an anti-sense guide RNA targeting the sense strand)",
+                           help="Which strand the siRNA should target "
+                                "(ex: supplying anti-sense creates an anti-sense guide RNA targeting the sense strand)",
                            default="anti-sense"
                            )
 
@@ -507,7 +509,6 @@ class CircTools(object):
                            default=False,
                            action='store_true'
                            )
-         
 
         args = parser.parse_args(sys.argv[2:])
 
@@ -516,7 +517,6 @@ class CircTools(object):
         # make sure we can load the sub module
         sys.path.append(os.path.join(os.path.dirname(__file__)))
 
-        ##double check
         import sirna.sirna
         sirna_instance = sirna.sirna.Sirna(args, program_name, version)
         sirna_instance.run_module()
