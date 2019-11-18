@@ -218,6 +218,7 @@ setup(
         'scripts/circtools_circtest_wrapper.R',
         'scripts/circtools_generate_intron_gtf.sh',
         'scripts/circtools_generate_flanking_introns.py',
+        'scripts/circtools_sirna_formatter.R',
         'scripts/create_igv_script_from_gene_names.py',
         'scripts/create_igv_script_from_position_list.py',
         'scripts/create_igv_script.py',

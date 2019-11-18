@@ -364,6 +364,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
                     if len(columns) > 7:
 
+
                         components = columns[7].split("_")
                         # we have a normal key without feature information
                         if len(components) == 4 and len(columns) <= 7:
