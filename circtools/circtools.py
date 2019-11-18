@@ -162,13 +162,14 @@ class CircTools(object):
                            default=0.05
                            )
 
-        # group.add_argument("-H",
-        #                    "--header",
-        #                    dest="has_header",
-        #                    help="Defines if the circRNA input file has a header line [default: no]",
-        #                    type=bool,
-        #                    default=False
-        #                    )
+        group.add_argument("-W",
+                           "--white-list",
+                           dest="whitelist",
+                           help="Path to a BED file containing coordinates of exons that should be exclusively taken "
+                                "into account when generating the enrichment. These may be exons produced by the exon"
+                                "module that show enrichment in the RNase R treated sample.",
+                           default=""
+                           )
 
         group.add_argument("-F",
                            "--output-filename",
@@ -236,10 +237,9 @@ class CircTools(object):
         group.add_argument("-O",
                            "--organism",
                            dest="organism",
-                           help="Organism of the study (used for primer BLASTing), mm = Mus musculus, hs = Homo sapiens,"
-                                " rn = Rattus norvegicus",
-                           choices=("mm", "hs", "rn"),
-                           default="hs"
+                           help="Organism of the study (used for primer BLASTing), "
+                                "rn = Rattus norvegicus, mm = Mus musculus, hs = Homo sapiens, ss = Sus scrofa",
+                           choices=("mm", "rn", "hs", "ss")
                            )
 
         group.add_argument("-s",
@@ -730,7 +730,7 @@ class CircTools(object):
                            dest="range",
                            help="How should the samples be labeled? [Default: Sample]",
                            type=float,
-                           default=1.0
+                           default=1.05
                            )
 
         group.add_argument("-O",
@@ -955,14 +955,6 @@ class CircTools(object):
                            required=True
                            )
 
-        group.add_argument("-s",
-                           "--species",
-                           dest="species",
-                           help="Organism of the study (used for primer BLASTing), "
-                                "rn = Rattus norvegicus, mm = Mus musculus, hs = Homo sapiens",
-                           choices=("mm", "rn", "hs"),
-                           required=True
-                           )
         ######################################################
 
         group = parser.add_argument_group("Additional options")

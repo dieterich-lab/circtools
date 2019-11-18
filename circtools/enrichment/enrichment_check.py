@@ -15,16 +15,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
-import time
-import os
-import sys
-import re
-import multiprocessing
 import functools
+import logging
+import multiprocessing
+import os
+import re
+import sys
+import time
 
-import pybedtools
 import circ_module.circ_template
+import pybedtools
 
 FILE_TYPE_GTF = ".gtf"
 FILE_TYPE_BED = ".bed"
@@ -44,6 +44,8 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         self.virtual_inclusion_file_path = "all"
         self.virtual_inclusion_object = None
         self.circRNA_buddies = {}
+        self.whitelist_fg = ""
+        self.whitelist_bg = ""
 
     def run_module(self):
 
@@ -176,6 +178,25 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
         circ_rna_bed.saveas(circle_annotation_file)
 
+        if self.cli_params.whitelist:
+            # self.whitelist = self.generate_location_hash(self.cli_params.whitelist)
+            self.whitelist_fg = pybedtools.BedTool(self.cli_params.whitelist)
+            self.whitelist_fg = self.virtual_inclusion_object.intersect(self.whitelist_fg, f=1.0, wb=True)
+
+            tmp = ""
+            for line in str(self.whitelist_fg).splitlines():
+                bed_feature = line.split('\t')
+                bed_feature[9] = bed_feature[3]
+                tmp += "\t".join(bed_feature)+"\n"
+
+            self.whitelist_fg = pybedtools.BedTool(tmp, from_string=True)
+
+            self.whitelist_fg.saveas("test2.bed")
+            # exit(0)
+            # generate inverse list of exons: those that are not enriched: i.e. background exons
+            # self.whitelist_bg = circ_rna_bed #.intersect(self.whitelist_fg, v=True)
+
+
         # set up the multiprocessing pool for multi-threading
         mp_pool = multiprocessing.Pool(processes=self.cli_params.num_processes)
 
@@ -204,6 +225,11 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
             self.tmp_dict,
             self.process_intersection(self.results[0][1], linear_start=True)
         )
+        import pprint
+        pp = pprint.PrettyPrinter(indent=4)
+        pp.pprint(self.observed_counts[0])
+        print("------------")
+        pp.pprint(self.observed_counts[1])
 
         # how many iterations do we want to do before cleaning up?
         iterations_per_phase = int(self.cli_params.num_iterations / self.cli_params.num_processes)
@@ -336,7 +362,8 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                     # column7 -> reserved for flanking intron detection
                     # update: make sure column7 has the format we expect
 
-                    if len(columns) > 6:
+                    if len(columns) > 7:
+
 
                         components = columns[7].split("_")
                         # we have a normal key without feature information
@@ -607,7 +634,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
             # we add up the length of each feature that is part of the "uber" feature, e.g. sum up exon length
             # as sub features of a gene
 
-            # create a shorthand key
             key = bed_feature[6] + "_" + bed_feature[7] + "_" + bed_feature[8] + "_" + bed_feature[11]
 
             # we also count how many features are part of this entity
@@ -676,6 +702,8 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
             if self.virtual_inclusion_file_path != "all":
                 key += "_" + str(bed_feature[4])
 
+            # print(bed_feature)
+
             if linear_start and gene_name in self.tmp_dict:
                 # need to get list of circRNAs linked to this host gene
 
@@ -737,9 +765,9 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
 
                     # check if chromosomes match
                     if first_chr != bed_feature[0]:
-                       continue
-                       #gene_name = gene_name + "_" + bed_feature[0] + "_" + bed_feature[1]
-                       #count_table[gene_name] = {}
+                        continue
+                    # gene_name = gene_name + "_" + bed_feature[0] + "_" + bed_feature[1]
+                    # count_table[gene_name] = {}
 
                 if key not in count_table[gene_name]:
                     count_table[gene_name][key] = {}
@@ -840,29 +868,69 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         # import method for binomial test (tip of @Alexey)
         from statsmodels.stats.proportion import proportion_confint
 
-        # construct header of the CSV output file
-        result_string = "circRNA_host_gene\t" \
-                        "chr\t" \
-                        "start\t" \
-                        "stop\t" \
-                        "strand\t" \
-                        "p-val_circular\t" \
-                        "raw_count_circ_rna\t" \
-                        "observed_input_peaks_circ_rna\t" \
-                        "length_circ_rna\t" \
-                        "length_normalized_count_circ_rna\t" \
-                        "number_of_features_intersecting_circ\t" \
-                        "circ_rna_confidence_interval_0.05\t" \
-                        "p-val_linear\t" \
-                        "raw_count_host_gene\t" \
-                        "observed_input_peaks_host_gene\t" \
-                        "length_host_gene_without_circ_rna\t" \
-                        "length_normalized_count_host_gene\t" \
-                        "number_of_features_intersecting_linear\t" \
-                        "host_gene_confidence_interval_0.05\t" \
-                        "distance_normalized_counts\n"
+        if not self.cli_params.whitelist:
 
+            # construct header of the CSV output file
+            result_string = "circRNA_host_gene\t" \
+                            "chr\t" \
+                            "start\t" \
+                            "stop\t" \
+                            "strand\t" \
+                            "p-val_circular\t" \
+                            "raw_count_circ_rna\t" \
+                            "observed_input_peaks_circ_rna\t" \
+                            "length_circ_rna\t" \
+                            "length_normalized_count_circ_rna\t" \
+                            "number_of_features_intersecting_circ\t" \
+                            "circ_rna_confidence_interval_0.05\t" \
+                            "p-val_linear\t" \
+                            "raw_count_host_gene\t" \
+                            "observed_input_peaks_host_gene\t" \
+                            "length_host_gene_without_circ_rna\t" \
+                            "length_normalized_count_host_gene\t" \
+                            "number_of_features_intersecting_linear\t" \
+                            "host_gene_confidence_interval_0.05\t" \
+                            "distance_normalized_counts\n"
+        else:
+            # construct header of the CSV output file
+            result_string = "circRNA_host_gene\t" \
+                            "chr\t" \
+                            "start\t" \
+                            "stop\t" \
+                            "strand\t" \
+                            "p-val_enriched_circular\t" \
+                            "raw_count_enriched_circ_rna\t" \
+                            "observed_input_peaks_enriched_circ_rna\t" \
+                            "length_enriched_circ_rna\t" \
+                            "length_normalized_count_enriched_circ_rna\t" \
+                            "number_of_features_intersecting_enriched_circ\t" \
+                            "circ_rna_confidence_interval_0.05\t" \
+                            "p-val_non_enriched_circRNA\t" \
+                            "raw_count_not_enriched_circ_rna\t" \
+                            "observed_input_peaks_not_enriched\t" \
+                            "NOT_USED\t" \
+                            "length_normalized_count_not_enriched\t" \
+                            "number_of_features_intersecting__not_enriched\t" \
+                            "not_enriched_confidence_interval_0.05\t" \
+                            "distance_normalized_counts\n"
+
+        # print(self.observed_counts[0])
         # for all genes we have seen
+
+        with open("f11.txt", 'w') as text_file:
+            text_file.write(str(self.observed_counts[0]))
+
+        with open("f22.txt", 'w') as text_file:
+            text_file.write(str(self.observed_counts[1]))
+
+
+        import pprint
+        pp1 = pprint.PrettyPrinter(stream=open("f1.txt",'w'),indent=4)
+        pp2 = pprint.PrettyPrinter(stream=open("f2.txt",'w'),indent=4)
+
+        pp1.pprint(self.observed_counts[0])
+        pp2.pprint(self.observed_counts[1])
+
         for gene in self.observed_counts[1]:
             # make sure we found a circular RNA
             if gene in self.observed_counts[0]:
@@ -889,6 +957,13 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                             length = []
 
                             if self.virtual_inclusion_file_path != "all":
+                                length.append(self.get_extended_key_data(location_key_circular)["feature_length"])
+                                length.append(self.get_extended_key_data(location_key_linear)["feature_length"] -
+                                              self.get_extended_key_data(location_key_circular)["feature_length"])
+                                location_data_circ = self.decode_location_key(location_key_circular)
+                                location_data_linear = self.decode_location_key(location_key_linear)
+
+                            elif self.virtual_inclusion_file_path != "all" and self.cli_params.whitelist:
                                 length.append(self.get_extended_key_data(location_key_circular)["feature_length"])
                                 length.append(self.get_extended_key_data(location_key_linear)["feature_length"] -
                                               self.get_extended_key_data(location_key_circular)["feature_length"])
@@ -1045,7 +1120,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                                 observed_count_correction = 0
 
                                 if location_key_circular in self.circRNA_buddies:
-                                    #print("buddy pair linear correction: " + location_key_circular + " -> " + self.circRNA_buddies[location_key_circular])
 
                                     if self.circRNA_buddies[location_key_circular] in processed_counts[0][gene]:
 
@@ -1054,9 +1128,6 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                                     if self.circRNA_buddies[location_key_circular] in self.observed_counts[0][gene]:
 
                                         observed_count_correction = self.observed_counts[0][gene][self.circRNA_buddies[location_key_circular]]
-
-                                    #print("buddy pair linear correction raw: " + str(shuffled_value) + " -> " + str(count_correction))
-                                    #print("buddy pair linear correction obs: " + str(observed_value_dict[location_key_new]) + " -> " + str(observed_count_correction))
 
                             if shuffled_value-circ_count-count_correction > observed_value_dict[location_key_new] - observed_count_correction:
 
@@ -1080,15 +1151,10 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                         observed_count_correction = 0
 
                         if location_key in self.circRNA_buddies:
-                            #print("buddy pair: " + location_key + " -> " + self.circRNA_buddies[location_key])
 
                             if self.circRNA_buddies[location_key] in processed_counts[0][gene]:
                                 count_correction = processed_counts[0][gene][self.circRNA_buddies[location_key]]
                                 observed_count_correction = self.observed_counts[0][gene][self.circRNA_buddies[location_key]]
-
-                            #print("buddy pair raw: " + str(shuffled_value) + " -> " + str(count_correction))
-                            #print("buddy pair obs: " + str(observed_value_dict[location_key]) + " -> " + str(observed_count_correction))
-                        # print(gene + "->" + str(rna_type) +  " -> " + str(shuffled_value) +  " -> "  + location_key)
 
                         if shuffled_value + count_correction > observed_value_dict[location_key] + observed_count_correction:
 
@@ -1113,9 +1179,18 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
         Returns a list of bedtools intersection outputs: circular [0] and linear RNA [1] intersection counts
         """
 
-        # get circular and linear intersect
-        circular_intersect = self.do_intersection(shuffled_peaks[iteration], circ_rna_bed)
-        linear_intersect = self.do_intersection(shuffled_peaks[iteration], annotation_bed)
+        if not self.cli_params.whitelist:
+            # get circular and linear intersect
+            circular_intersect = self.do_intersection(shuffled_peaks[iteration], circ_rna_bed)
+            linear_intersect = self.do_intersection(shuffled_peaks[iteration], annotation_bed)
+        else:
+            # get circular and circular intersect for enriched / non enriched exons
+
+            # the enriched exons
+            circular_intersect = self.do_intersection(shuffled_peaks[iteration], self.whitelist_fg)
+
+            # the "normal" exons are running as linear from here on
+            linear_intersect = self.do_intersection(shuffled_peaks[iteration], circ_rna_bed)
 
         # process results of the intersects
         intersects = [circular_intersect, linear_intersect]
