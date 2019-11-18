@@ -165,7 +165,8 @@ setup(
         'pybedtools>=0.7.10',
         'biopython >= 1.71',
         'scipy>=0.19.0',
-        'reportlab>=3.3.0'
+        'reportlab>=3.3.0',
+        'pandas>=0.25.0'
     ],
 
     python_requires='>=3.4',
