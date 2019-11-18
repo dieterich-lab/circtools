@@ -80,7 +80,7 @@ class Primex(circ_module.circ_template.CircTemplate):
         elif organism == "rn":
             blast_db = self.rattus_norvegicus_blast_db
         elif organism == "ss":
-            blast_db = self.rattus_norvegicus_blast_db
+            blast_db = self.sus_scrofa_blast_db
 
         return_handle = NCBIWWW.qblast("blastn",
                                        blast_db,
