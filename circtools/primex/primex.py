@@ -19,6 +19,8 @@ import circ_module.circ_template
 
 import os
 import sys
+import string
+import random
 
 import pybedtools
 from Bio.Blast import NCBIWWW
@@ -189,9 +191,13 @@ class Primex(circ_module.circ_template.CircTemplate):
         circ_rna_number = 0
 
         # define temporary files
-        exon_storage_tmp = self.temp_dir + "circtools_flanking_exons.tmp"
-        blast_storage_tmp = self.temp_dir + "circtools_blast_results.tmp"
-        blast_xml_tmp = self.temp_dir + "circtools_blast_results.xml"
+
+        letters = string.ascii_letters
+        tmp_prefix =  ''.join(random.choice(letters) for i in range(10))
+
+        exon_storage_tmp = self.temp_dir + tmp_prefix + "_circtools_flanking_exons.tmp"
+        blast_storage_tmp = self.temp_dir + tmp_prefix + "_circtools_blast_results.tmp"
+        blast_xml_tmp = self.temp_dir + tmp_prefix + "_circtools_blast_results.xml"
 
         output_html_file = self.output_dir + self.experiment_title.replace(" ", "_") + ".html"
 
@@ -601,3 +607,10 @@ class Primex(circ_module.circ_template.CircTemplate):
                          y=0.00, start=0, end=circrna_length-1)
 
                 gdd.write(self.output_dir + "/" + circular_rna_id_isoform + ".svg", "svg")
+
+        print("Cleaning up")
+
+        # cleanup / delete tmp files
+        os.remove(exon_storage_tmp)
+        os.remove(blast_storage_tmp)
+        os.remove(blast_xml_tmp)
