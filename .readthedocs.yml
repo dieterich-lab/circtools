@@ -1,7 +1,5 @@
-version: 2
+build:
+    image: latest
 
 python:
-  version: 3.5
-  install:
-     - method: pip
-       path: .
+    version: 3.6
