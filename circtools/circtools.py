@@ -602,8 +602,8 @@ class CircTools(object):
 
         parser.add_argument_group(group)
 
-        import os
-        os.system("DCC " + " ".join(sys.argv[2:]))
+        import DCC
+        DCC.main(parser)
 
     @staticmethod
     def circtest():
@@ -1059,9 +1059,8 @@ class CircTools(object):
         parser.add_argument('-P', '--cpus', dest='num_cpus', default=4, type=int,
                             help='Number of CPUs used.')
 
-        import os
-        os.system("FUCHS " + " ".join(sys.argv[2:]))
-
+        import FUCHS
+        FUCHS.main(parser)
 
 if __name__ == "__main__":
     main()

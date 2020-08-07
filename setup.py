@@ -30,14 +30,14 @@ class PostInstallCommand(install):
 
         import subprocess
 
-        import os
-        # read the docs does not need any further dependencies, just the doc code
-        if not os.environ.get('READTHEDOCS') == 'True':
-
-            subprocess.check_call(["bash", "scripts/install_create_r_environ.sh"])
-            subprocess.check_call(["bash", "scripts/install_external.sh"])
-            subprocess.check_call(["bash", "scripts/install_add_to_bashrc.sh"])
-
+        # import os
+        # # read the docs does not need any further dependencies, just the doc code
+        # if not os.environ.get('READTHEDOCS') == 'True':
+        #
+        #     subprocess.check_call(["bash", "scripts/install_create_r_environ.sh"])
+        #     subprocess.check_call(["bash", "scripts/install_external.sh"])
+        #     subprocess.check_call(["bash", "scripts/install_add_to_bashrc.sh"])
+        #
         install.run(self)
         # place for post install commands
 
@@ -50,8 +50,8 @@ if sys.version_info.major < 3:
              'Did you run pip install circtools?\n'
              'Try \'pip3 install circtools\'')
 
-elif sys.version_info.minor < 4:
-    sys.exit('\nSorry, Python < 3.4 is not supported\n')
+elif sys.version_info.minor < 5:
+    sys.exit('\nSorry, Python < 3.5 is not supported\n')
 
 # Get the long description from the relevant file
 with open(path.join(here, 'README.rst')) as f:
@@ -63,7 +63,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='1.1.0.8',
+    version='1.2',
 
     description='circtools - a circular RNA toolbox',
     long_description=long_description,
@@ -108,9 +108,11 @@ setup(
         # 'Programming Language :: Python :: 3',
         # 'Programming Language :: Python :: 3.2',
         # 'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
+        # 'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
 
     ],
 
@@ -126,17 +128,18 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        'HTSeq>=0.11.0',
-        'pysam >= 0.13',
-        'numpy>=1.14.5',
-        'pybedtools>=0.7.10',
-        'biopython >= 1.71',
-        'scipy>=0.19.0',
-        'reportlab>=3.3.0',
-        'pandas>=0.25.0'
+       'HTSeq >= 0.11.0',
+       'pysam >= 0.13',
+       'numpy >= 1.14.5',
+       'pybedtools >= 0.7.10',
+       'biopython >= 1.71',
+       'scipy >= 0.19.0',
+       'reportlab >= 3.3.0',
+       'pandas >= 0.25.0',
+       'statsmodels >= 0.9.0'
     ],
 
-    python_requires='>=3.4',
+    python_requires='>3.5',
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
@@ -202,10 +205,10 @@ setup(
         'install': PostInstallCommand,
     },
 
-    project_urls={  # Optional
-        'Bug Reports': 'https://github.com/dieterich-lab/circtools/issues',
-        'Dieterich Lab': 'https://dieterichlab.org',
-        'Source': 'https://github.com/dieterich-lab/circtools',
-        'Documentation': 'http://docs.circ.tools'
-},
+#     project_urls={  # Optional
+#         'Bug Reports': 'https://github.com/dieterich-lab/circtools/issues',
+#         'Dieterich Lab': 'https://dieterichlab.org',
+#         'Source': 'https://github.com/dieterich-lab/circtools',
+#         'Documentation': 'http://docs.circ.tools'
+# },
 )
