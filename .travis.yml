@@ -53,7 +53,8 @@ env:
   - TRAVISBUILD="True", INSTALL_R_PACKAGES=True
 
 install:
-  - pip3 install . --upgrade --force -v
+ # - pip3 install . --upgrade --force -v
+  - pip install -U git+https://github.com/dieterich-lab/circtools.git@devel
 
 script:
     - circtools --version
