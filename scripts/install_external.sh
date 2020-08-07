@@ -57,18 +57,18 @@ fi
 
 # install DCC
 cd /tmp/
-git clone https://github.com/dieterich-lab/DCC.git
+git clone https://github.com/dieterich-lab/DCC.git -b devel
 cd DCC
-python2 setup.py install --user
+python3 setup.py install
 
 # install FUCHS
 cd ..
-git clone https://github.com/dieterich-lab/FUCHS.git
+git clone https://github.com/dieterich-lab/FUCHS.git -b FUCHS-0.3
 cd FUCHS
-python2 setup.py install --user
+python3 setup.py install
 
 
 # remove all temporary files
-#rm /tmp/FUCHS/ -rf
-#rm /tmp/DCC/ -rf
+rm /tmp/FUCHS/ -rf
+rm /tmp/DCC/ -rf
 
