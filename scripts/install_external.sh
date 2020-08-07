@@ -19,9 +19,9 @@ function install_bedtools {
     cd /tmp/
 
     if [[ "$OSTYPE" == "linux-gnu" ]]; then
-        wget https://github.com/arq5x/bedtools2/releases/download/v2.27.1/bedtools-2.27.1.tar.gz
+        wget https://github.com/arq5x/bedtools2/releases/download/v2.29.2/bedtools-2.29.2.tar.gz
     elif [[ "$OSTYPE" == "darwin"* ]]; then
-        curl -O https://github.com/arq5x/bedtools2/releases/download/v2.27.1/bedtools-2.27.1.tar.gz
+        curl -O https://github.com/arq5x/bedtools2/releases/download/v2.29.2/bedtools-2.29.2.tar.gz
     else
         echo "Sorry, this OS type not supported. Please contact circtools@dieterichlab.org for help."
     fi
