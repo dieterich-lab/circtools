@@ -36,9 +36,6 @@ function install_bedtools {
     # rm /tmp/bedtools2 -rf
 }
 
-# install statsmodels first, does not work in setup.py due to
-# https://github.com/dieterich-lab/circtools/issues/55
-pip3 install statsmodels==0.9.0 --user
 
 # install dependencies for R first
 Rscript scripts/install_R_dependencies.R
