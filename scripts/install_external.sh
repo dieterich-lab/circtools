@@ -33,7 +33,7 @@ function install_bedtools {
     cp -av bin/* $HOME/.local/bin/
     # mkdir -p  $HOME/.local/share/bedtools/
     # cp genomes -av $HOME/.local/share/bedtools/
-    # rm /tmp/bedtools2 -rf
+    rm /tmp/bedtools2 -rf
 }
 
 
