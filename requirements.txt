@@ -1,7 +1,9 @@
 HTSeq>=0.11.0
-pysam >= 0.13
+pysam>=0.13
 numpy>=1.14.5
 pybedtools>=0.7.10
 biopython >= 1.71
 scipy>=0.19.0
 reportlab>=3.3.0
+FUCHS>=0.3.0
+DCC>=0.5.0

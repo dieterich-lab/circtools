@@ -19,9 +19,9 @@ function install_bedtools {
     cd /tmp/
 
     if [[ "$OSTYPE" == "linux-gnu" ]]; then
-        wget https://github.com/arq5x/bedtools2/releases/download/v2.27.1/bedtools-2.27.1.tar.gz
+        wget https://github.com/arq5x/bedtools2/releases/download/v2.29.2/bedtools-2.29.2.tar.gz
     elif [[ "$OSTYPE" == "darwin"* ]]; then
-        curl -O https://github.com/arq5x/bedtools2/releases/download/v2.27.1/bedtools-2.27.1.tar.gz
+        curl -O https://github.com/arq5x/bedtools2/releases/download/v2.29.2/bedtools-2.29.2.tar.gz
     else
         echo "Sorry, this OS type not supported. Please contact circtools@dieterichlab.org for help."
     fi
@@ -33,12 +33,9 @@ function install_bedtools {
     cp -av bin/* $HOME/.local/bin/
     # mkdir -p  $HOME/.local/share/bedtools/
     # cp genomes -av $HOME/.local/share/bedtools/
-    # rm /tmp/bedtools2 -rf
+    rm /tmp/bedtools2 -rf
 }
 
-# install statsmodels first, does not work in setup.py due to
-# https://github.com/dieterich-lab/circtools/issues/55
-pip3 install statsmodels==0.9.0 --user
 
 # install dependencies for R first
 Rscript scripts/install_R_dependencies.R
@@ -59,19 +56,7 @@ else
 fi
 
 # install DCC
-cd /tmp/
-git clone https://github.com/dieterich-lab/DCC.git
-cd DCC
-python2 setup.py install --user
+pip install -U git+https://github.com/dieterich-lab/DCC.git@devel
 
 # install FUCHS
-cd ..
-git clone https://github.com/dieterich-lab/FUCHS.git
-cd FUCHS
-python2 setup.py install --user
-
-
-# remove all temporary files
-#rm /tmp/FUCHS/ -rf
-#rm /tmp/DCC/ -rf
-
+pip install -U git+https://github.com/dieterich-lab/FUCHS.git@FUCHS-0.3
