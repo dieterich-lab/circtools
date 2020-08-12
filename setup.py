@@ -205,10 +205,10 @@ setup(
         'install': PostInstallCommand,
     },
 
-#     project_urls={  # Optional
-#         'Bug Reports': 'https://github.com/dieterich-lab/circtools/issues',
-#         'Dieterich Lab': 'https://dieterichlab.org',
-#         'Source': 'https://github.com/dieterich-lab/circtools',
-#         'Documentation': 'http://docs.circ.tools'
-# },
+    project_urls={  # Optional
+        'Bug Reports': 'https://github.com/dieterich-lab/circtools/issues',
+        'Dieterich Lab': 'https://dieterichlab.org',
+        'Source': 'https://github.com/dieterich-lab/circtools',
+        'Documentation': 'http://docs.circ.tools'
+},
 )
