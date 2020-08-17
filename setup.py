@@ -108,9 +108,11 @@ setup(
         # 'Programming Language :: Python :: 3',
         # 'Programming Language :: Python :: 3.2',
         # 'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
+        # 'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
 
     ],
 
@@ -126,17 +128,18 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        'HTSeq>=0.11.0',
-        'pysam >= 0.13',
-        'numpy>=1.14.5',
-        'pybedtools>=0.7.10',
-        'biopython >= 1.71',
-        'scipy>=0.19.0',
-        'reportlab>=3.3.0',
-        'pandas>=0.25.0'
+       'HTSeq >= 0.11.0',
+       'pysam >= 0.13',
+       'numpy >= 1.14.5',
+       'pybedtools >= 0.7.10',
+       'biopython >= 1.71',
+       'scipy >= 0.19.0',
+       'reportlab >= 3.3.0',
+       'pandas >= 0.25.0',
+       'statsmodels >= 0.9.0'
     ],
 
-    python_requires='>=3.5',
+    python_requires='>3.5',
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
