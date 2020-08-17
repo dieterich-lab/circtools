@@ -20,7 +20,7 @@
 
 # are we running in an virtual environment?
 
-CIRCTOOLS=`grep circtools ~/.bashrc`
+CIRCTOOLS=`which circtools`
 
 if [ ! "$CIRCTOOLS" ]; then
 
