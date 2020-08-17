@@ -82,7 +82,7 @@ env:
   - TRAVISBUILD="True", INSTALL_R_PACKAGES=True
 
 install:
-  - pip install -U git+https://github.com/dieterich-lab/circtools.git@devel
+  - pip install -U git+https://github.com/dieterich-lab/circtools.git
 
 script:
     - circtools --version
