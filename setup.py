@@ -16,39 +16,6 @@ from setuptools import setup, find_packages
 import sys
 
 
-def query_yes_no(question, default="yes"):
-    """Ask a yes/no question via raw_input() and return their answer.
-
-    "question" is a string that is presented to the user.
-    "default" is the presumed answer if the user just hits <Enter>.
-        It must be "yes" (the default), "no" or None (meaning
-        an answer is required of the user).
-
-    The "answer" return value is True for "yes" or False for "no".
-    """
-    valid = {"yes": True, "y": True, "ye": True,
-             "no": False, "n": False}
-    if default is None:
-        prompt = " [y/n] "
-    elif default == "yes":
-        prompt = " [Y/n] "
-    elif default == "no":
-        prompt = " [y/N] "
-    else:
-        raise ValueError("invalid default answer: '%s'" % default)
-
-    while True:
-        print(question + prompt)
-        choice = input().lower()
-        if default is not None and choice == '':
-            return valid[default]
-        elif choice in valid:
-            return valid[choice]
-        else:
-            print("Please respond with 'yes' or 'no' "
-                  "(or 'y' or 'n').\n")
-
-
 class PostDevelopCommand(develop):
     """Post-installation for development mode."""
 
@@ -64,7 +31,7 @@ class PostInstallCommand(install):
         import subprocess
 
         import os
-        # read the docs does not need any further dependencies, just the doc code
+        # read the docs does not need any further dependencies
         if not os.environ.get('READTHEDOCS') == 'True':
 
             subprocess.check_call(["bash", "scripts/install_create_r_environ.sh"])
@@ -83,8 +50,8 @@ if sys.version_info.major < 3:
              'Did you run pip install circtools?\n'
              'Try \'pip3 install circtools\'')
 
-elif sys.version_info.minor < 4:
-    sys.exit('\nSorry, Python < 3.4 is not supported\n')
+elif sys.version_info.minor < 5:
+    sys.exit('\nSorry, Python < 3.5 is not supported\n')
 
 # Get the long description from the relevant file
 with open(path.join(here, 'README.rst')) as f:
@@ -96,7 +63,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='1.1.0.8',
+    version='1.2.0',
 
     description='circtools - a circular RNA toolbox',
     long_description=long_description,
@@ -169,7 +136,7 @@ setup(
         'pandas>=0.25.0'
     ],
 
-    python_requires='>=3.4',
+    python_requires='>=3.5',
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
