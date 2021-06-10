@@ -1,0 +1,23 @@
+--- wonderdump.sh.orig    2021-06-08 17:22:21.000000000 +0200
++++ wonderdump.sh.patched    2021-06-10 09:39:15.000000000 +0200
+@@ -11,7 +11,7 @@
+ set -ue
+
+ # This is where we will store the file.
+-SRA_DIR=~/ncbi/public/sra
++SRA_DIR=./
+
+ # Make the directory if it does not exist.
+ mkdir -p $SRA_DIR
+@@ -37,9 +37,8 @@
+ # Download only if it does not exist.
+ if [ ! -f $SRA_FILE ];
+ then
+-    PATH1=${SRR:0:6}
+-    PATH2=${SRR:0:10}
+-    URL="ftp://ftp-trace.ncbi.nih.gov/sra/sra-instant/reads/ByRun/sra/SRR/${PATH1}/${PATH2}/${SRR}.sra" 
++    CLEAN_SRR=${SRR:0:10}
++    URL="https://sra-pub-run-odp.s3.amazonaws.com/sra/$CLEAN_SRR/$CLEAN_SRR" 
+     echo "*** Downloading: $URL" 
+     echo "*** Saving to: $SRA_FILE" 
+     curl $URL > $TMP_FILE
