@@ -524,9 +524,12 @@ class CircTools(object):
     @staticmethod
     def detect():
         parser = argparse.ArgumentParser(
-            description="circular RNA detection")
+            description="circular RNA detection",
+            fromfile_prefix_chars="@",
+        )
 
         parser.add_argument("--version", action="version", version=version)
+        parser.add_argument("Command", choices=['detect'])
         parser.add_argument("Input", metavar="Input", nargs="+",
                             help="Input of the Chimeric.out.junction file from STAR. Alternatively, a sample sheet "
                                  "specifying where your chimeric.out.junction files are, each sample per line, "
