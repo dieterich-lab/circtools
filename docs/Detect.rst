@@ -256,7 +256,7 @@ In a first step the paired-end data is mapped by using both mates. If the data i
   # Create a directory for mate1
   $ mkdir mate1
   $ cd mate1
-  $   $ STAR    --runThreadN 10\
+  $ STAR    --runThreadN 10\
             --genomeDir [genome]\
             --genomeLoad NoSharedMemory\
             --readFilesIn Sample1_1.fastq.gz\
@@ -293,7 +293,7 @@ In a first step the paired-end data is mapped by using both mates. If the data i
   # Create a directory for mate2
   $ mkdir mate2
   $ cd mate2
-  $   $ STAR    --runThreadN 10\
+  $ STAR    --runThreadN 10\
             --genomeDir [genome]\
             --genomeLoad NoSharedMemory\
             --readFilesIn Sample1_2.fastq.gz\
