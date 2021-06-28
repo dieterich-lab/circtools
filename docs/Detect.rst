@@ -69,27 +69,35 @@ The raw data of the `Jakobi et al. 2016 <https://www.sciencedirect.com/science/a
 
     cd workflow/reads
 
-    # change the default download directory of wonderdump to current directory
-    sed -i 's/SRA_DIR=~\/ncbi\/public\/sra/SRA_DIR=.\//g' wonderdump.sh
+    # ... place your copy of wonderdump.sh in this directory ...
+    # We need to update it slightly:
+    wget https://raw.githubusercontent.com/dieterich-lab/circtools/master/docs/wonderdump.sh.patch
+    patch wonderdump.sh < wonderdump.sh.patch
 
     # get list of accession numbers to download
     # also get a mapping file from SRA accession to original file name
     wget https://data.dieterichlab.org/s/jakobi2016_sra_list/download -O jakobi2016_sra_list.txt
+    dos2unix jakobi2016_sra_list.txt
     wget https://data.dieterichlab.org/s/sra_mapping/download -O mapping.txt
+    dos2unix mapping.txt
 
     # downloading and rewriting the files as gzipped .fastq files will take some time
     # in the end, the process will generate a set of 16 files (8 samples x 2 pairs)
 
     # start wonderdump with the accession list and download data (~29GB)
-    cat jakobi2016_sra_list.txt | xargs -n 1 echo ./wonderdump.sh --split-files --gzip | bash
+    for i in $( jakobi2016_sra_list.txt )
+    do
+        ./wonderdump.sh --split-files --gzip "$i" &
+        sleep 60
+    done
 
     # rename files from SRA accessions to file names used throughout this tutorial
 
     # for mate 1:
-    parallel --link ln -s {2}_1.fastq {1}1.fastq :::: mapping.txt :::: jakobi2016_sra_list.txt
+    parallel --link ln -s {2}_1.fastq.gz {1}1.fastq.gz :::: mapping.txt :::: jakobi2016_sra_list.txt
 
     # for mate 2:
-    parallel --link ln -s {2}_2.fastq {1}2.fastq :::: mapping.txt :::: jakobi2016_sra_list.txt
+    parallel --link ln -s {2}_2.fastq.gz {1}2.fastq.gz :::: mapping.txt :::: jakobi2016_sra_list.txt
 
 
 
@@ -169,17 +177,28 @@ Essentially, the wrapper script for STAR performs the following tasks:
 * Map the unmapped reads of read 1 or read 2 again against the reference genome without the corresponding paired partner
 * Several conversion and cleanup steps of the STAR output
 
+Please note that the supplied examples are a little aged and will not work with the latest STAR version. Version 2.6.1d is known to work while version 2.7.0f and newer does not.
+
 .. code-block:: bash
 
     # download wrapper for STAR
     wget https://raw.githubusercontent.com/dieterich-lab/bioinfo-scripts/master/slurm_circtools_detect_paired_mapping.sh
     chmod 755 slurm_circtools_detect_paired_mapping.sh
+
+To allow this script to work the following changes are needed:
+
+* Remove the '--chimMultimapNmax 20' options.
+* Change the '--chimOutType' options to '--chimOutType Junctions SeparateSAMold'.
+
+.. code-block:: bash
     mkdir star/
     # obtain the annotation of the mouse genome for splice junctions
     wget ftp://ftp.ensembl.org/pub/release-90/gtf/mus_musculus/Mus_musculus.GRCm38.90.gtf.gz
     gzip -d Mus_musculus.GRCm38.90.gtf.gz
     cd rrna/
-    pd -j1 --xapply ../slurm_circtools_detect_paired_mapping.sh ../folder/to/star/index/ {1} {2} ../star/ .1 ../Mus_musculus.GRCm38.90.gtf
+    ls -1 ALL_*.1.gz >input1
+    ls -1 ALL_*.2.gz >input2
+    parallel --gnu --xapply ../slurm_circtools_detect_paired_mapping.sh ../folder/to/star/index/ {1} {2} ../star/ .1 ../Mus_musculus.GRCm38.90.gtf :::: input1 :::: input2
 
 
 Manual mapping process
@@ -237,7 +256,7 @@ In a first step the paired-end data is mapped by using both mates. If the data i
   # Create a directory for mate1
   $ mkdir mate1
   $ cd mate1
-  $   $ STAR    --runThreadN 10\
+  $ STAR    --runThreadN 10\
             --genomeDir [genome]\
             --genomeLoad NoSharedMemory\
             --readFilesIn Sample1_1.fastq.gz\
@@ -274,7 +293,7 @@ In a first step the paired-end data is mapped by using both mates. If the data i
   # Create a directory for mate2
   $ mkdir mate2
   $ cd mate2
-  $   $ STAR    --runThreadN 10\
+  $ STAR    --runThreadN 10\
             --genomeDir [genome]\
             --genomeLoad NoSharedMemory\
             --readFilesIn Sample1_2.fastq.gz\
@@ -335,15 +354,15 @@ We first create a new folder for the circtools detection step and populate that 
     cd star/
 
     # link aligned reads (bam files) and indexing files for the aligned reads (.bai)
-    parallel --plus ln -s `pwd`/{}/Aligned.noS.bam /scratch/tjakobi/circtools_workflow/workflow/circtools/01_detect/{}.bam ::: ALL_1654_*
-    parallel --plus ln -s `pwd`/{}/Aligned.noS.bam.bai /scratch/tjakobi/circtools_workflow/workflow/circtools/01_detect/{}.bam.bai ::: ALL_1654_*
+    parallel --plus ln -s $(pwd)/{}/Aligned.noS.bam $(dirname $(pwd))/circtools/01_detect/{}.bam ::: ALL_1654_*
+    parallel --plus ln -s $(pwd)/{}/Aligned.noS.bam.bai $(dirname $(pwd))/circtools/01_detect/{}.bam.bai ::: ALL_1654_*
 
     # link chimeric junction files of the main mapping
-    parallel --plus ln -s `pwd`/{}/Chimeric.out.junction /scratch/tjakobi/circtools_workflow/workflow/circtools/01_detect/{}.Chimeric.out.junction ::: ALL_1654_*
+    parallel --plus ln -s $(pwd)/{}/Chimeric.out.junction $(dirname $(pwd))/circtools/01_detect/{}.Chimeric.out.junction ::: ALL_1654_*
 
     # link chimeric junction files of the single mappings
-    parallel --plus ln -s `pwd`/{}/mate1/Chimeric.out.junction /scratch/tjakobi/circtools_workflow/workflow/circtools/01_detect/{}.mate1.Chimeric.out.junction ::: ALL_1654_*
-    parallel --plus ln -s `pwd`/{}/mate2/Chimeric.out.junction /scratch/tjakobi/circtools_workflow/workflow/circtools/01_detect/{}.mate2.Chimeric.out.junction ::: ALL_1654_*
+    parallel --plus ln -s $(pwd)/{}/mate1/Chimeric.out.junction $(dirname $(pwd))/circtools/01_detect/{}.mate1.Chimeric.out.junction ::: ALL_1654_*
+    parallel --plus ln -s $(pwd)/{}/mate2/Chimeric.out.junction $(dirname $(pwd))/circtools/01_detect/{}.mate2.Chimeric.out.junction ::: ALL_1654_*
 
     cd ..
     cd circtools/01_detect/
@@ -364,7 +383,7 @@ Additionally the newly created files, a reference genome in Fasta format as well
 
     # step two: repeat masker file for the genome build:
     wget https://data.dieterichlab.org/s/mouse_repeats/download -O GRCm38_90_repeatmasker.gtf.bz2
-    bunzip GRCm38_90_repeatmasker.gtf.bz2
+    bunzip2 GRCm38_90_repeatmasker.gtf.bz2
 
 
 Running circtools circRNA detection
@@ -376,20 +395,27 @@ After performing all preparation steps the detection module can now be started:
 
   # Run circtools detection to detect circRNAs, using the Jakobi 2016 data set
 
-  $ circtools detect @samplesheet \ # @ is generally used to specify a file name
-        -mt1 @mate1 \ # mate1 file containing the mate1 independently mapped chimeric.junction.out files
-        -mt2 @mate2 \ # mate2 file containing the mate1 independently mapped chimeric.junction.out files
-        -D \ # run in circular RNA detection mode
-        -R GRCm38_90_repeatmasker.gtf \ # regions in this GTF file are masked from circular RNA detection
-        -an Mus_musculus.GRCm38.90.gtf \ # annotation is used to assign gene names to known transcripts
-        -Pi \ # run in paired independent mode, i.e. use -mt1 and -mt2
-        -F \ # filter the circular RNA candidate regions
-        -M \ # filter out candidates from mitochondrial chromosomes
-        -Nr 5 6 \ minimum count in one replicate [1] and number of replicates the candidate has to be detected in [2]
-        -fg \ # candidates are not allowed to span more than one gene
-        -G \ # also run host gene expression
-        -A Mus_musculus.GRCm38.dna.primary_assembly.fa \ # name of the fasta genome reference file; must be indexed, i.e. a .fai file must be present
+  $ circtools detect @samplesheet \
+        -mt1 @mate1 \
+        -mt2 @mate2 \
+        -B @bam_files.txt \
+        -D \
+        -R GRCm38_90_repeatmasker.gtf \
+        -an ../../Mus_musculus.GRCm38.90.gtf \
+        -Pi \
+        -F \
+        -M \
+        -Nr 5 6 \
+        -fg \
+        -G \
+        -A Mus_musculus.GRCm38.dna.primary_assembly.fa
 
+Circtools with the detect command is mostly a wrapper around the DCC tool.
+To learn more about the options used above please check:
+
+.. code-block:: bash
+
+  $ DCC -h
 
 .. note:: By default, circtools assumes that the data is stranded. For non-stranded data the ``-N`` flag should be used
 
