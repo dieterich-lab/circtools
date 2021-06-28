@@ -410,6 +410,13 @@ After performing all preparation steps the detection module can now be started:
         -G \
         -A Mus_musculus.GRCm38.dna.primary_assembly.fa
 
+Circtools with the detect command is mostly a wrapper a round the DCC tool.
+To learn more about the options used above please check:
+
+.. code-block:: bash
+
+  $ DCC -h
+
 .. note:: By default, circtools assumes that the data is stranded. For non-stranded data the ``-N`` flag should be used
 
 .. note:: Although not mandatory, we strongly recommend to the ``-F`` filtering step
