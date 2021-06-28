@@ -410,7 +410,7 @@ After performing all preparation steps the detection module can now be started:
         -G \
         -A Mus_musculus.GRCm38.dna.primary_assembly.fa
 
-Circtools with the detect command is mostly a wrapper a round the DCC tool.
+Circtools with the detect command is mostly a wrapper around the DCC tool.
 To learn more about the options used above please check:
 
 .. code-block:: bash
