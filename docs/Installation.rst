@@ -19,12 +19,12 @@ The default installation will install everything needed to run circtools *except
 
 .. code-block:: bash
 
-    pip3 install circtools --user # does not require root access, installation to local user directory
+    pip3 install circtools --user
 
-.. code-block:: bash
+Please note:
 
-    pip3 install circtools # will require root access and globally install circtools
-
+* The required R libraries will be installed in the default location in your home directory - unless you set enviromnet variable $R_LIBS_USER.
+* In case want to install globally or into a dedicated 'venv' drop the --user option.
 
 Installation from GitHub
 --------------------------
