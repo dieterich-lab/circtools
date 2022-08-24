@@ -56,7 +56,7 @@ else
 fi
 
 # install DCC
-pip install -U git+https://github.com/dieterich-lab/DCC.git@devel
+pip install -U git+https://github.com/dieterich-lab/DCC.git
 
 # install FUCHS
-pip install -U git+https://github.com/dieterich-lab/FUCHS.git@FUCHS-0.3
+pip install -U git+https://github.com/dieterich-lab/FUCHS.git
