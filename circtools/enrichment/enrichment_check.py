@@ -749,7 +749,7 @@ class EnrichmentModule(circ_module.circ_template.CircTemplate):
                           str(bed_feature[2]) + "_" + \
                           bed_feature[5]
 
-                    # in feature mode, we extend the key by count and feature length
+                    # in feature mode, we extend the ey by count and feature length
                     if self.virtual_inclusion_file_path != "all":
                         key += "_" + str(bed_feature[4])
 
