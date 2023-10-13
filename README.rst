@@ -8,6 +8,8 @@
 
 |docs| |build| |zenodo| |downloads| |pypi|
 
+This is an older version of circtools (version 1.2.2). The latest version (1.3.1) can be obtained from https://github.com/jakobilab/circtools.
+
 Introduction
 -------------
 
