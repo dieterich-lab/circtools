@@ -20,7 +20,7 @@ from itertools import groupby
 parser = argparse.ArgumentParser()
 parser.add_argument("-db", help="The genome fasta file")
 parser.add_argument("-bed", help="BED file with BSJs coordinates")
-parser.add_argument("-fo", help="BED file with BSJs coordinates")
+parser.add_argument("-fo", help="Output fasta file with sequences")
 args = parser.parse_args()
 #print(args)
 #print(args.db, args.bed)
